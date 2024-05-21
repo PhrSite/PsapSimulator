@@ -1,0 +1,366 @@
+/////////////////////////////////////////////////////////////////////////////////////
+//  File:   Form1.cs                                                2 Feb 24 PHR
+/////////////////////////////////////////////////////////////////////////////////////
+
+using PsapSimulator.CallManagement;
+using PsapSimulator.Settings;
+using SipLib.Network;
+using SipLib.Logging;
+using System.Net;
+using System.Diagnostics;
+using PsapSimulator.WindowsVideo;
+
+namespace PsapSimulator;
+
+/// <summary>
+/// Main form class for this application
+/// </summary>
+public partial class Form1 : Form
+{
+    private string? m_CurrentCallID = null;
+    private CallForm? m_CallForm = null;
+    private Dictionary<string, List<VideoDeviceFormat>>? m_VideoDevices = null;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public Form1()
+    {
+        InitializeComponent();
+
+    }
+
+    private void CloseBtn_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
+
+    private void SettingsBtn_Click(object sender, EventArgs e)
+    {
+        AppSettings appSettings = AppSettings.GetAppSettings();
+        AppSettings temp = (AppSettings)Utils.CopyObject(appSettings);
+        SettingsForm settingsForm = new SettingsForm(temp, m_VideoDevices!);
+        DialogResult result = settingsForm.ShowDialog();
+        if (result == DialogResult.OK)
+            AppSettings.SaveAppSettings(temp);
+    }
+
+    private async void Form1_Load(object sender, EventArgs e)
+    {
+        SetCallListViewColumns();
+        m_VideoDevices = await VideoDeviceEnumerator.GetVideoFrameSources();
+    }
+
+    private void SetCallListViewColumns()
+    {
+        int ColWidth = CallListView.ClientRectangle.Width / CallListView.Columns.Count - 4;
+        for (int i = 0; i < CallListView.Columns.Count; i++)
+        {
+            CallListView.Columns[i].Width = ColWidth;
+        }
+
+    }
+
+    private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+    {
+
+    }
+
+    private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        await ShutdownCallManager();
+    }
+
+    private void Form1_SizeChanged(object sender, EventArgs e)
+    {
+        SetCallListViewColumns();
+    }
+
+    private CallManager? m_CallManager = null;
+
+    private async void StartBtn_Click(object sender, EventArgs e)
+    {
+        if (m_CallManager == null)
+        {
+            AppSettings appSettings = AppSettings.GetAppSettings();
+            if (OkToStart(appSettings) == false)
+                return;     // The user has already been notified of the problem.
+
+            try
+            {
+                m_CallManager = new CallManager(appSettings);
+            }
+            catch (Exception ex)
+            {
+                string strMessage = "Unable to start the call manager. See the log file located " +
+                    $"in: '{Program.LoggingDirectory}'";
+                MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SipLogger.LogCritical(ex, "Unable to start the call manager");
+                return;
+            }
+
+            m_CallManager.NewCall += OnNewCall;
+            m_CallManager.CallEnded += OnCallEnded;
+            m_CallManager.CallStateChanged += OnCallStateChanged;
+
+            await m_CallManager.Start();
+            StartBtn.Text = "Stop";
+        }
+        else
+        {
+            await ShutdownCallManager();
+            StartBtn.Text = "Start";
+        }
+    }
+
+    private async Task ShutdownCallManager()
+    {
+        if (m_CallManager == null)
+            return;
+
+        m_CallManager.NewCall -= OnNewCall;
+        m_CallManager.CallEnded -= OnCallEnded;
+        m_CallManager.CallStateChanged -= OnCallStateChanged;
+
+        await m_CallManager.Shutdown();
+        m_CallManager = null;
+    }
+
+    private bool OkToStart(AppSettings appSettings)
+    {
+        NetworkSettings Ns = appSettings.NetworkSettings;
+        if (Ns.EnableIPv4 == true)
+        {   // Make sure that the configured IPv4 address is available
+            if (IpAddressExists(Ns.IPv4Address!, IpUtils.GetIPv4Addresses(), "IPv4") == false)
+                return false;
+        }
+
+        if (Ns.EnableIPv6 == true)
+        {   // Make sure that the configured IPv6 address is available
+            if (IpAddressExists(Ns.IPv6Address!, IpUtils.GetIPv6Addresses(), "IPv6") == false)
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool IpAddressExists(string ipAddress, List<IPAddress> addresses, string networkType)
+    {
+        foreach (IPAddress ip in addresses)
+        {
+            if (ipAddress == ip.ToString())
+                return true;
+        }
+
+        SipLogger.LogError($"Unable to start because the {networkType} address '{ipAddress}' is not available.");
+        MessageBox.Show($"The {networkType} address: {ipAddress} is not available. Select an available " +
+            $"{networkType} address in the Network tab in the Settings dialog box", "Error", MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
+        return false;
+    }
+
+    private void OnNewCall(CallSummary callSummary)
+    {
+        // For debug only
+        Debug.WriteLine($"In OnNewCall(), ThreadID = {Thread.CurrentThread.ManagedThreadId}");
+
+        BeginInvoke(() => { AddNewCall(callSummary); });
+    }
+
+    private const int FromIndex = 0;
+    private const int StartTimeIndex = 1;
+    private const int CallStateIndex = 2;
+    private const int QueueURIIndex = 3;
+    private const int ConferencedIndex = 4;
+    private const int CallMediaIndex = 5;
+
+    private void AddNewCall(CallSummary callSummary)
+    {
+        // For debug only
+        Debug.WriteLine($"In AddNewCall(), ThreadID = {Thread.CurrentThread.ManagedThreadId}");
+        ListViewItem Lvi = new ListViewItem(callSummary.From);
+
+        Lvi.SubItems.Add(callSummary.StartTime.ToString("HH:mm:ss"));
+        Lvi.SubItems.Add(Call.CallStateToString(callSummary.CallState));
+        Lvi.SubItems.Add(callSummary.QueueURI);
+        Lvi.SubItems.Add(callSummary.Conferenced.ToString());
+        Lvi.SubItems.Add(callSummary.CallMedia);
+        Lvi.Tag = callSummary.CallID;
+        CallListView.Items.Add(Lvi);
+
+        UpdateCallCounts();
+    }
+
+    private void OnCallStateChanged(CallSummary callSummary)
+    {
+        BeginInvoke(() => { UpdateCallState(callSummary); });
+    }
+
+    private void UpdateCallState(CallSummary callSummary)
+    {
+        ListViewItem? Lvi = FindCallListViewItem(callSummary.CallID);
+        if (Lvi == null)
+            return;     // Error: call not found
+
+        Lvi.SubItems[CallStateIndex].Text = callSummary.CallState.ToString();
+        Lvi.SubItems[ConferencedIndex].Text = callSummary.Conferenced.ToString();
+        Lvi.SubItems[CallMediaIndex].Text = callSummary.CallMedia;
+
+        UpdateCallCounts();
+    }
+
+    private void UpdateCallCounts()
+    {
+        CallCounts callCounts = m_CallManager!.GetCallCounts();
+        TotalCallsLbl.Text = callCounts.TotalCalls.ToString();
+        RingingLbl.Text = callCounts.Ringing.ToString();
+        AnsweredLbl.Text = callCounts.AutoAnswered.ToString();
+        OnLineLbl.Text = callCounts.OnLine.ToString();
+        HoldLbl.Text = callCounts.OnHold.ToString();
+    }
+
+    private void ShowCallForm(string callID)
+    {
+        if (m_CallForm != null && m_CurrentCallID != null && m_CurrentCallID != callID)
+        {
+            m_CallForm.Close();
+            m_CallForm = null;
+            m_CurrentCallID = null;
+        }
+
+        Call? call = m_CallManager!.GetCall(callID);
+        if (call == null)
+        {
+            return;
+        }
+
+        m_CurrentCallID = callID;
+        m_CallForm = new CallForm(m_CallManager, call);
+        //m_CallForm.WindowState = FormWindowState.Maximized;
+        m_CallForm.ShowDialog();
+
+        m_CurrentCallID = null;
+        m_CallForm = null;
+    }
+
+    private void OnCallEnded(string callID)
+    {
+        BeginInvoke(() => { RemoveCall(callID); });
+    }
+
+    private void RemoveCall(string callID)
+    {
+        ListViewItem? lvi = FindCallListViewItem(callID);
+        if (lvi != null)
+            CallListView.Items.Remove(lvi);
+
+        UpdateCallCounts();
+    }
+
+    private ListViewItem? FindCallListViewItem(string callID)
+    {
+        ListViewItem? callLvi = null;
+        foreach (ListViewItem lvi in CallListView.Items)
+        {
+            if (lvi.Tag != null && lvi.Tag.ToString() == callID)
+                return lvi;
+        }
+
+        return callLvi;
+    }
+
+    private void AnswerBtn_Click(object sender, EventArgs e)
+    {
+        if (m_CallManager == null)
+            return;
+
+        m_CallManager.Answer();
+    }
+
+    private string? GetSelecteCallID()
+    {
+        string? callID = null;
+        if (CallListView.SelectedIndices.Count > 0)
+        {
+            int index = CallListView.SelectedIndices[0];
+            callID = CallListView.Items[index].Tag!.ToString();
+
+        }
+
+        return callID;
+    }
+
+    private void Pickup_Click(object sender, EventArgs e)
+    {
+        if (m_CallManager == null)
+        {
+            MessageBox.Show("Not currently listening for calls", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        if (CallListView.Items.Count == 0)
+        {
+            MessageBox.Show("No calls to pick up", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        string? callID = GetSelecteCallID();
+        if (callID == null)
+        {
+            MessageBox.Show("Please select a call to pickup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        if (m_CallForm == null)
+        {
+            ShowCallForm(callID);
+            m_CurrentCallID = null;
+            m_CallForm = null;
+        }
+
+        //m_CallManager.PickupCall(callID);
+    }
+
+    private void EndCallBtn_Click(object sender, EventArgs e)
+    {
+        if (m_CallManager == null)
+        {
+            MessageBox.Show("Not currently listening for calls", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        string? callID = GetSelecteCallID();
+        if (callID == null)
+        {
+            MessageBox.Show("Please select a call to end", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        m_CallManager.EndCall(callID);
+    }
+
+    private void HoldBtn_Click(object sender, EventArgs e)
+    {
+        if (m_CallManager == null)
+        {
+            MessageBox.Show("Not currently listening for calls", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        string? callID = GetSelecteCallID();
+        if (callID == null)
+        {
+            MessageBox.Show("Please select a call to put on hold", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        m_CallManager.PutCallOnHold(callID);
+    }
+
+
+    private void EndAllBtn_Click(object sender, EventArgs e)
+    {
+        m_CallManager?.EndAllCalls();
+    }
+
+}
