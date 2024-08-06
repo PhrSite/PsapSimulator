@@ -53,6 +53,7 @@ public partial class SettingsForm : Form
         Ns.MediaPorts.VideoPorts = GetMediaPortRange(VideoRow);
         Ns.MediaPorts.RttPorts = GetMediaPortRange(RttRow);
         Ns.MediaPorts.MsrpPorts = GetMediaPortRange(MsrpRow);
+        Ns.UseMutualTlsAuthentication = MutualAuthCheck.Checked;
 
         // Identity tab
         IdentitySettings Is = m_AppSettings.Identity;
@@ -477,6 +478,8 @@ public partial class SettingsForm : Form
         EnableUdpCb.Checked = m_AppSettings.NetworkSettings.EnableUdp;
         EnableTcpCb.Checked = m_AppSettings.NetworkSettings.EnableTcp;
         EnableTlsCb.Checked = m_AppSettings.NetworkSettings.EnableTls;
+
+        MutualAuthCheck.Checked = m_AppSettings.NetworkSettings.UseMutualTlsAuthentication;
 
         MediaPortSettings Mps = m_AppSettings.NetworkSettings.MediaPorts;
         PortsGridView.Rows.Add("Audio", Mps.AudioPorts.StartPort, Mps.AudioPorts.Count);

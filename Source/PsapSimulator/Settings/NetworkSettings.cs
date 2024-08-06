@@ -61,6 +61,11 @@ public class NetworkSettings
     public MediaPortSettings MediaPorts { get; set; } = new MediaPortSettings();
     
     /// <summary>
+    /// If true, then use mutual TLS authentication for SIP TLS connections both as a server and as a client.
+    /// </summary>
+    public bool UseMutualTlsAuthentication { get; set; } = true;
+
+    /// <summary>
     /// Constructor
     /// </summary>
     public NetworkSettings()

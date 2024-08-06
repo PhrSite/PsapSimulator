@@ -32,6 +32,9 @@ using SIPSorceryMedia.FFmpeg;
 
 using PsapSimulator.WindowsVideo;
 using SIPSorceryMedia.Abstractions;
+using System.DirectoryServices.ActiveDirectory;
+using System.Net.Security;
+using System.Security.Cryptography.Xml;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -202,7 +205,9 @@ public class CallManager
             if (Ns.EnableTls == true)
             {
                 Ipe = new IPEndPoint(Ipr, Ns.SipsPort);
-                m_SipChannels.Add(new SIPTLSChannel(m_Certificate, Ipe, UserName));
+                SIPTLSChannel sipTlsChannel = new SIPTLSChannel(m_Certificate, Ipe, UserName, 
+                    Ns.UseMutualTlsAuthentication);
+                m_SipChannels.Add(sipTlsChannel);
             }
         }
 
@@ -250,6 +255,12 @@ public class CallManager
         await OnHoldCapture.StartCapture();
 
         m_Started = true;
+    }
+
+    private bool ValidateClientTlsCertificate(X509Certificate? certificate, X509Chain? chain,
+        SslPolicyErrors? sslPolicyErrors)
+    {
+        return true;
     }
 
     /// <summary>
@@ -463,8 +474,8 @@ public class CallManager
         if (call == null)
             return;     // Call already ended
 
-        if (call.CallState == CallStateEnum.OnLine || call.CallState == CallStateEnum.OnLine ||
-            call.CallState == CallStateEnum.AutoAnswered || call.CallState == CallStateEnum.OnHold)
+        if (call.CallState == CallStateEnum.OnLine || call.CallState == CallStateEnum.AutoAnswered || 
+            call.CallState == CallStateEnum.OnHold)
         {
             SIPRequest ByeRequest = SipUtils.BuildByeRequest(call.InviteRequest!, call.sipTransport!.SipChannel,
                 call.RemoteIpEndPoint!, call.IsIncoming, call.LastInviteSequenceNumber, call.OKResponse!);
@@ -733,7 +744,7 @@ public class CallManager
                 ProcessByeRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.ACK:
-                //ProcessCancelRequest(sipRequest, remoteEndPoint, sipTransport);
+                //ProcessCancelRequest(request, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.CANCEL:
                 ProcessCancelRequest(sipRequest, remoteEndPoint, sipTransport);
@@ -1318,7 +1329,7 @@ public class CallManager
         return AnswerSdp;
     }
 
-    private void OnServerInviteTransactionComplete(SIPRequest sipRequest, SIPResponse sipResponse,
+    private void OnServerInviteTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
         IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
     {
 
@@ -1339,9 +1350,9 @@ public class CallManager
 
         m_Calls.TryRemove(call.CallID, out call);
 
-        SIPResponse cancel = SipUtils.BuildResponse(call!.InviteRequest!, SIPResponseStatusCodesEnum.RequestTerminated,
-            "Request Terminated", call.sipTransport!.SipChannel, UserName);
-        call.serverInviteTransaction!.SendResponse(cancel);
+        SIPResponse reqTerminated = SipUtils.BuildResponse(call!.InviteRequest!, SIPResponseStatusCodesEnum.
+            RequestTerminated, "Request Terminated", call.sipTransport!.SipChannel, UserName);
+        call.serverInviteTransaction!.SendResponse(reqTerminated);
 
         // Notify the application
         CallEnded?.Invoke(call.CallID);

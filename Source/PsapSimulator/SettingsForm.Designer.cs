@@ -130,6 +130,7 @@
             SipRecBtn = new Button();
             SaveBtn = new Button();
             CancelBtn = new Button();
+            MutualAuthCheck = new CheckBox();
             tabControl1.SuspendLayout();
             NetworkPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PortsGridView).BeginInit();
@@ -166,6 +167,7 @@
             // 
             // NetworkPage
             // 
+            NetworkPage.Controls.Add(MutualAuthCheck);
             NetworkPage.Controls.Add(EnableTlsCb);
             NetworkPage.Controls.Add(EnableTcpCb);
             NetworkPage.Controls.Add(EnableUdpCb);
@@ -995,9 +997,9 @@
             // 
             DevicesPage.Controls.Add(groupBox8);
             DevicesPage.Controls.Add(groupBox7);
-            DevicesPage.Location = new Point(4, 40);
+            DevicesPage.Location = new Point(4, 29);
             DevicesPage.Name = "DevicesPage";
-            DevicesPage.Size = new Size(839, 580);
+            DevicesPage.Size = new Size(839, 591);
             DevicesPage.TabIndex = 4;
             DevicesPage.Text = " Devices ";
             DevicesPage.UseVisualStyleBackColor = true;
@@ -1172,6 +1174,16 @@
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
             // 
+            // MutualAuthCheck
+            // 
+            MutualAuthCheck.AutoSize = true;
+            MutualAuthCheck.Location = new Point(311, 523);
+            MutualAuthCheck.Name = "MutualAuthCheck";
+            MutualAuthCheck.Size = new Size(388, 35);
+            MutualAuthCheck.TabIndex = 12;
+            MutualAuthCheck.Text = "Use Mutual SIP TLS Authentication";
+            MutualAuthCheck.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -1330,5 +1342,6 @@
         private Button RestoreCallHoldDefaultsBtn;
         private Label EventLoggingLbl;
         private Label SipRecLbl;
+        private CheckBox MutualAuthCheck;
     }
 }
