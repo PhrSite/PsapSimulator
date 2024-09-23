@@ -21,7 +21,7 @@ using SipLib.Rtp;
 
 using WindowsWaveAudio;
 using System.Diagnostics;
-using System.Text;
+
 using SipLib.RealTimeText;
 using SipLib.Msrp;
 using Pidf;
@@ -31,10 +31,7 @@ using HttpUtils;
 using SIPSorceryMedia.FFmpeg;
 
 using PsapSimulator.WindowsVideo;
-using SIPSorceryMedia.Abstractions;
-using System.DirectoryServices.ActiveDirectory;
 using System.Net.Security;
-using System.Security.Cryptography.Xml;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -59,6 +56,8 @@ public class CallManager
     private SdpAnswerSettings m_AnswerSettings;
 
     private WindowsAudioIo? m_WaveAudio = null;
+
+    public event CallManagerErrorDelegate? CallManagerError;
 
     public StaticImageCapture? CameraDisabledCapture = null;
     public StaticImageCapture? AutoAnswerCapture = null;
@@ -255,6 +254,7 @@ public class CallManager
         await OnHoldCapture.StartCapture();
 
         m_Started = true;
+        
     }
 
     private bool ValidateClientTlsCertificate(X509Certificate? certificate, X509Chain? chain,
@@ -524,13 +524,13 @@ public class CallManager
         if (call.CurrentAudioSampleSource != null)
         {
             call.CurrentAudioSampleSource.Stop();
-            call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource!.OnAudioSamplesReady;
+            call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource!.SendAudioSamples;
         }
 
         if (call.CurrentAudioSampleSource != null && call.AudioDestination != null)
         {
             call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
-            call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource!.OnAudioSamplesReady;
+            call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
             call.CurrentAudioSampleSource.Start();
             call.AudioDestination.SetDestionationHandler(null);
         }
@@ -619,7 +619,10 @@ public class CallManager
             }
 
             if (ringingCalls.Count == 0)
+            {
+                CallManagerError?.Invoke("No ringing calls to pickup");
                 return;
+            }
 
             oldestRinging = ringingCalls[0];
             foreach (Call ringingCall in ringingCalls)
@@ -642,8 +645,14 @@ public class CallManager
     {
         EnqueueWorkItem(() =>
         { 
-            if (m_Calls.Count == 0) return;
+            if (m_Calls.Count == 0)
+            {
+                CallManagerError?.Invoke("No calls to end");
+                return;
+            }
+
             Call[] calls = m_Calls.Values.ToArray();
+
             foreach (Call call in calls)
             {
                 DoEndCall(call.CallID);
@@ -660,12 +669,12 @@ public class CallManager
                 if (call.CurrentAudioSampleSource != null)
                 {
                     call.CurrentAudioSampleSource!.Stop();
-                    call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource!.OnAudioSamplesReady;
+                    call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource!.SendAudioSamples;
                 }
 
                 // Connect audio input from the windows microphone audio source
                 call.CurrentAudioSampleSource = m_WaveAudio;
-                m_WaveAudio!.AudioSamplesReady += call.AudioSampleSource!.OnAudioSamplesReady;
+                m_WaveAudio!.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
                 call.AudioSampleSource.Start();
 
                 // Connect the audio destination handler
@@ -882,7 +891,7 @@ public class CallManager
         Call? call = GetCall(sipRequest.Header?.CallId);
 
         if (call != null)
-        {   // TODO: Its an existing call
+        {   // TODO: Its an existing call handle the re-INVITE
 
         }
         else
@@ -897,7 +906,6 @@ public class CallManager
             }
 
             StartNewIncomingCall(sipRequest, remoteEndPoint, sipTransport);
-
         }
     }
 
@@ -914,6 +922,9 @@ public class CallManager
 
         // Treating all incoming calls as emergency calls, so make sure that a call has both an emergency call
         // identifier and an emergency incident identifier.
+        // Normally the emergency call identifier and the emergency incident identifier are assigned
+        // by the origination service provider or an ESInet ingress SIP gateway such as an LNG or an
+        // ingress BCF.
         newCall.EmergencyCallIdentifier = SipUtils.GetCallInfoValueForPurpose(sipRequest.Header,
             "emergency-CallId");
         if (string.IsNullOrEmpty(newCall.EmergencyCallIdentifier) == true)
@@ -994,7 +1005,7 @@ public class CallManager
 
             }
             else if (sghURI.Scheme == SIPSchemesEnum.sip || sghURI.Scheme == SIPSchemesEnum.sips)
-            {   // Subscribe to the SIP Presence Event package
+            {   // TODO: Subscribe to the SIP Presence Event package
 
             }
         }
@@ -1004,6 +1015,7 @@ public class CallManager
         if (strServiceInfo != null)
         {
             serviceInfo = XmlHelper.DeserializeFromString<ServiceInfoType>(strServiceInfo);
+            // TODO: finish Service Info
         }
 
         // TODO: Get the additional data for the call
@@ -1035,7 +1047,7 @@ public class CallManager
             if (OfferedMd.MediaType == "message")
             {   // Media type is MSRP
                 (MsrpConnection? msrpConnection, string? msrpError) = MsrpConnection.CreateFromSdp(
-                    call.OfferedSdp, OfferedMd, call.AnsweredSdp, AnsweredMd, call.IsIncoming, m_Certificate!);
+                    OfferedMd, AnsweredMd, call.IsIncoming, m_Certificate!);
                 if (msrpConnection != null)
                 {
                     call.MsrpConnection = msrpConnection;
@@ -1128,6 +1140,7 @@ public class CallManager
                     }
 
                     call.RttReceiver = new RttReceiver(rttParameters, rtpChannel, source);
+                    call.RttReceiver.RttCharactersReceived += call.OnRttCharactersReceived;
                 }
 
                 rtpChannel.StartListening();
@@ -1144,7 +1157,7 @@ public class CallManager
             {
                 FileAudioSource Fas = new FileAudioSource(m_AutoAnswerAudioSampleData, null!);
                 call.CurrentAudioSampleSource = Fas;
-                Fas.AudioSamplesReady += call.AudioSampleSource!.OnAudioSamplesReady;
+                Fas.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
                 Fas.Start();
                 call.AudioSampleSource.Start();
             }
@@ -1334,6 +1347,7 @@ public class CallManager
     {
 
     }
+
 
     private void ProcessCancelRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {

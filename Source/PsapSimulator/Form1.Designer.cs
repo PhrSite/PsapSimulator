@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             CloseBtn = new Button();
             SettingsBtn = new Button();
             tableLayoutPanel1 = new TableLayoutPanel();
@@ -48,12 +49,13 @@
             label6 = new Label();
             HoldLbl = new Label();
             AnswerBtn = new Button();
-            Pickup = new Button();
+            ShowBtn = new Button();
             EndCallBtn = new Button();
             EndAllBtn = new Button();
             HoldBtn = new Button();
             label5 = new Label();
             OnLineLbl = new Label();
+            toolTip1 = new ToolTip(components);
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -105,7 +107,7 @@
             tableLayoutPanel1.Controls.Add(label6, 8, 0);
             tableLayoutPanel1.Controls.Add(HoldLbl, 9, 0);
             tableLayoutPanel1.Controls.Add(AnswerBtn, 1, 2);
-            tableLayoutPanel1.Controls.Add(Pickup, 2, 2);
+            tableLayoutPanel1.Controls.Add(ShowBtn, 2, 2);
             tableLayoutPanel1.Controls.Add(EndCallBtn, 4, 2);
             tableLayoutPanel1.Controls.Add(EndAllBtn, 5, 2);
             tableLayoutPanel1.Controls.Add(HoldBtn, 3, 2);
@@ -176,6 +178,7 @@
             StartBtn.Size = new Size(124, 36);
             StartBtn.TabIndex = 3;
             StartBtn.Text = "Start";
+            toolTip1.SetToolTip(StartBtn, "Starts or stop listening for calls");
             StartBtn.UseVisualStyleBackColor = true;
             StartBtn.Click += StartBtn_Click;
             // 
@@ -275,19 +278,21 @@
             AnswerBtn.Size = new Size(124, 36);
             AnswerBtn.TabIndex = 12;
             AnswerBtn.Text = "Answer";
+            toolTip1.SetToolTip(AnswerBtn, "Answers the longest ringing call");
             AnswerBtn.UseVisualStyleBackColor = true;
             AnswerBtn.Click += AnswerBtn_Click;
             // 
-            // Pickup
+            // ShowBtn
             // 
-            Pickup.Dock = DockStyle.Fill;
-            Pickup.Location = new Point(263, 659);
-            Pickup.Name = "Pickup";
-            Pickup.Size = new Size(124, 36);
-            Pickup.TabIndex = 13;
-            Pickup.Text = "Pickup";
-            Pickup.UseVisualStyleBackColor = true;
-            Pickup.Click += Pickup_Click;
+            ShowBtn.Dock = DockStyle.Fill;
+            ShowBtn.Location = new Point(263, 659);
+            ShowBtn.Name = "ShowBtn";
+            ShowBtn.Size = new Size(124, 36);
+            ShowBtn.TabIndex = 13;
+            ShowBtn.Text = "Show";
+            toolTip1.SetToolTip(ShowBtn, "Shows a selected call in its current state");
+            ShowBtn.UseVisualStyleBackColor = true;
+            ShowBtn.Click += ShowBtn_Click;
             // 
             // EndCallBtn
             // 
@@ -297,6 +302,7 @@
             EndCallBtn.Size = new Size(124, 36);
             EndCallBtn.TabIndex = 14;
             EndCallBtn.Text = "End Call";
+            toolTip1.SetToolTip(EndCallBtn, "Ends the selected call");
             EndCallBtn.UseVisualStyleBackColor = true;
             EndCallBtn.Click += EndCallBtn_Click;
             // 
@@ -308,6 +314,7 @@
             EndAllBtn.Size = new Size(124, 36);
             EndAllBtn.TabIndex = 15;
             EndAllBtn.Text = "End All";
+            toolTip1.SetToolTip(EndAllBtn, "Ends all calls");
             EndAllBtn.UseVisualStyleBackColor = true;
             EndAllBtn.Click += EndAllBtn_Click;
             // 
@@ -319,6 +326,7 @@
             HoldBtn.Size = new Size(124, 36);
             HoldBtn.TabIndex = 16;
             HoldBtn.Text = "Hold";
+            toolTip1.SetToolTip(HoldBtn, "Puts the selected call on hold");
             HoldBtn.UseVisualStyleBackColor = true;
             HoldBtn.Click += HoldBtn_Click;
             // 
@@ -388,11 +396,12 @@
         private Label label6;
         private Label HoldLbl;
         private Button AnswerBtn;
-        private Button Pickup;
+        private Button ShowBtn;
         private Button EndCallBtn;
         private Button EndAllBtn;
         private Button HoldBtn;
         private Label label5;
         private Label OnLineLbl;
+        private ToolTip toolTip1;
     }
 }

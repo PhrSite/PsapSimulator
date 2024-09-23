@@ -6,7 +6,6 @@ using NAudio;
 using NAudio.Wave;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
-using System.Diagnostics;
 using SipLib.Media;
 using SipLib.Logging;
 
@@ -156,7 +155,7 @@ public class WindowsAudioIo : IMMNotificationClient, IAudioSampleSource
 
         // It is possible that the m_WaveIn object will send more or less than the desired block size
         // of 20 milliseconds worth of data. So process all samples received and when a full block of 20
-        // milliseconds of data is ready, pass it to the user of this object by firing the AudioSamplesReady
+        // milliseconds of data is ready, pass it to the user of this object by firing the SendAudioSamples
         // event.
         for (int i = 0; i < SampleCount; i++)
         {

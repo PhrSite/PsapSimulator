@@ -32,6 +32,9 @@ public partial class Form1 : Form
 
     private void CloseBtn_Click(object sender, EventArgs e)
     {
+        // TODO: if the call manager is running, then maybe terminate all calls and do an orderly
+        // shutdown.
+
         Close();
     }
 
@@ -58,7 +61,6 @@ public partial class Form1 : Form
         {
             CallListView.Columns[i].Width = ColWidth;
         }
-
     }
 
     private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -103,6 +105,7 @@ public partial class Form1 : Form
             m_CallManager.CallEnded += OnCallEnded;
             m_CallManager.CallStateChanged += OnCallStateChanged;
 
+            m_CallManager.CallManagerError += OnCallManagerError;
             await m_CallManager.Start();
             StartBtn.Text = "Stop";
         }
@@ -269,12 +272,28 @@ public partial class Form1 : Form
         return callLvi;
     }
 
+    private void ShowNotRunning()
+    {
+        MessageBox.Show("Not running. Press Start.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+
     private void AnswerBtn_Click(object sender, EventArgs e)
     {
         if (m_CallManager == null)
+        {
+            ShowNotRunning();
             return;
+        }
 
         m_CallManager.Answer();
+    }
+
+    private void OnCallManagerError(string strMessage)
+    {
+        if (m_CallForm == null)
+        {
+            MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private string? GetSelecteCallID()
@@ -290,11 +309,11 @@ public partial class Form1 : Form
         return callID;
     }
 
-    private void Pickup_Click(object sender, EventArgs e)
+    private void ShowBtn_Click(object sender, EventArgs e)
     {
         if (m_CallManager == null)
         {
-            MessageBox.Show("Not currently listening for calls", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowNotRunning();
             return;
         }
 
@@ -325,7 +344,7 @@ public partial class Form1 : Form
     {
         if (m_CallManager == null)
         {
-            MessageBox.Show("Not currently listening for calls", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowNotRunning();
             return;
         }
 
@@ -343,7 +362,7 @@ public partial class Form1 : Form
     {
         if (m_CallManager == null)
         {
-            MessageBox.Show("Not currently listening for calls", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowNotRunning();
             return;
         }
 
@@ -360,6 +379,12 @@ public partial class Form1 : Form
 
     private void EndAllBtn_Click(object sender, EventArgs e)
     {
+        if (m_CallManager == null)
+        {
+            ShowNotRunning();
+            return;
+        }
+
         m_CallManager?.EndAllCalls();
     }
 

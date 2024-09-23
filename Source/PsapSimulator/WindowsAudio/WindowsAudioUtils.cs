@@ -55,29 +55,47 @@ internal class WindowsAudioUtils
     public static IAudioEncoder? GetAudioEncoder(MediaDescription mediaDescription)
     {
         IAudioEncoder? encoder = null;
-        foreach (RtpMapAttribute Rma in mediaDescription.RtpMapAttributes)
+        if (mediaDescription.RtpMapAttributes.Count > 0)
         {
-            switch (Rma.EncodingName!.ToUpper())
+            foreach (RtpMapAttribute Rma in mediaDescription.RtpMapAttributes)
             {
-                case "PCMU":
-                    encoder = new PcmuEncoder();
-                    break;
-                case "PCMA":
-                    encoder = new PcmaEncoder();
-                    break;
-                case "G722":
-                    encoder = new G722Encoder();
-                    break;
-                case "AMR-WB":
-                    //encoder = new AmrWbEncoder();
-                    break;
-                default:
-                    encoder = new PcmuEncoder();
-                    break;
-            }
+                switch (Rma.EncodingName!.ToUpper())
+                {
+                    case "PCMU":
+                        encoder = new PcmuEncoder();
+                        break;
+                    case "PCMA":
+                        encoder = new PcmaEncoder();
+                        break;
+                    case "G722":
+                        encoder = new G722Encoder();
+                        break;
+                    //case "AMR-WB":
+                    //    encoder = new AmrWbEncoder();
+                    //    break;
+                }
 
-            if (encoder != null)
-                break;
+                if (encoder != null)
+                    break;      // Expect only one so pick the first one found
+            }
+        }
+        else
+        {   // No rtpmap attributes, try using a well known payload (codec) type
+            if (mediaDescription.PayloadTypes.Count > 0)
+            {
+                switch (mediaDescription.PayloadTypes[0])
+                {
+                    case 0:
+                        encoder = new PcmuEncoder();
+                        break;
+                    case 8:
+                        encoder = new PcmaEncoder();
+                        break;
+                    case 9:
+                        encoder = new G722Encoder();
+                        break;
+                }
+            }
         }
 
         return encoder;
@@ -91,29 +109,48 @@ internal class WindowsAudioUtils
     public static IAudioDecoder? GetAudioDecoder(MediaDescription mediaDescription)
     {
         IAudioDecoder? decoder = null;
-        foreach (RtpMapAttribute Rma in mediaDescription.RtpMapAttributes)
+        if (mediaDescription.RtpMapAttributes.Count > 0)
         {
-            switch (Rma.EncodingName!.ToUpper())
+            foreach (RtpMapAttribute Rma in mediaDescription.RtpMapAttributes)
             {
-                case "PCMU":
-                    decoder = new PcmuDecoder();
-                    break;
-                case "PCMA":
-                    decoder = new PcmaDecoder();
-                    break;
-                case "G722":
-                    decoder = new G722Decoder();
-                    break;
-                case "AMR-WB":
-                    //encoder = new AmrWbEncoder();
-                    break;
-                default:
-                    decoder = new PcmuDecoder();
+                switch (Rma.EncodingName!.ToUpper())
+                {
+                    case "PCMU":
+                        decoder = new PcmuDecoder();
+                        break;
+                    case "PCMA":
+                        decoder = new PcmaDecoder();
+                        break;
+                    case "G722":
+                        decoder = new G722Decoder();
+                        break;
+                    //case "AMR-WB":
+                    //    encoder = new AmrWbEncoder();
+                    //    break;
+                }
+
+                if (decoder != null)
                     break;
             }
 
-            if (decoder != null)
-                break;
+        }
+        else
+        {   // No rtpmap attributes, try using a well known payload (codec) type
+            if (mediaDescription.PayloadTypes.Count > 0)
+            {
+                switch (mediaDescription.PayloadTypes[0])
+                {
+                    case 0:
+                        decoder = new PcmuDecoder();
+                        break;
+                    case 8:
+                        decoder = new PcmaDecoder();
+                        break;
+                    case 9:
+                        decoder = new G722Decoder();
+                        break;
+                }
+            }
         }
 
         return decoder;

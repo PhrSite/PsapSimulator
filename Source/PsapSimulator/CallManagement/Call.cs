@@ -20,18 +20,8 @@ using System.Text;
 
 using System.Diagnostics;
 using SipLib.Body;
-using System.Security.Permissions;
 using PsapSimulator.WindowsVideo;
 
-/// <summary>
-/// Delegate definition for the RttCharactersReceive event of the Call class and the CallManager class.
-/// </summary>
-/// <param name="callID"></param>
-/// <param name="From"></param>
-/// <param name="TimeReceived"></param>
-/// <param name="RttChars"></param>
-public delegate void RttCharactersReceivedDelegate(string callID, string From, DateTime TimeReceived,
-    string RttChars);
 
 /// <summary>
 /// Class for maintaining information about a call
@@ -44,12 +34,12 @@ public class Call
     public bool IsIncoming { get; private set; } = true;
 
     /// <summary>
-    /// Last invite request that was sent or received
+    /// Last invite request that was received
     /// </summary>
     internal SIPRequest? InviteRequest { get; set; } = null;
 
     /// <summary>
-    /// 200 OK resonse that was sent or received
+    /// 200 OK resonse that was received
     /// </summary>
     internal SIPResponse? OKResponse { get; set; } = null;
 
@@ -260,7 +250,7 @@ public class Call
         }
     }
 
-    public void OnMsrpMessageReceived(string ContentType, byte[] Contents)
+    public void OnMsrpMessageReceived(string ContentType, byte[] Contents, string from)
     {
         // For debug only
         string strContents = Encoding.UTF8.GetString(Contents);
