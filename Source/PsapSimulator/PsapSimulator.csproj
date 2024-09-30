@@ -20,6 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="AmrWbCppLib">
+      <HintPath>..\..\..\AmrWbCppLib\ClassLibrary\lib\net8.0\AmrWbCppLib.dll</HintPath>
+    </Reference>
     <Reference Include="Ng911Lib">
       <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net7.0\Ng911Lib.dll</HintPath>
     </Reference>
@@ -66,6 +69,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FFMPEG\swscale-7.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Ijwhost.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="PsapSimulator.pfx">

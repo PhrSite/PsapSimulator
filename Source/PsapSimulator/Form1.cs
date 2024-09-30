@@ -9,6 +9,7 @@ using SipLib.Logging;
 using System.Net;
 using System.Diagnostics;
 using PsapSimulator.WindowsVideo;
+using System.Text;
 
 namespace PsapSimulator;
 
@@ -52,6 +53,7 @@ public partial class Form1 : Form
     {
         SetCallListViewColumns();
         m_VideoDevices = await VideoDeviceEnumerator.GetVideoFrameSources();
+        ShowStatus();
     }
 
     private void SetCallListViewColumns()
@@ -88,6 +90,9 @@ public partial class Form1 : Form
             if (OkToStart(appSettings) == false)
                 return;     // The user has already been notified of the problem.
 
+            SettingsBtn.Enabled = false;
+            CallListView.Items.Clear();
+
             try
             {
                 m_CallManager = new CallManager(appSettings);
@@ -98,6 +103,7 @@ public partial class Form1 : Form
                     $"in: '{Program.LoggingDirectory}'";
                 MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SipLogger.LogCritical(ex, "Unable to start the call manager");
+                SettingsBtn.Enabled = true;
                 return;
             }
 
@@ -110,9 +116,69 @@ public partial class Form1 : Form
             StartBtn.Text = "Stop";
         }
         else
-        {
+        {   // The CallManager is currently running so shut it down.
+            if (CallListView.Items.Count > 0)
+            {   // But there are currently active calls that need to be terminated first
+                MessageBox.Show("There are active calls. Press End All first", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
             await ShutdownCallManager();
             StartBtn.Text = "Start";
+            SettingsBtn.Enabled = true;
+        }
+
+        ShowStatus();
+    }
+
+    private void ShowStatus()
+    {
+        if (m_CallManager == null)
+        {
+            StatusLbl.Text = "Not listening. Press Start";
+            StatusLbl.BackColor = Color.Red;
+            StatusLbl.ForeColor = Color.White;
+        }
+        else
+        {
+            AppSettings appSettings = AppSettings.GetAppSettings();
+            NetworkSettings netSet = appSettings.NetworkSettings;
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Listening: ");
+            if (netSet.EnableIPv4 == true)
+                sb.Append($"IPv4: {netSet.IPv4Address}  ");
+
+            if (netSet.EnableIPv6 == true)
+                sb.Append($"IPv6: {netSet.IPv6Address} ");
+
+            List<string> protoList = new List<string>();
+            if (netSet.EnableUdp == true)
+                protoList.Add("UDP");
+
+            if (netSet.EnableTcp == true)
+                protoList.Add("TCP");
+
+            if (netSet.EnableTls == true)
+                protoList.Add("TLS");
+
+            int i;
+            sb.Append("       Protocols: ");
+            for (i = 0; i < protoList.Count; i++)
+            {
+                if (i >= 1)
+                    sb.Append(",");
+
+                sb.Append(protoList[i]);
+            }
+
+            sb.Append($"       SIP: {netSet.SipPort}, ");
+            sb.Append($"SIPS: {netSet.SipsPort}");
+
+            StatusLbl.Text = sb.ToString();
+            StatusLbl.BackColor = Color.Green;
+            StatusLbl.ForeColor = Color.White;
         }
     }
 
@@ -388,4 +454,17 @@ public partial class Form1 : Form
         m_CallManager?.EndAllCalls();
     }
 
+    private void CallListView_MouseDoubleClick(object sender, MouseEventArgs e)
+    {
+        string? callID = GetSelecteCallID();
+        if (callID == null)
+        {
+            MessageBox.Show("Please select a call to pickup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        ShowCallForm(callID);
+        m_CurrentCallID = null;
+        m_CallForm = null;
+    }
 }

@@ -55,6 +55,7 @@
             HoldBtn = new Button();
             label5 = new Label();
             OnLineLbl = new Label();
+            StatusLbl = new Label();
             toolTip1 = new ToolTip(components);
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
@@ -94,10 +95,10 @@
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
-            tableLayoutPanel1.Controls.Add(CloseBtn, 9, 2);
-            tableLayoutPanel1.Controls.Add(SettingsBtn, 8, 2);
+            tableLayoutPanel1.Controls.Add(CloseBtn, 9, 3);
+            tableLayoutPanel1.Controls.Add(SettingsBtn, 8, 3);
             tableLayoutPanel1.Controls.Add(CallListView, 0, 1);
-            tableLayoutPanel1.Controls.Add(StartBtn, 0, 2);
+            tableLayoutPanel1.Controls.Add(StartBtn, 0, 3);
             tableLayoutPanel1.Controls.Add(label1, 0, 0);
             tableLayoutPanel1.Controls.Add(TotalCallsLbl, 1, 0);
             tableLayoutPanel1.Controls.Add(label2, 2, 0);
@@ -106,21 +107,22 @@
             tableLayoutPanel1.Controls.Add(AnsweredLbl, 5, 0);
             tableLayoutPanel1.Controls.Add(label6, 8, 0);
             tableLayoutPanel1.Controls.Add(HoldLbl, 9, 0);
-            tableLayoutPanel1.Controls.Add(AnswerBtn, 1, 2);
-            tableLayoutPanel1.Controls.Add(ShowBtn, 2, 2);
-            tableLayoutPanel1.Controls.Add(EndCallBtn, 4, 2);
-            tableLayoutPanel1.Controls.Add(EndAllBtn, 5, 2);
-            tableLayoutPanel1.Controls.Add(HoldBtn, 3, 2);
+            tableLayoutPanel1.Controls.Add(AnswerBtn, 1, 3);
+            tableLayoutPanel1.Controls.Add(ShowBtn, 2, 3);
+            tableLayoutPanel1.Controls.Add(EndCallBtn, 4, 3);
+            tableLayoutPanel1.Controls.Add(EndAllBtn, 5, 3);
+            tableLayoutPanel1.Controls.Add(HoldBtn, 3, 3);
             tableLayoutPanel1.Controls.Add(label5, 6, 0);
             tableLayoutPanel1.Controls.Add(OnLineLbl, 7, 0);
+            tableLayoutPanel1.Controls.Add(StatusLbl, 0, 2);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 3;
+            tableLayoutPanel1.RowCount = 4;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
             tableLayoutPanel1.Size = new Size(1300, 698);
             tableLayoutPanel1.TabIndex = 2;
             // 
@@ -135,10 +137,11 @@
             CallListView.Location = new Point(3, 45);
             CallListView.MultiSelect = false;
             CallListView.Name = "CallListView";
-            CallListView.Size = new Size(1294, 608);
+            CallListView.Size = new Size(1294, 566);
             CallListView.TabIndex = 2;
             CallListView.UseCompatibleStateImageBehavior = false;
             CallListView.View = View.Details;
+            CallListView.MouseDoubleClick += CallListView_MouseDoubleClick;
             // 
             // FromHeader
             // 
@@ -352,6 +355,18 @@
             OnLineLbl.Text = "0";
             OnLineLbl.TextAlign = ContentAlignment.MiddleLeft;
             // 
+            // StatusLbl
+            // 
+            StatusLbl.AutoSize = true;
+            tableLayoutPanel1.SetColumnSpan(StatusLbl, 10);
+            StatusLbl.Dock = DockStyle.Fill;
+            StatusLbl.Location = new Point(3, 614);
+            StatusLbl.Name = "StatusLbl";
+            StatusLbl.Size = new Size(1294, 42);
+            StatusLbl.TabIndex = 20;
+            StatusLbl.Text = "Not listening. Press Start";
+            StatusLbl.TextAlign = ContentAlignment.MiddleLeft;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -403,5 +418,6 @@
         private Label label5;
         private Label OnLineLbl;
         private ToolTip toolTip1;
+        private Label StatusLbl;
     }
 }

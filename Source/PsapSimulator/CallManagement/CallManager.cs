@@ -603,7 +603,9 @@ public class CallManager
     }
 
     /// <summary>
-    /// Answers the oldest call that is ringing and puts the current call (if there is one) on-hold
+    /// Answers the oldest call that is ringing and puts the current call (if there is one) on-hold. If
+    /// there are no calls in the ringing state, then this function picks up the oldest call that is
+    /// in the auto-answered state.
     /// </summary>
     public void Answer()
     {
@@ -616,6 +618,17 @@ public class CallManager
             {
                 if (call.CallState == CallStateEnum.Trying || call.CallState == CallStateEnum.Ringing)
                     ringingCalls.Add(call);
+            }
+
+            if (ringingCalls.Count == 0)
+            {   // There are no calls in the ringing state. Answer the oldest call that is in the
+                // auto-answered.
+                foreach (Call call in calls)
+                {
+                    if (call.CallState == CallStateEnum.AutoAnswered)
+                        ringingCalls.Add(call);
+                }
+            
             }
 
             if (ringingCalls.Count == 0)
@@ -1083,7 +1096,7 @@ public class CallManager
                     MediaDescription? audioMd = call.AnsweredSdp!.GetMediaType("audio");
                     if (audioMd != null)
                     {
-                        SipLib.Media.IAudioEncoder? encoder = WindowsAudioUtils.GetAudioEncoder(audioMd);
+                        IAudioEncoder? encoder = WindowsAudioUtils.GetAudioEncoder(audioMd);
                         if (encoder != null)
                         {
                             call.AudioSampleSource = new AudioSource(audioMd, encoder, rtpChannel);
@@ -1375,9 +1388,6 @@ public class CallManager
     private void ProcessByeRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
         Call? call = GetCall(sipRequest.Header?.CallId);
-        if (call == null)
-            return;
-
         SIPResponse ByeResponse;
         if (call == null)
             ByeResponse = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
@@ -1391,8 +1401,11 @@ public class CallManager
 
         sipTransport.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null!, ByeResponse);
 
-        CallEnded?.Invoke(call!.CallID);
-        EndCall(call!);
+        if (call != null)
+        {
+            CallEnded?.Invoke(call!.CallID);
+            EndCall(call!);
+        }
     }
 
 
