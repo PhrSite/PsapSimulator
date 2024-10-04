@@ -31,11 +31,11 @@ public partial class Form1 : Form
 
     }
 
+    private bool m_CloseBtnClicket = false;
+
     private void CloseBtn_Click(object sender, EventArgs e)
     {
-        // TODO: if the call manager is running, then maybe terminate all calls and do an orderly
-        // shutdown.
-
+        m_CloseBtnClicket = true;
         Close();
     }
 
@@ -70,9 +70,11 @@ public partial class Form1 : Form
 
     }
 
-    private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
+    private void Form1_FormClosing(object sender, FormClosingEventArgs e)
     {
-        await ShutdownCallManager();
+        // Allow only the Close button in the form to close this form.
+        if (m_CloseBtnClicket == false)
+            e.Cancel = true;
     }
 
     private void Form1_SizeChanged(object sender, EventArgs e)
@@ -90,7 +92,6 @@ public partial class Form1 : Form
             if (OkToStart(appSettings) == false)
                 return;     // The user has already been notified of the problem.
 
-            SettingsBtn.Enabled = false;
             CallListView.Items.Clear();
 
             try
@@ -103,9 +104,11 @@ public partial class Form1 : Form
                     $"in: '{Program.LoggingDirectory}'";
                 MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SipLogger.LogCritical(ex, "Unable to start the call manager");
-                SettingsBtn.Enabled = true;
                 return;
             }
+
+            SettingsBtn.Enabled = false;
+            CloseBtn.Enabled = false;
 
             m_CallManager.NewCall += OnNewCall;
             m_CallManager.CallEnded += OnCallEnded;
@@ -126,6 +129,7 @@ public partial class Form1 : Form
 
             await ShutdownCallManager();
             StartBtn.Text = "Start";
+            CloseBtn.Enabled = true;
             SettingsBtn.Enabled = true;
         }
 

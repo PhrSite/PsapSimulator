@@ -38,6 +38,8 @@
             panel1 = new Panel();
             CallInfoTabCtrl = new TabControl();
             LocationTab = new TabPage();
+            ProvidedByLbl = new Label();
+            label27 = new Label();
             CountyLbl = new Label();
             label17 = new Label();
             StateLbl = new Label();
@@ -48,7 +50,7 @@
             label14 = new Label();
             ConfidenceLbl = new Label();
             label13 = new Label();
-            MethdLbl = new Label();
+            MethodLbl = new Label();
             label12 = new Label();
             ElevationLbl = new Label();
             label11 = new Label();
@@ -56,13 +58,15 @@
             label10 = new Label();
             LocRefreshBtn = new Button();
             label9 = new Label();
-            label8 = new Label();
+            LongitudeLbl = new Label();
             LatitudeLbl = new Label();
             label2 = new Label();
             SubscriberTab = new TabPage();
-            SubCountyLbl = new Label();
+            label32 = new Label();
+            SubscriberDataProviderLbl = new Label();
+            SubCountryLbl = new Label();
             label24 = new Label();
-            SubStatLbl = new Label();
+            SubStateLbl = new Label();
             label26 = new Label();
             SubCityLbl = new Label();
             label28 = new Label();
@@ -70,14 +74,27 @@
             label30 = new Label();
             LanguagesLbl = new Label();
             label20 = new Label();
-            label22 = new Label();
+            MiddleNameLbl = new Label();
             label21 = new Label();
             FirstNameLbl = new Label();
             label19 = new Label();
             LastNameLbl = new Label();
             label18 = new Label();
             CommentsTab = new TabPage();
+            CommentsTb = new TextBox();
             ServiceTab = new TabPage();
+            label29 = new Label();
+            DeviceDataProviderLbl = new Label();
+            label31 = new Label();
+            ServiceDataProviderLbl = new Label();
+            DeviceClassLbl = new Label();
+            label22 = new Label();
+            MobilityLbl = new Label();
+            ServiceTypeLbl = new Label();
+            EnvironmentLbl = new Label();
+            label25 = new Label();
+            label23 = new Label();
+            label8 = new Label();
             AACN = new TabPage();
             PreviewVideoPb = new PictureBox();
             ReceiveVideoPb = new PictureBox();
@@ -108,14 +125,19 @@
             label3 = new Label();
             FromLbl = new Label();
             label1 = new Label();
+            ProvidersTab = new TabPage();
+            ProvidersTb = new TextBox();
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             panel1.SuspendLayout();
             CallInfoTabCtrl.SuspendLayout();
             LocationTab.SuspendLayout();
             SubscriberTab.SuspendLayout();
+            CommentsTab.SuspendLayout();
+            ServiceTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).BeginInit();
+            ProvidersTab.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -232,6 +254,7 @@
             CallInfoTabCtrl.Controls.Add(SubscriberTab);
             CallInfoTabCtrl.Controls.Add(CommentsTab);
             CallInfoTabCtrl.Controls.Add(ServiceTab);
+            CallInfoTabCtrl.Controls.Add(ProvidersTab);
             CallInfoTabCtrl.Controls.Add(AACN);
             CallInfoTabCtrl.Location = new Point(1247, 508);
             CallInfoTabCtrl.Name = "CallInfoTabCtrl";
@@ -241,6 +264,9 @@
             // 
             // LocationTab
             // 
+            LocationTab.AutoScroll = true;
+            LocationTab.Controls.Add(ProvidedByLbl);
+            LocationTab.Controls.Add(label27);
             LocationTab.Controls.Add(CountyLbl);
             LocationTab.Controls.Add(label17);
             LocationTab.Controls.Add(StateLbl);
@@ -251,7 +277,7 @@
             LocationTab.Controls.Add(label14);
             LocationTab.Controls.Add(ConfidenceLbl);
             LocationTab.Controls.Add(label13);
-            LocationTab.Controls.Add(MethdLbl);
+            LocationTab.Controls.Add(MethodLbl);
             LocationTab.Controls.Add(label12);
             LocationTab.Controls.Add(ElevationLbl);
             LocationTab.Controls.Add(label11);
@@ -259,7 +285,7 @@
             LocationTab.Controls.Add(label10);
             LocationTab.Controls.Add(LocRefreshBtn);
             LocationTab.Controls.Add(label9);
-            LocationTab.Controls.Add(label8);
+            LocationTab.Controls.Add(LongitudeLbl);
             LocationTab.Controls.Add(LatitudeLbl);
             LocationTab.Controls.Add(label2);
             LocationTab.Location = new Point(4, 40);
@@ -270,10 +296,27 @@
             LocationTab.Text = "Location";
             LocationTab.UseVisualStyleBackColor = true;
             // 
+            // ProvidedByLbl
+            // 
+            ProvidedByLbl.BorderStyle = BorderStyle.Fixed3D;
+            ProvidedByLbl.Location = new Point(92, 316);
+            ProvidedByLbl.Name = "ProvidedByLbl";
+            ProvidedByLbl.Size = new Size(534, 38);
+            ProvidedByLbl.TabIndex = 22;
+            // 
+            // label27
+            // 
+            label27.AutoSize = true;
+            label27.Location = new Point(12, 316);
+            label27.Name = "label27";
+            label27.Size = new Size(64, 31);
+            label27.TabIndex = 21;
+            label27.Text = "Prov.";
+            // 
             // CountyLbl
             // 
             CountyLbl.BorderStyle = BorderStyle.Fixed3D;
-            CountyLbl.Location = new Point(416, 275);
+            CountyLbl.Location = new Point(416, 269);
             CountyLbl.Name = "CountyLbl";
             CountyLbl.Size = new Size(210, 38);
             CountyLbl.TabIndex = 20;
@@ -281,7 +324,7 @@
             // label17
             // 
             label17.AutoSize = true;
-            label17.Location = new Point(324, 276);
+            label17.Location = new Point(324, 269);
             label17.Name = "label17";
             label17.Size = new Size(86, 31);
             label17.TabIndex = 19;
@@ -290,7 +333,7 @@
             // StateLbl
             // 
             StateLbl.BorderStyle = BorderStyle.Fixed3D;
-            StateLbl.Location = new Point(92, 275);
+            StateLbl.Location = new Point(92, 269);
             StateLbl.Name = "StateLbl";
             StateLbl.Size = new Size(213, 38);
             StateLbl.TabIndex = 18;
@@ -298,7 +341,7 @@
             // label15
             // 
             label15.AutoSize = true;
-            label15.Location = new Point(6, 276);
+            label15.Location = new Point(12, 269);
             label15.Name = "label15";
             label15.Size = new Size(65, 31);
             label15.TabIndex = 17;
@@ -307,7 +350,7 @@
             // CityLbl
             // 
             CityLbl.BorderStyle = BorderStyle.Fixed3D;
-            CityLbl.Location = new Point(92, 226);
+            CityLbl.Location = new Point(92, 214);
             CityLbl.Name = "CityLbl";
             CityLbl.Size = new Size(534, 38);
             CityLbl.TabIndex = 16;
@@ -315,7 +358,7 @@
             // label16
             // 
             label16.AutoSize = true;
-            label16.Location = new Point(6, 233);
+            label16.Location = new Point(12, 215);
             label16.Name = "label16";
             label16.Size = new Size(53, 31);
             label16.TabIndex = 15;
@@ -324,7 +367,7 @@
             // StreetLbl
             // 
             StreetLbl.BorderStyle = BorderStyle.Fixed3D;
-            StreetLbl.Location = new Point(92, 179);
+            StreetLbl.Location = new Point(92, 164);
             StreetLbl.Name = "StreetLbl";
             StreetLbl.Size = new Size(534, 38);
             StreetLbl.TabIndex = 14;
@@ -332,7 +375,7 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(6, 186);
+            label14.Location = new Point(6, 165);
             label14.Name = "label14";
             label14.Size = new Size(73, 31);
             label14.TabIndex = 13;
@@ -355,13 +398,13 @@
             label13.TabIndex = 11;
             label13.Text = "Conf.";
             // 
-            // MethdLbl
+            // MethodLbl
             // 
-            MethdLbl.BorderStyle = BorderStyle.Fixed3D;
-            MethdLbl.Location = new Point(92, 111);
-            MethdLbl.Name = "MethdLbl";
-            MethdLbl.Size = new Size(132, 38);
-            MethdLbl.TabIndex = 10;
+            MethodLbl.BorderStyle = BorderStyle.Fixed3D;
+            MethodLbl.Location = new Point(92, 111);
+            MethodLbl.Name = "MethodLbl";
+            MethodLbl.Size = new Size(132, 38);
+            MethodLbl.TabIndex = 10;
             // 
             // label12
             // 
@@ -424,13 +467,13 @@
             label9.TabIndex = 3;
             label9.Text = "Long.";
             // 
-            // label8
+            // LongitudeLbl
             // 
-            label8.BorderStyle = BorderStyle.Fixed3D;
-            label8.Location = new Point(337, 13);
-            label8.Name = "label8";
-            label8.Size = new Size(132, 38);
-            label8.TabIndex = 2;
+            LongitudeLbl.BorderStyle = BorderStyle.Fixed3D;
+            LongitudeLbl.Location = new Point(337, 13);
+            LongitudeLbl.Name = "LongitudeLbl";
+            LongitudeLbl.Size = new Size(132, 38);
+            LongitudeLbl.TabIndex = 2;
             // 
             // LatitudeLbl
             // 
@@ -451,9 +494,11 @@
             // 
             // SubscriberTab
             // 
-            SubscriberTab.Controls.Add(SubCountyLbl);
+            SubscriberTab.Controls.Add(label32);
+            SubscriberTab.Controls.Add(SubscriberDataProviderLbl);
+            SubscriberTab.Controls.Add(SubCountryLbl);
             SubscriberTab.Controls.Add(label24);
-            SubscriberTab.Controls.Add(SubStatLbl);
+            SubscriberTab.Controls.Add(SubStateLbl);
             SubscriberTab.Controls.Add(label26);
             SubscriberTab.Controls.Add(SubCityLbl);
             SubscriberTab.Controls.Add(label28);
@@ -461,44 +506,61 @@
             SubscriberTab.Controls.Add(label30);
             SubscriberTab.Controls.Add(LanguagesLbl);
             SubscriberTab.Controls.Add(label20);
-            SubscriberTab.Controls.Add(label22);
+            SubscriberTab.Controls.Add(MiddleNameLbl);
             SubscriberTab.Controls.Add(label21);
             SubscriberTab.Controls.Add(FirstNameLbl);
             SubscriberTab.Controls.Add(label19);
             SubscriberTab.Controls.Add(LastNameLbl);
             SubscriberTab.Controls.Add(label18);
-            SubscriberTab.Location = new Point(4, 29);
+            SubscriberTab.Location = new Point(4, 40);
             SubscriberTab.Name = "SubscriberTab";
             SubscriberTab.Padding = new Padding(3);
-            SubscriberTab.Size = new Size(632, 373);
+            SubscriberTab.Size = new Size(632, 362);
             SubscriberTab.TabIndex = 1;
             SubscriberTab.Text = "Subscriber";
             SubscriberTab.UseVisualStyleBackColor = true;
             // 
-            // SubCountyLbl
+            // label32
             // 
-            SubCountyLbl.BorderStyle = BorderStyle.Fixed3D;
-            SubCountyLbl.Location = new Point(416, 266);
-            SubCountyLbl.Name = "SubCountyLbl";
-            SubCountyLbl.Size = new Size(210, 38);
-            SubCountyLbl.TabIndex = 28;
+            label32.AutoSize = true;
+            label32.Location = new Point(6, 321);
+            label32.Name = "label32";
+            label32.Size = new Size(64, 31);
+            label32.TabIndex = 30;
+            label32.Text = "Prov.";
+            // 
+            // SubscriberDataProviderLbl
+            // 
+            SubscriberDataProviderLbl.BorderStyle = BorderStyle.Fixed3D;
+            SubscriberDataProviderLbl.Location = new Point(92, 321);
+            SubscriberDataProviderLbl.Name = "SubscriberDataProviderLbl";
+            SubscriberDataProviderLbl.Size = new Size(534, 38);
+            SubscriberDataProviderLbl.TabIndex = 29;
+            // 
+            // SubCountryLbl
+            // 
+            SubCountryLbl.BorderStyle = BorderStyle.Fixed3D;
+            SubCountryLbl.Location = new Point(424, 266);
+            SubCountryLbl.Name = "SubCountryLbl";
+            SubCountryLbl.Size = new Size(202, 38);
+            SubCountryLbl.TabIndex = 28;
             // 
             // label24
             // 
             label24.AutoSize = true;
             label24.Location = new Point(324, 267);
             label24.Name = "label24";
-            label24.Size = new Size(86, 31);
+            label24.Size = new Size(94, 31);
             label24.TabIndex = 27;
-            label24.Text = "County";
+            label24.Text = "Country";
             // 
-            // SubStatLbl
+            // SubStateLbl
             // 
-            SubStatLbl.BorderStyle = BorderStyle.Fixed3D;
-            SubStatLbl.Location = new Point(92, 266);
-            SubStatLbl.Name = "SubStatLbl";
-            SubStatLbl.Size = new Size(213, 38);
-            SubStatLbl.TabIndex = 26;
+            SubStateLbl.BorderStyle = BorderStyle.Fixed3D;
+            SubStateLbl.Location = new Point(92, 266);
+            SubStateLbl.Name = "SubStateLbl";
+            SubStateLbl.Size = new Size(213, 38);
+            SubStateLbl.TabIndex = 26;
             // 
             // label26
             // 
@@ -546,9 +608,9 @@
             // LanguagesLbl
             // 
             LanguagesLbl.BorderStyle = BorderStyle.Fixed3D;
-            LanguagesLbl.Location = new Point(415, 105);
+            LanguagesLbl.Location = new Point(424, 105);
             LanguagesLbl.Name = "LanguagesLbl";
-            LanguagesLbl.Size = new Size(211, 38);
+            LanguagesLbl.Size = new Size(202, 38);
             LanguagesLbl.TabIndex = 8;
             // 
             // label20
@@ -560,13 +622,13 @@
             label20.TabIndex = 7;
             label20.Text = "Languages";
             // 
-            // label22
+            // MiddleNameLbl
             // 
-            label22.BorderStyle = BorderStyle.Fixed3D;
-            label22.Location = new Point(141, 105);
-            label22.Name = "label22";
-            label22.Size = new Size(116, 38);
-            label22.TabIndex = 6;
+            MiddleNameLbl.BorderStyle = BorderStyle.Fixed3D;
+            MiddleNameLbl.Location = new Point(141, 105);
+            MiddleNameLbl.Name = "MiddleNameLbl";
+            MiddleNameLbl.Size = new Size(116, 38);
+            MiddleNameLbl.TabIndex = 6;
             // 
             // label21
             // 
@@ -613,27 +675,153 @@
             // 
             // CommentsTab
             // 
-            CommentsTab.Location = new Point(4, 29);
+            CommentsTab.Controls.Add(CommentsTb);
+            CommentsTab.Location = new Point(4, 40);
             CommentsTab.Name = "CommentsTab";
-            CommentsTab.Size = new Size(632, 373);
+            CommentsTab.Size = new Size(632, 362);
             CommentsTab.TabIndex = 2;
             CommentsTab.Text = "Comments";
             CommentsTab.UseVisualStyleBackColor = true;
             // 
+            // CommentsTb
+            // 
+            CommentsTb.AcceptsReturn = true;
+            CommentsTb.Location = new Point(18, 13);
+            CommentsTb.Multiline = true;
+            CommentsTb.Name = "CommentsTb";
+            CommentsTb.ReadOnly = true;
+            CommentsTb.ScrollBars = ScrollBars.Vertical;
+            CommentsTb.Size = new Size(596, 332);
+            CommentsTb.TabIndex = 0;
+            // 
             // ServiceTab
             // 
-            ServiceTab.Location = new Point(4, 29);
+            ServiceTab.Controls.Add(label29);
+            ServiceTab.Controls.Add(DeviceDataProviderLbl);
+            ServiceTab.Controls.Add(label31);
+            ServiceTab.Controls.Add(ServiceDataProviderLbl);
+            ServiceTab.Controls.Add(DeviceClassLbl);
+            ServiceTab.Controls.Add(label22);
+            ServiceTab.Controls.Add(MobilityLbl);
+            ServiceTab.Controls.Add(ServiceTypeLbl);
+            ServiceTab.Controls.Add(EnvironmentLbl);
+            ServiceTab.Controls.Add(label25);
+            ServiceTab.Controls.Add(label23);
+            ServiceTab.Controls.Add(label8);
+            ServiceTab.Location = new Point(4, 40);
             ServiceTab.Name = "ServiceTab";
-            ServiceTab.Size = new Size(632, 373);
+            ServiceTab.Size = new Size(632, 362);
             ServiceTab.TabIndex = 3;
             ServiceTab.Text = "Service";
             ServiceTab.UseVisualStyleBackColor = true;
             // 
+            // label29
+            // 
+            label29.AutoSize = true;
+            label29.Location = new Point(14, 297);
+            label29.Name = "label29";
+            label29.Size = new Size(99, 31);
+            label29.TabIndex = 11;
+            label29.Text = "Provider";
+            // 
+            // DeviceDataProviderLbl
+            // 
+            DeviceDataProviderLbl.BorderStyle = BorderStyle.Fixed3D;
+            DeviceDataProviderLbl.Location = new Point(177, 297);
+            DeviceDataProviderLbl.Name = "DeviceDataProviderLbl";
+            DeviceDataProviderLbl.Size = new Size(401, 38);
+            DeviceDataProviderLbl.TabIndex = 10;
+            // 
+            // label31
+            // 
+            label31.AutoSize = true;
+            label31.Location = new Point(11, 182);
+            label31.Name = "label31";
+            label31.Size = new Size(99, 31);
+            label31.TabIndex = 9;
+            label31.Text = "Provider";
+            // 
+            // ServiceDataProviderLbl
+            // 
+            ServiceDataProviderLbl.BorderStyle = BorderStyle.Fixed3D;
+            ServiceDataProviderLbl.Location = new Point(177, 182);
+            ServiceDataProviderLbl.Name = "ServiceDataProviderLbl";
+            ServiceDataProviderLbl.Size = new Size(401, 38);
+            ServiceDataProviderLbl.TabIndex = 8;
+            // 
+            // DeviceClassLbl
+            // 
+            DeviceClassLbl.BorderStyle = BorderStyle.Fixed3D;
+            DeviceClassLbl.Location = new Point(177, 249);
+            DeviceClassLbl.Name = "DeviceClassLbl";
+            DeviceClassLbl.Size = new Size(401, 38);
+            DeviceClassLbl.TabIndex = 7;
+            // 
+            // label22
+            // 
+            label22.AutoSize = true;
+            label22.Location = new Point(14, 249);
+            label22.Name = "label22";
+            label22.Size = new Size(140, 31);
+            label22.TabIndex = 6;
+            label22.Text = "Device Class";
+            // 
+            // MobilityLbl
+            // 
+            MobilityLbl.BorderStyle = BorderStyle.Fixed3D;
+            MobilityLbl.Location = new Point(177, 128);
+            MobilityLbl.Name = "MobilityLbl";
+            MobilityLbl.Size = new Size(401, 38);
+            MobilityLbl.TabIndex = 5;
+            // 
+            // ServiceTypeLbl
+            // 
+            ServiceTypeLbl.BorderStyle = BorderStyle.Fixed3D;
+            ServiceTypeLbl.Location = new Point(177, 76);
+            ServiceTypeLbl.Name = "ServiceTypeLbl";
+            ServiceTypeLbl.Size = new Size(401, 38);
+            ServiceTypeLbl.TabIndex = 4;
+            // 
+            // EnvironmentLbl
+            // 
+            EnvironmentLbl.BorderStyle = BorderStyle.Fixed3D;
+            EnvironmentLbl.Location = new Point(177, 19);
+            EnvironmentLbl.Name = "EnvironmentLbl";
+            EnvironmentLbl.Size = new Size(401, 38);
+            EnvironmentLbl.TabIndex = 3;
+            // 
+            // label25
+            // 
+            label25.AutoSize = true;
+            label25.Location = new Point(11, 128);
+            label25.Name = "label25";
+            label25.Size = new Size(99, 31);
+            label25.TabIndex = 2;
+            label25.Text = "Mobility";
+            // 
+            // label23
+            // 
+            label23.AutoSize = true;
+            label23.Location = new Point(11, 76);
+            label23.Name = "label23";
+            label23.Size = new Size(62, 31);
+            label23.TabIndex = 1;
+            label23.Text = "Type";
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(11, 19);
+            label8.Name = "label8";
+            label8.Size = new Size(143, 31);
+            label8.TabIndex = 0;
+            label8.Text = "Environment";
+            // 
             // AACN
             // 
-            AACN.Location = new Point(4, 29);
+            AACN.Location = new Point(4, 40);
             AACN.Name = "AACN";
-            AACN.Size = new Size(632, 373);
+            AACN.Size = new Size(632, 362);
             AACN.TabIndex = 4;
             AACN.Text = "AACN";
             AACN.UseVisualStyleBackColor = true;
@@ -882,6 +1070,27 @@
             label1.TabIndex = 0;
             label1.Text = "From";
             // 
+            // ProvidersTab
+            // 
+            ProvidersTab.Controls.Add(ProvidersTb);
+            ProvidersTab.Location = new Point(4, 40);
+            ProvidersTab.Name = "ProvidersTab";
+            ProvidersTab.Size = new Size(632, 362);
+            ProvidersTab.TabIndex = 5;
+            ProvidersTab.Text = "Providers";
+            ProvidersTab.UseVisualStyleBackColor = true;
+            // 
+            // ProvidersTb
+            // 
+            ProvidersTb.AcceptsReturn = true;
+            ProvidersTb.Location = new Point(15, 12);
+            ProvidersTb.Multiline = true;
+            ProvidersTb.Name = "ProvidersTb";
+            ProvidersTb.ReadOnly = true;
+            ProvidersTb.ScrollBars = ScrollBars.Both;
+            ProvidersTb.Size = new Size(599, 335);
+            ProvidersTb.TabIndex = 0;
+            // 
             // CallForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -907,8 +1116,14 @@
             LocationTab.PerformLayout();
             SubscriberTab.ResumeLayout(false);
             SubscriberTab.PerformLayout();
+            CommentsTab.ResumeLayout(false);
+            CommentsTab.PerformLayout();
+            ServiceTab.ResumeLayout(false);
+            ServiceTab.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).EndInit();
             ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).EndInit();
+            ProvidersTab.ResumeLayout(false);
+            ProvidersTab.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -961,7 +1176,7 @@
         private Label label10;
         private Button LocRefreshBtn;
         private Label label9;
-        private Label label8;
+        private Label LongitudeLbl;
         private Label LatitudeLbl;
         private Label label12;
         private Label ElevationLbl;
@@ -973,7 +1188,7 @@
         private Label label14;
         private Label ConfidenceLbl;
         private Label label13;
-        private Label MethdLbl;
+        private Label MethodLbl;
         private Label CountyLbl;
         private Label label17;
         private Label StateLbl;
@@ -983,16 +1198,35 @@
         private Label label18;
         private Label LanguagesLbl;
         private Label label20;
-        private Label label22;
+        private Label MiddleNameLbl;
         private Label label21;
         private Label FirstNameLbl;
-        private Label SubCountyLbl;
+        private Label SubCountryLbl;
         private Label label24;
-        private Label SubStatLbl;
+        private Label SubStateLbl;
         private Label label26;
         private Label SubCityLbl;
         private Label label28;
         private Label SubStreetLbl;
         private Label label30;
+        private Label label25;
+        private Label label23;
+        private Label label8;
+        private Label ServiceTypeLbl;
+        private Label EnvironmentLbl;
+        private Label MobilityLbl;
+        private Label DeviceClassLbl;
+        private Label label22;
+        private TextBox CommentsTb;
+        private Label ProvidedByLbl;
+        private Label label27;
+        private Label label31;
+        private Label ServiceDataProviderLbl;
+        private Label label29;
+        private Label DeviceDataProviderLbl;
+        private Label label32;
+        private Label SubscriberDataProviderLbl;
+        private TabPage ProvidersTab;
+        private TextBox ProvidersTb;
     }
 }

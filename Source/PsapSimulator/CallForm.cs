@@ -5,6 +5,10 @@
 namespace PsapSimulator;
 using PsapSimulator.CallManagement;
 using PsapSimulator.WindowsVideo;
+using Pidf;
+using AdditionalData;
+using System.Text;
+using System.Configuration;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -53,26 +57,229 @@ public partial class CallForm : Form
         {
             TextTypeLbl.Text = "MSRP";
         }
-        else
+        else if (m_Call.CallHasRtt() == true)
         {
             TextTypeLbl.Text = "RTT";
             UseCpimCheck.Visible = false;
             PrivateMsgCheck.Visible = false;
             SendBtn.Visible = false;
         }
+        else
+            TextTypeLbl.Text = "None";
         
         m_TextMessages.MessageAdded += OnMessageAdded;
         m_TextMessages.MessageUpdated += OnMessageUpdated;
         m_CallManager.CallStateChanged += OnCallStateChanged;
         m_CallManager.CallEnded += OnCallEnded;
+        m_Call.NewLocation += OnNewLocation;
 
-        //m_CallManager.FrameBitmapReady += OnPreviewFrameBitmapReady;
-        //m_Call.CurrentVideoCapture!.FrameBitmapReady += OnPreviewFrameBitmapReady;
         SetVideoPreviewSource();
 
         if (m_Call.VideoReceiver != null)
         {
             m_Call.VideoReceiver.FrameReady += OnFrameReady;
+        }
+
+        // Display the last received location information
+        if (m_Call.Locations.Count > 0)
+        {
+            Presence LastPresence = m_Call.Locations.ToArray()[m_Call.Locations.Count - 1];
+            DisplayLocation(LastPresence);
+        }
+
+        if (m_Call.ServiceInfo != null)
+            DisplayServiceInfo(m_Call.ServiceInfo);
+
+        if (m_Call.SubscriberInfo != null)
+            DisplaySubscriberInfo(m_Call.SubscriberInfo);
+
+        if (m_Call.DeviceInfo != null)
+            DisplayDeviceInfo(m_Call.DeviceInfo);
+
+        DisplayComments();
+        DisplayProviders();
+    }
+
+    private void DisplayComments()
+    {
+        StringBuilder Sb = new StringBuilder();
+
+        CommentType[] CommentsArray = m_Call.Comments.ToArray();
+        foreach (CommentType Comment in CommentsArray)
+        {
+            if (Comment.Comment != null && Comment.Comment.Length > 0)
+            {
+                foreach (CommentSubType CommentSubType in Comment.Comment)
+                {
+                    if (string.IsNullOrEmpty(CommentSubType.Value) == false)
+                    {
+                        Sb.Append(CommentSubType.Value);
+                        Sb.Append("\r\n\r\n");
+                    }
+                }
+            }
+        }
+
+        CommentsTb.Text = Sb.ToString();
+    }
+
+    private void DisplayProviders()
+    {
+        if (m_Call.Providers.Count == 0)
+            return;
+
+        StringBuilder Sb = new StringBuilder();
+        foreach (ProviderInfoType Pit in m_Call.Providers.Values)
+        {
+            if (string.IsNullOrEmpty(Pit.DataProviderString) == false)
+                Sb.Append($"Name:\t{Pit.DataProviderString}\r\n");
+            if (string.IsNullOrEmpty(Pit.TypeOfProvider) == false)
+                Sb.Append($"Type:\t{Pit.TypeOfProvider}\r\n");
+            if (string.IsNullOrEmpty(Pit.ContactURI) == false)
+                Sb.Append($"Contact:\t{Pit.ContactURI}\r\n");
+
+            Sb.Append("\r\n");
+        }
+
+        ProvidersTb.Text = Sb.ToString();
+    }
+
+    private void DisplayServiceInfo(ServiceInfoType ServiceInfo)
+    {
+        EnvironmentLbl.Text = string.Empty;
+        ServiceTypeLbl.Text = string.Empty;
+        MobilityLbl.Text = string.Empty;
+
+        EnvironmentLbl.Text = ServiceInfo.ServiceEnvironment;
+        if (ServiceInfo.ServiceType.Length > 0)
+            ServiceTypeLbl.Text = ServiceInfo.ServiceType[0];   // Just display the first one
+
+        MobilityLbl.Text = ServiceInfo.ServiceMobility;
+
+        // Get the ProviderInfo for the ServiceInfo if available
+        if (ServiceInfo.DataProviderReference != null)
+            ServiceDataProviderLbl.Text = GetProviderName(ServiceInfo.DataProviderReference);
+    }
+
+    private string? GetProviderName(string strProviderReference)
+    {
+        string? strProviderName = null;
+        if (m_Call.Providers.Count > 0)
+        {
+            foreach (ProviderInfoType Pit in m_Call.Providers.Values)
+            {
+                if (strProviderReference == Pit.DataProviderReference)
+                {
+                    strProviderName = Pit.DataProviderString;
+                    break;
+                }
+            }
+        }
+
+        return strProviderName;
+
+    }
+
+    private void DisplayDeviceInfo(DeviceInfoType deviceInfoType)
+    {
+        DeviceClassLbl.Text = deviceInfoType.DeviceClassification;
+        if (deviceInfoType.DataProviderReference != null)
+            DeviceDataProviderLbl.Text = GetProviderName(deviceInfoType.DataProviderReference);
+    }
+
+    private void DisplaySubscriberInfo(SubscriberInfoType SubscriberInfo)
+    {
+        if (SubscriberInfo.SubscriberData == null || SubscriberInfo.SubscriberData.Length == 0)
+            return;
+
+        // Just pick the first one
+        vcardType Vcard = SubscriberInfo.SubscriberData[0];
+        LastNameLbl.Text = Vcard.LastName;
+        FirstNameLbl.Text = Vcard.FirstName;
+        MiddleNameLbl.Text = Vcard.MiddleName;
+
+        SubStreetLbl.Text = Vcard.Street;
+        SubCityLbl.Text = Vcard.City;
+        SubStateLbl.Text = Vcard.State;
+        SubCountryLbl.Text = Vcard.Country;
+
+        // Get and display the list of spoken languages
+        StringBuilder Sb = new StringBuilder();
+        if (Vcard.lang != null &&  Vcard.lang.Length > 0)
+        {
+            for (int i=0; i < Vcard.lang.Length; i++)
+            {
+                if (string.IsNullOrEmpty(Vcard.lang[i].languagetag) == false)
+                {
+                    Sb.Append(Vcard.lang[i].languagetag);
+                    if (i < Vcard.lang.Length - 1)
+                        Sb.Append(", ");
+                }
+            }
+
+            LanguagesLbl.Text = Sb.ToString();
+        }
+
+        if (SubscriberInfo.DataProviderReference != null)
+            SubscriberDataProviderLbl.Text = GetProviderName(SubscriberInfo.DataProviderReference);
+    }
+
+    private void OnNewLocation(Presence newPresence)
+    {
+        BeginInvoke(() => DisplayLocation(newPresence));
+    }
+
+    private void DisplayLocation(Presence presence)
+    {
+        // Clear all of the location display fields.
+        LatitudeLbl.Text = string.Empty;
+        LongitudeLbl.Text = string.Empty;
+        RadiusLbl.Text = string.Empty;
+        MethodLbl.Text = string.Empty;
+        ElevationLbl.Text = string.Empty;
+        ConfidenceLbl.Text = string.Empty;
+        StreetLbl.Text = string.Empty;
+        CityLbl.Text = string.Empty;
+        StateLbl.Text = string.Empty;
+        CountyLbl.Text = string.Empty;
+
+        GeoPriv geoPriv = presence.GetFirstGeoGeoPriv();
+
+        if (geoPriv != null && geoPriv.LocationInfo != null)
+        {
+            locInfoType locInfo = geoPriv.LocationInfo;
+            if (locInfo.Point != null)
+            {
+                LatitudeLbl.Text = locInfo.Point.pos.Latitude.ToString();
+                LongitudeLbl.Text = locInfo.Point.pos.Longitude.ToString();
+                if (double.IsNaN(locInfo.Point.pos.Altitude) == false)
+                    ElevationLbl.Text = locInfo.Point.pos.Altitude.ToString();
+            }
+            else if (locInfo.Circle != null)
+            {
+                LatitudeLbl.Text = locInfo.Circle.pos.Latitude.ToString();
+                LongitudeLbl.Text = locInfo.Circle.pos .Longitude.ToString();
+                RadiusLbl.Text = locInfo.Circle.radius.Value.ToString();
+                if (double.IsNaN(locInfo.Circle.pos.Altitude) == false)
+                    ElevationLbl.Text = locInfo.Circle.pos.Altitude.ToString();
+            }
+
+            MethodLbl.Text = geoPriv.locMethod;
+            ConfidenceLbl.Text = geoPriv.LocationInfo.confidence?.Value;
+
+            // See if the ProviderInfo is available by-value
+            ProviderInfoType[]? PitArray = geoPriv.ProvidedBy?.EmergencyCallDataValue?.EmergencyCallDataProviderInfo;
+            if (PitArray != null && PitArray.Length > 0)
+                ProvidedByLbl.Text = PitArray[0].DataProviderString;
+        }
+
+        CivicAddress civicAddress = presence.GetFirstCivicAddress();
+        if (civicAddress != null)
+        {
+            StreetLbl.Text = civicAddress.BuildFormattedStreetAddress();
+            CityLbl.Text = civicAddress.A3;
+            StateLbl.Text = civicAddress.A1;
+            CountyLbl.Text = civicAddress.A2;
         }
     }
 
@@ -116,7 +323,6 @@ public partial class CallForm : Form
                 m_CurrentPreviewVideoCapture.FrameBitmapReady += OnPreviewFrameBitmapReady;
                 break;
         }
-
     }
 
     private void OnCallStateChanged(CallSummary callSummary)
@@ -126,7 +332,6 @@ public partial class CallForm : Form
 
         BeginInvoke(() => { CallStateLbl.Text = Call.CallStateToString(m_Call.CallState); });
         BeginInvoke(() => SetVideoPreviewSource());
-
     }
 
     private void OnCallEnded(string CallID)
@@ -191,11 +396,12 @@ public partial class CallForm : Form
 
     private void CloseBtn_Click(object sender, EventArgs e)
     {
-        // TODO: unhook the events
+        // Unhook the events
         m_TextMessages.MessageAdded -= OnMessageAdded;
         m_TextMessages.MessageUpdated -= OnMessageUpdated;
         m_CallManager.CallStateChanged -= OnCallStateChanged;
         m_CallManager.CallEnded -= OnCallEnded;
+        m_Call.NewLocation -= OnNewLocation;
 
         m_CallManager.FrameBitmapReady -= OnPreviewFrameBitmapReady;
 

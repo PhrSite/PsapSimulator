@@ -120,7 +120,13 @@ public class TextMessagesCollection
                 {   // Add the new characters to the last received message
                     TextMessage textMessage = Messages.Last();
                     textMessage.Time = DateTime.Now;
-                    textMessage.Message += message;
+                    if (message == "\b")
+                    {   // Handle a single backspace character
+                        if (textMessage.Message.Length > 0)
+                            textMessage.Message = textMessage.Message.Substring(0, textMessage.Message.Length - 1);
+                    }
+                    else
+                        textMessage.Message += message;
                     MessageUpdated?.Invoke(Messages.Count - 1);
                 }
                 else

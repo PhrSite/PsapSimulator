@@ -766,7 +766,7 @@ public class CallManager
                 ProcessByeRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.ACK:
-                //ProcessCancelRequest(request, remoteEndPoint, sipTransport);
+                
                 break;
             case SIPMethodsEnum.CANCEL:
                 ProcessCancelRequest(sipRequest, remoteEndPoint, sipTransport);
@@ -904,7 +904,7 @@ public class CallManager
         Call? call = GetCall(sipRequest.Header?.CallId);
 
         if (call != null)
-        {   // TODO: Its an existing call handle the re-INVITE
+        {   // TODO: Its an existing call so handle the re-INVITE
 
         }
         else
@@ -969,71 +969,7 @@ public class CallManager
             newCall.CallState = CallStateEnum.Ringing;
         }
 
-        // Get the location information for the incoming call
-        string? strPresence = newCall.InviteRequest!.GetContentsOfType(SipLib.Body.ContentTypes.Pidf);
-        if (strPresence != null)
-            // Location by value was sent
-            newCall.Locations.Add(XmlHelper.DeserializeFromString<Presence>(strPresence));
-
-        // Check for location by reference
-        foreach (SIPGeolocationHeader Sgh in newCall.InviteRequest.Header.Geolocation)
-        {
-            if (Sgh.GeolocationField.URI is null)
-                continue;   // Not expected 
-
-            SIPURI sghURI = Sgh.GeolocationField.URI;
-            if (sghURI.Scheme == SIPSchemesEnum.http || sghURI.Scheme == SIPSchemesEnum.https)
-            {   // Do a HELD request to get the dispatch location.
-                LocationRequest locRequest = new LocationRequest();
-                locRequest.responseTime = "emergencyDispatch";
-                locRequest.locationType = new LocationType();
-                locRequest.locationType.exact = false;
-                locRequest.locationType.Value.Add("any");
-                locRequest.device = new HeldDevice();
-                locRequest.device.uri = newCall.InviteRequest!.Header!.From!.FromURI!.ToParameterlessString();
-                string? strLocReq = XmlHelper.SerializeToString(locRequest);
-                if (strLocReq == null)
-                    continue;
-
-                Task.Factory.StartNew(async () =>
-                {
-                    AsyncHttpRequestor Ahr = new AsyncHttpRequestor(m_Certificate, 10000, null);
-                    HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.POST, sghURI.ToString(),
-                        Ng911Lib.Utilities.ContentTypes.Held, strLocReq, true);
-                    if (results.StatusCode == HttpStatusCode.OK)
-                    {
-                        if (results.Body != null && results.ContentType != null && results.ContentType ==
-                            Ng911Lib.Utilities.ContentTypes.Held)
-                        {
-                            LocationResponse Lr = XmlHelper.DeserializeFromString<LocationResponse>(results.Body);
-                            if (Lr != null && Lr.presence != null)
-                            {
-                                // TODO: finish location
-                            }
-                        }
-                    }
-
-                    Ahr.Dispose();
-                });
-
-            }
-            else if (sghURI.Scheme == SIPSchemesEnum.sip || sghURI.Scheme == SIPSchemesEnum.sips)
-            {   // TODO: Subscribe to the SIP Presence Event package
-
-            }
-        }
-
-        string? strServiceInfo = newCall.InviteRequest!.GetContentsOfType(SipLib.Body.ContentTypes.ServiceInfo);
-        ServiceInfoType? serviceInfo = null;
-        if (strServiceInfo != null)
-        {
-            serviceInfo = XmlHelper.DeserializeFromString<ServiceInfoType>(strServiceInfo);
-            // TODO: finish Service Info
-        }
-
-        // TODO: Get the additional data for the call
-
-        // TODO: Notify the application of the new call
+        newCall.GetLocationAndAdditionalData(m_Certificate!);
 
         // TODO: EIDO stuff
 
@@ -1192,6 +1128,8 @@ public class CallManager
 
     private void EndCall(Call call)
     {
+        call.EndCall();
+
         if (call.RtpChannels.Count > 0)
         {
 

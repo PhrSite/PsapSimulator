@@ -40,8 +40,11 @@ public class WindowsAudioIo : IMMNotificationClient, IAudioSampleSource
     private int m_DeviceNumber;
 
     private const int BufferMilliseconds = 20;
+
     private const int BufferCount = 5;
-    private const int DesiredLatencyMs = 100;
+    //private const int DesiredLatencyMs = 100;
+    private const int DesiredLatencyMs = 20;
+
     private const int SendBuffersPerSecond = 50;
 
     private int m_ReceivedBufferCount = 0;
