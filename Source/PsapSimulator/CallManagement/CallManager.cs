@@ -29,9 +29,12 @@ using Ng911Lib.Utilities;
 using Held;
 using HttpUtils;
 using SIPSorceryMedia.FFmpeg;
+using SipLib.I3EventLogging;
 
 using PsapSimulator.WindowsVideo;
 using System.Net.Security;
+using SipLib.Subscriptions;
+using SipLib.SipRec;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -42,7 +45,7 @@ public class CallManager
     private List<SipTransport> m_SipTransports = new List<SipTransport>();
     private string UserName = "PsapSimulator";
     private List<SIPChannel> m_SipChannels = new List<SIPChannel>();
-    private X509Certificate2? m_Certificate = null;
+    private X509Certificate2 m_Certificate;
     private ConcurrentDictionary<string, Call> m_Calls = new ConcurrentDictionary<string, Call>();
 
     private CancellationTokenSource m_CancellationTokenSource = new CancellationTokenSource();
@@ -81,6 +84,9 @@ public class CallManager
 
     public WindowsCameraCapture? CameraCapture = null;
 
+    private SrcManager m_SrcManager;
+    private I3EventLoggingManager m_I3EventLoggingManager;
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -88,6 +94,18 @@ public class CallManager
     public CallManager(AppSettings appSettings)
     {
         m_Settings = appSettings;
+
+        try
+        {
+            m_Certificate = new X509Certificate2(m_Settings.CertificateSettings.CertificateFilePath,
+                m_Settings.CertificateSettings.CertificatePassword);
+        }
+        catch (Exception certEx)
+        {
+            SipLogger.LogCritical(certEx, "Unable to load the X.509 Certificate");
+            throw;
+        }
+
         //UserName = m_Settings.Identity.ElementID;
         m_PortManager = new MediaPortManager(m_Settings.NetworkSettings.MediaPorts);
         m_Fingerprint = RtpChannel.CertificateFingerprint!;
@@ -105,8 +123,11 @@ public class CallManager
         // Set up the media sources for hold
         m_OnHoldAudioSampleData = WindowsAudioUtils.ReadWaveFile(m_Settings.CallHandling.CallHoldAudioFile!);
 
-        CallHandlingSettings Chs = m_Settings.CallHandling;
+        // For debug only
+        m_I3EventLoggingManager = new I3EventLoggingManager();
 
+        m_SrcManager = new SrcManager(m_Settings.SipRec, m_PortManager, m_Certificate, m_Settings.Identity.AgencyID,
+            m_Settings.Identity.AgentID, m_Settings.Identity.ElementID, m_I3EventLoggingManager);
     }
 
     private Bitmap? GetImageBitmap(string? path)
@@ -150,17 +171,6 @@ public class CallManager
     {
         if (m_Started == true)
             return;
-
-        try
-        {
-            m_Certificate = new X509Certificate2(m_Settings.CertificateSettings.CertificateFilePath,
-                m_Settings.CertificateSettings.CertificatePassword);
-        }
-        catch (Exception certEx)
-        {
-            SipLogger.LogCritical(certEx, "Unable to load the X.509 Certificate");
-            throw;
-        }
 
         try
         {
@@ -253,6 +263,8 @@ public class CallManager
         OnHoldCapture = new StaticImageCapture(Ch.CallHoldVideoFile!, 30, ImageWidth, ImageHeight);
         await OnHoldCapture.StartCapture();
 
+        m_SrcManager.Start();
+
         m_Started = true;
         
     }
@@ -284,9 +296,15 @@ public class CallManager
         }
     }
 
+    /// <summary>
+    /// Shuts down the CallManager and releases all resources used by it. Do not attempt to use this
+    /// object again after calling this method.
+    /// </summary>
+    /// <returns></returns>
     public async Task Shutdown()
     {
-        if (m_Started == false) return;
+        if (m_Started == false)
+            return;
 
         m_CancellationTokenSource.Cancel();
 
@@ -336,6 +354,8 @@ public class CallManager
         }
 
         m_Started = false;
+
+        await m_SrcManager.Shutdown();
     }
 
     private async Task ShutdownCameraCapture()
@@ -343,7 +363,6 @@ public class CallManager
         if (CameraCapture == null) return;
 
         CameraCapture.FrameBitmapReady -= OnFrameBitmapReady;
-        //CameraCapture.FrameBytesReady -= OnFrameBytesReady;
         await CameraCapture.StopCapture();
         CameraCapture = null;
     }
@@ -413,10 +432,34 @@ public class CallManager
                         DoAutoAnsweredStateWork(call, Chs, Now);
                     else if (call.CallState == CallStateEnum.OnHold)
                         DoOnHoldStateWork(call, Chs, Now);
+
+                    if (call.PresenceSubscriber != null)
+                        CheckSubscription(call, call.PresenceSubscriber);
+
+                    if (call.ConferenceSubscriber != null)
+                        CheckSubscription(call, call.ConferenceSubscriber);
                 }
             }
         }
 
+    }
+
+    /// <summary>
+    /// Checks to see if the subscription needs to be renewed
+    /// </summary>
+    /// <param name="call"></param>
+    /// <param name="subscriberData"></param>
+    private void CheckSubscription(Call call, SubscriberData subscriberData)
+    {
+        DateTime Now = DateTime.Now;
+        if (Now >= (subscriberData.LastSubscribeTime + TimeSpan.FromSeconds(subscriberData.ExpiresSeconds)))
+        {   // Its time to send a new SUBSCRIBE request
+            subscriberData.SubscribeRequest.Header.CSeq += 1;
+            // Just send the request and don't wait for a response.
+            call.sipTransport.StartClientNonInviteTransaction(subscriberData.SubscribeRequest,
+                subscriberData.RemoteEndPoint, null, 500);
+            subscriberData.LastSubscribeTime = Now;
+        }
     }
 
     private void DoAutoAnsweredStateWork(Call call, CallHandlingSettings Chs, DateTime Now)
@@ -602,6 +645,28 @@ public class CallManager
         SetCallOnLine(call);
     }
 
+    private void StartSipRecRecording(Call call)
+    {
+        SrcCallParameters parameters = new SrcCallParameters()
+        {
+            FromUri = call.InviteRequest!.Header.From!.FromURI!,
+            ToUri = call.InviteRequest!.Header.To!.ToURI!,
+            AnsweredSdp = call.AnsweredSdp!,
+            CallRtpChannels = call.RtpChannels,
+            CallMsrpConnection = call.MsrpConnection,
+            CallId = call.CallID,
+            EmergencyCallIdentifier = call.EmergencyCallIdentifier != null ? call.EmergencyCallIdentifier : string.Empty,
+            EmergencyIncidentIdentifier = call.EmergencyIncidentIdentifier != null ? call.EmergencyIncidentIdentifier : string.Empty
+        };
+
+        m_SrcManager.StartRecording(parameters);
+    }
+
+    private void StopSipRecRecording(string strCallId)
+    {
+        m_SrcManager.StopRecording(strCallId);
+    }
+
     /// <summary>
     /// Answers the oldest call that is ringing and puts the current call (if there is one) on-hold. If
     /// there are no calls in the ringing state, then this function picks up the oldest call that is
@@ -677,7 +742,7 @@ public class CallManager
     {
         foreach (RtpChannel rtpChannel in call.RtpChannels)
         {
-            if (rtpChannel.MediaType == "audio")
+            if (rtpChannel.MediaType == MediaTypes.Audio)
             {
                 if (call.CurrentAudioSampleSource != null)
                 {
@@ -778,7 +843,7 @@ public class CallManager
                 SendMethdNotAllowed(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.NOTIFY:
-
+                ProcessSipNotifyRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.SUBSCRIBE:
 
@@ -844,6 +909,48 @@ public class CallManager
     /// <param name="sipTransport"></param>
     private void OnLogSipResponse(SIPResponse sipResponse, IPEndPoint remoteEndPoint, bool Sent, SipTransport sipTransport)
     {
+
+    }
+
+    private void ProcessSipNotifyRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
+    {
+        if (string.IsNullOrEmpty(sipRequest.Header.Event) == true)
+        {   // Error -- No Event header so this is a bad request
+
+            return;
+        }
+
+        string Event = sipRequest.Header.Event;
+        if (Event == SubscriptionEvents.Presence || Event == SubscriptionEvents.Conference)
+        {
+            Call? call = GetCall(sipRequest.Header.CallId);
+            SIPResponse response;
+            if (call == null)
+                // The call does not exist
+                response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
+                    "Call Does Not Exist", sipTransport.SipChannel, UserName);
+            else
+                response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.Ok,
+                    "OK", sipTransport.SipChannel, UserName);
+
+            // Send the response, don't care about the result of the transaction.
+            sipTransport.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(),
+                null, response);
+
+            if (call == null)
+                return;
+
+            if (Event == SubscriptionEvents.Presence)
+                call.ProcessPresenceNotify(sipRequest);
+            else if (Event == SubscriptionEvents.Conference)
+            {
+                // TODO: handle the conference event package.
+            }
+        }
+        else
+        {
+
+        }
 
     }
 
@@ -931,7 +1038,8 @@ public class CallManager
             "Trying", sipTransport.SipChannel, UserName);
         ServerInviteTransaction Sit = sipTransport.StartServerInviteTransaction(sipRequest,
             remoteEndPoint.GetIPEndPoint(), OnServerInviteTransactionComplete, Trying);
-        Call newCall = Call.CreateIncomingCall(sipRequest, Sit, sipTransport, CallStateEnum.Trying);
+        Call newCall = Call.CreateIncomingCall(sipRequest, Sit, sipTransport, CallStateEnum.Trying,
+            m_Certificate);
 
         // Treating all incoming calls as emergency calls, so make sure that a call has both an emergency call
         // identifier and an emergency incident identifier.
@@ -969,7 +1077,7 @@ public class CallManager
             newCall.CallState = CallStateEnum.Ringing;
         }
 
-        newCall.GetLocationAndAdditionalData(m_Certificate!);
+        newCall.GetLocationAndAdditionalData();
 
         // TODO: EIDO stuff
 
@@ -993,17 +1101,15 @@ public class CallManager
             if (AnsweredMd.Port == 0)
                 continue;       // This media type was rejected so don't build an RtpChannel for it.
 
-            if (OfferedMd.MediaType == "message")
+            if (OfferedMd.MediaType == MediaTypes.MSRP)
             {   // Media type is MSRP
                 (MsrpConnection? msrpConnection, string? msrpError) = MsrpConnection.CreateFromSdp(
                     OfferedMd, AnsweredMd, call.IsIncoming, m_Certificate!);
                 if (msrpConnection != null)
                 {
                     call.MsrpConnection = msrpConnection;
-
-                    // TODO: Hook the MsrpConnection's events
+                    // Hook the MsrpConnection's events
                     msrpConnection.MsrpMessageReceived += call.OnMsrpMessageReceived;
-
                     msrpConnection.Start();
                 }
                 else
@@ -1027,9 +1133,9 @@ public class CallManager
 
                 // TODO: Hook the events and other things
 
-                if (rtpChannel.MediaType == "audio")
+                if (rtpChannel.MediaType == MediaTypes.Audio)
                 {
-                    MediaDescription? audioMd = call.AnsweredSdp!.GetMediaType("audio");
+                    MediaDescription? audioMd = call.AnsweredSdp!.GetMediaType(MediaTypes.Audio);
                     if (audioMd != null)
                     {
                         IAudioEncoder? encoder = WindowsAudioUtils.GetAudioEncoder(audioMd);
@@ -1054,16 +1160,16 @@ public class CallManager
                         }
                     }
                 }
-                else if (rtpChannel.MediaType == "video")
+                else if (rtpChannel.MediaType == MediaTypes.Video)
                 {
-                    MediaDescription? videoMd = call.AnsweredSdp!.GetMediaType("video");
+                    MediaDescription? videoMd = call.AnsweredSdp!.GetMediaType(MediaTypes.Video);
                     if (videoMd != null)
                     {
                         call.VideoSender = new VideoSender(videoMd, rtpChannel);
                         call.VideoReceiver = new VideoReceiver(videoMd, rtpChannel);
                     }
                 }
-                else if (rtpChannel.MediaType == "text")
+                else if (rtpChannel.MediaType == MediaTypes.RTT)
                 {
                     RttParameters? rttParameters = RttParameters.FromMediaDescription(AnsweredMd);
                     if (rttParameters == null)
@@ -1096,13 +1202,14 @@ public class CallManager
             }
         } // end foreach MediaDescription 
 
+        StartSipRecRecording(call);
     }
 
     private void AutoAnswer(Call call)
     {
         foreach (RtpChannel rtpChannel in call.RtpChannels)
         {
-            if (rtpChannel.MediaType == "audio")
+            if (rtpChannel.MediaType == MediaTypes.Audio)
             {
                 FileAudioSource Fas = new FileAudioSource(m_AutoAnswerAudioSampleData, null!);
                 call.CurrentAudioSampleSource = Fas;
@@ -1110,7 +1217,7 @@ public class CallManager
                 Fas.Start();
                 call.AudioSampleSource.Start();
             }
-            else if (rtpChannel.MediaType == "video")
+            else if (rtpChannel.MediaType == MediaTypes.Video)
             {
                 if (call.VideoSender != null && AutoAnswerCapture != null)
                 {
@@ -1118,7 +1225,7 @@ public class CallManager
                     AutoAnswerCapture.FrameReady += call.VideoSender.SendVideoFrame;
                 }
             }
-            else if (rtpChannel.MediaType == "text")
+            else if (rtpChannel.MediaType == MediaTypes.RTT)
             {
 
             }
@@ -1128,6 +1235,8 @@ public class CallManager
 
     private void EndCall(Call call)
     {
+        m_SrcManager.StopRecording(call.CallID);
+
         call.EndCall();
 
         if (call.RtpChannels.Count > 0)

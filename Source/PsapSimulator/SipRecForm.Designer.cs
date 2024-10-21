@@ -97,7 +97,7 @@
             // 
             // EndpointHeader
             // 
-            EndpointHeader.Text = "IP Endpoint";
+            EndpointHeader.Text = "SRS IP Endpoint";
             EndpointHeader.Width = 200;
             // 
             // SipTransportHeader

@@ -66,7 +66,7 @@ public partial class CallForm : Form
         }
         else
             TextTypeLbl.Text = "None";
-        
+
         m_TextMessages.MessageAdded += OnMessageAdded;
         m_TextMessages.MessageUpdated += OnMessageUpdated;
         m_CallManager.CallStateChanged += OnCallStateChanged;
@@ -205,9 +205,9 @@ public partial class CallForm : Form
 
         // Get and display the list of spoken languages
         StringBuilder Sb = new StringBuilder();
-        if (Vcard.lang != null &&  Vcard.lang.Length > 0)
+        if (Vcard.lang != null && Vcard.lang.Length > 0)
         {
-            for (int i=0; i < Vcard.lang.Length; i++)
+            for (int i = 0; i < Vcard.lang.Length; i++)
             {
                 if (string.IsNullOrEmpty(Vcard.lang[i].languagetag) == false)
                 {
@@ -242,6 +242,7 @@ public partial class CallForm : Form
         CityLbl.Text = string.Empty;
         StateLbl.Text = string.Empty;
         CountyLbl.Text = string.Empty;
+        LocTimeLbl.Text = string.Empty;
 
         GeoPriv geoPriv = presence.GetFirstGeoGeoPriv();
 
@@ -258,7 +259,7 @@ public partial class CallForm : Form
             else if (locInfo.Circle != null)
             {
                 LatitudeLbl.Text = locInfo.Circle.pos.Latitude.ToString();
-                LongitudeLbl.Text = locInfo.Circle.pos .Longitude.ToString();
+                LongitudeLbl.Text = locInfo.Circle.pos.Longitude.ToString();
                 RadiusLbl.Text = locInfo.Circle.radius.Value.ToString();
                 if (double.IsNaN(locInfo.Circle.pos.Altitude) == false)
                     ElevationLbl.Text = locInfo.Circle.pos.Altitude.ToString();
@@ -281,6 +282,9 @@ public partial class CallForm : Form
             StateLbl.Text = civicAddress.A1;
             CountyLbl.Text = civicAddress.A2;
         }
+
+        if (m_Call.LastLocationReceivedTime != DateTime.MinValue)
+            LocTimeLbl.Text = m_Call.LastLocationReceivedTime.ToString("HH:mm:ss");
     }
 
     private IVideoCapture? m_CurrentPreviewVideoCapture = null;
@@ -484,4 +488,17 @@ public partial class CallForm : Form
         BeginInvoke(() => { PreviewVideoPb.Image = bitmap; });
     }
 
+    private void LocRefreshBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.CallState == CallStateEnum.Ended)
+        {
+            MessageBox.Show("The call has ended", "Call Ended", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        bool LocByRefAvailable = m_Call.RefreshLocationByReference();
+        if (LocByRefAvailable == false)
+            MessageBox.Show("Location refresh is not available", "Informaton", MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+    }
 }

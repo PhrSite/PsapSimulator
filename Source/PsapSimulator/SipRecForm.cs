@@ -5,6 +5,7 @@
 namespace PsapSimulator;
 using PsapSimulator.Settings;
 using SipLib.Core;
+using SipLib.SipRec;
 
 /// <summary>
 /// SIPREC settings form
@@ -52,7 +53,7 @@ public partial class SipRecForm : Form
         {
             ListViewItem Lvi = new ListViewItem(recSettings.Name);
             Lvi.SubItems.Add(recSettings.Enabled.ToString());
-            Lvi.SubItems.Add(recSettings.IpEndpoint.ToString());
+            Lvi.SubItems.Add(recSettings.SrsIpEndpoint.ToString());
             Lvi.SubItems.Add(GetSipProtocolString(recSettings.SipTransportProtocol));
             Lvi.Tag = recSettings;
             RecListView.Items.Add(Lvi);
@@ -117,7 +118,7 @@ public partial class SipRecForm : Form
         {
             RecListView.Items[index].Tag = temp;
             RecListView.Items[index].SubItems[1].Text = temp.Enabled.ToString();
-            RecListView.Items[index].SubItems[2].Text = temp.IpEndpoint.ToString();
+            RecListView.Items[index].SubItems[2].Text = temp.SrsIpEndpoint.ToString();
             RecListView.Items[index].SubItems[3].Text = GetSipProtocolString(temp.SipTransportProtocol);
         }
     }

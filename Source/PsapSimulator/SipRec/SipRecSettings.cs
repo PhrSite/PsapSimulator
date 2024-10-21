@@ -2,6 +2,8 @@
 //  File:   SipRecSettings.cs                                       9 Feb 24 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
+using SipLib.SipRec;
+
 namespace PsapSimulator.Settings;
 
 /// <summary>

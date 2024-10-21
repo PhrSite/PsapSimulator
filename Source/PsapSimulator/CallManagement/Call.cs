@@ -27,6 +27,7 @@ using HttpUtils;
 using Ng911Lib.Utilities;
 using SipLib.Logging;
 using System.Collections.Concurrent;
+using SipLib.Subscriptions;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
 
@@ -156,6 +157,12 @@ public class Call
     public ThreadSafeGenericList<Presence> Locations { get; private set; } = new ThreadSafeGenericList<Presence>();
 
     /// <summary>
+    /// Contains the time that the last (most recent) location information data was received. A value of
+    /// DateTime.MinValue indicates that no location information has been received
+    /// </summary>
+    public DateTime LastLocationReceivedTime = DateTime.MinValue;
+
+    /// <summary>
     /// This event is fired when new location for the call is received.
     /// </summary>
     public event NewLocationDelegate? NewLocation = null;
@@ -185,8 +192,19 @@ public class Call
     /// </summary>
     public ThreadSafeGenericList<CommentType> Comments = new ThreadSafeGenericList<CommentType>();
 
-    private Call(SipTransport transport)
+    /// <summary>
+    /// Contains the state and other data for the call's subscription to the presence event package.
+    /// </summary>
+    public SubscriberData? PresenceSubscriber { get; set; } = null;
+
+
+    public SubscriberData? ConferenceSubscriber { get; set; } = null;
+
+    private X509Certificate2 m_Certificate;
+
+    private Call(SipTransport transport, X509Certificate2 certificate)
     {
+        m_Certificate = certificate;
         sipTransport = transport;
     }
 
@@ -223,15 +241,14 @@ public class Call
     /// <summary>
     /// Gets the location and additonal data from the INVITE request for an incoming call.
     /// </summary>
-    /// <param name="certificate">X.509 certificate to use for HTTPS requests</param>
-    public void GetLocationAndAdditionalData(X509Certificate2 certificate)
+    public void GetLocationAndAdditionalData()
     {
         string? strPresence = InviteRequest!.GetContentsOfType(SipLib.Body.ContentTypes.Pidf);
         if (strPresence != null)
         {   // Location by value was sent
             Presence presence = XmlHelper.DeserializeFromString<Presence>(strPresence);
             if (presence != null)
-                Locations.Add(XmlHelper.DeserializeFromString<Presence>(strPresence));
+                AddNewLocation(presence);
             else
                 SipLogger.LogError("Unable to deserialize a PIDF Presence string for location " +
                     $"by-value:\n{strPresence}");
@@ -246,42 +263,11 @@ public class Call
             SIPURI sghURI = Sgh.GeolocationField.URI;
             if (sghURI.Scheme == SIPSchemesEnum.http || sghURI.Scheme == SIPSchemesEnum.https)
             {   // Do a HELD request to get the dispatch location.
-                LocationRequest locRequest = new LocationRequest();
-                locRequest.responseTime = "emergencyDispatch";
-                locRequest.locationType = new LocationType();
-                locRequest.locationType.exact = false;
-                locRequest.locationType.Value.Add("any");
-                locRequest.device = new HeldDevice();
-                locRequest.device.uri = InviteRequest!.Header!.From!.FromURI!.ToParameterlessString();
-                string? strLocReq = XmlHelper.SerializeToString(locRequest);
-                if (strLocReq == null)
-                    continue;
-
-                Task.Factory.StartNew(async () =>
-                {
-                    AsyncHttpRequestor Ahr = new AsyncHttpRequestor(certificate, 10000, null);
-                    HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.POST, sghURI.ToString(),
-                        Ng911Lib.Utilities.ContentTypes.Held, strLocReq, true);
-                    if (results.StatusCode == HttpStatusCode.OK)
-                    {
-                        if (results.Body != null && results.ContentType != null && results.ContentType ==
-                            Ng911Lib.Utilities.ContentTypes.Held)
-                        {
-                            LocationResponse Lr = XmlHelper.DeserializeFromString<LocationResponse>(results.Body);
-                            if (Lr != null && Lr.presence != null)
-                                AddNewLocation(Lr.presence);
-                            else
-                                SipLogger.LogError($"Unable to deserialize LocationResponse:\n{results.Body}");
-                        }
-                    }
-
-                    Ahr.Dispose();
-                });
-
+                GetLocationByReference(sghURI);
             }
             else if (sghURI.Scheme == SIPSchemesEnum.sip || sghURI.Scheme == SIPSchemesEnum.sips)
-            {   // TODO: Subscribe to the SIP Presence Event package
-
+            {   // Send a SUBSCRIBE request for the Presence event package. See RFC 3856 and RFC 6442
+                StartPresenceSubscription(sghURI);
             }
         }
 
@@ -292,7 +278,7 @@ public class Call
         SIPCallInfoHeader? serviceInfoCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
             PurposeTypes.ServiceInfo, SIPSchemesEnum.cid);
         if (serviceInfoCallInfo != null)
-            GetAdditionalDataByReference(serviceInfoCallInfo, certificate, PurposeTypes.ServiceInfo, 
+            GetAdditionalDataByReference(serviceInfoCallInfo, m_Certificate, PurposeTypes.ServiceInfo, 
                 Ng911Lib.Utilities.ContentTypes.ServiceInfo, typeof(ServiceInfoType), SetServiceInfo);
 
         // Subscriber Info by-value
@@ -302,7 +288,7 @@ public class Call
         SIPCallInfoHeader? subCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
             PurposeTypes.SubscriberInfo, SIPSchemesEnum.cid);
         if (subCallInfo != null)
-            GetAdditionalDataByReference(subCallInfo, certificate, PurposeTypes.SubscriberInfo, 
+            GetAdditionalDataByReference(subCallInfo, m_Certificate, PurposeTypes.SubscriberInfo, 
                 Ng911Lib.Utilities.ContentTypes.SubscriberInfo, typeof(SubscriberInfoType), SetSubscriberInfo);
 
         // Provider Info by-value -- There may be multiple ProviderInfo blocks
@@ -336,7 +322,7 @@ public class Call
             if (string.IsNullOrEmpty(strPurpose) == false && strPurpose == PurposeTypes.ProviderInfo &&
                 Sch.CallInfoField.URI is not null && Sch.CallInfoField.URI.Scheme != SIPSchemesEnum.cid)
             {
-                GetAdditionalDataByReference(Sch, certificate, PurposeTypes.ProviderInfo,
+                GetAdditionalDataByReference(Sch, m_Certificate, PurposeTypes.ProviderInfo,
                     Ng911Lib.Utilities.ContentTypes.ProviderInfo, typeof(ProviderInfoType), SetProviderInfo);
             }
         }
@@ -348,7 +334,7 @@ public class Call
         SIPCallInfoHeader? deviceCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
             PurposeTypes.DeviceInfo, SIPSchemesEnum.cid);
         if (deviceCallInfo != null)
-            GetAdditionalDataByReference(deviceCallInfo, certificate, PurposeTypes.DeviceInfo, 
+            GetAdditionalDataByReference(deviceCallInfo, m_Certificate, PurposeTypes.DeviceInfo, 
                 Ng911Lib.Utilities.ContentTypes.DeviceInfo, typeof(DeviceInfoType), SetDeviceInfo);
 
         // Comments by-value -- There may be multiple blocks in the body
@@ -376,9 +362,130 @@ public class Call
             if (string.IsNullOrEmpty(strPurpose) == false && strPurpose == PurposeTypes.Comment &&
                 Sch.CallInfoField.URI is not null && Sch.CallInfoField.URI.Scheme != SIPSchemesEnum.cid)
             {
-                GetAdditionalDataByReference(Sch, certificate, PurposeTypes.Comment,
+                GetAdditionalDataByReference(Sch, m_Certificate, PurposeTypes.Comment,
                     Ng911Lib.Utilities.ContentTypes.Comment, typeof(CommentType), SetComment);
             }
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public bool RefreshLocationByReference()
+    {
+        if (InviteRequest == null)
+            return false;
+
+        bool HasLocationByReference = false;
+        foreach (SIPGeolocationHeader Sgh in InviteRequest.Header.Geolocation)
+        {
+            if (Sgh.GeolocationField.URI is null)
+                continue;   // Not expected 
+
+            SIPURI sghURI = Sgh.GeolocationField.URI;
+            if (sghURI.Scheme == SIPSchemesEnum.http || sghURI.Scheme == SIPSchemesEnum.https)
+            {   // Do a HELD request to get the dispatch location.
+                HasLocationByReference = true;
+                GetLocationByReference(sghURI);
+            }
+        }
+
+        return HasLocationByReference;
+    }
+
+    /// <summary>
+    /// Does a HELD request to get the dispatch location.
+    /// </summary>
+    /// <param name="httpUri">The HTTP or HTTPS URI to send the HELD request to.</param>
+    private void GetLocationByReference(SIPURI httpUri)
+    {
+        LocationRequest locRequest = new LocationRequest();
+        locRequest.responseTime = "emergencyDispatch";
+        locRequest.locationType = new LocationType();
+        locRequest.locationType.exact = false;
+        locRequest.locationType.Value.Add("any");
+        locRequest.device = new HeldDevice();
+        locRequest.device.uri = InviteRequest!.Header!.From!.FromURI!.ToParameterlessString();
+        string strLocReq = XmlHelper.SerializeToString(locRequest);
+
+        Task.Factory.StartNew(async () =>
+        {
+            AsyncHttpRequestor Ahr = new AsyncHttpRequestor(m_Certificate, 10000, null);
+            HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.POST, httpUri.ToString(),
+                Ng911Lib.Utilities.ContentTypes.Held, strLocReq, true);
+            if (results.StatusCode == HttpStatusCode.OK)
+            {
+                if (results.Body != null && results.ContentType != null && results.ContentType ==
+                    Ng911Lib.Utilities.ContentTypes.Held)
+                {
+                    LocationResponse Lr = XmlHelper.DeserializeFromString<LocationResponse>(results.Body);
+                    if (Lr != null && Lr.presence != null)
+                        AddNewLocation(Lr.presence);
+                    else
+                        SipLogger.LogError($"Unable to deserialize LocationResponse:\n{results.Body}");
+                }
+            }
+
+            Ahr.Dispose();
+        });
+    }
+
+    private void StartPresenceSubscription(SIPURI geolocationSipUri)
+    {
+        if (geolocationSipUri.ToSIPEndPoint() is null)
+            return;
+
+        SIPRequest subscribe = SIPRequest.CreateBasicRequest(SIPMethodsEnum.SUBSCRIBE, geolocationSipUri,
+            geolocationSipUri, null, sipTransport.SipChannel.SIPChannelContactURI, null);
+        // For now, don't send an in-dialog request, just use the same Call-ID header to associate the
+        // subscription with this call.
+        subscribe.Header.CallId = InviteRequest!.Header.CallId;
+        subscribe.Header.Event = SubscriptionEvents.Presence;
+        subscribe.Header.Expires = 3600;    // Set a default value of one hour
+        IPEndPoint? remoteEndpoint = geolocationSipUri.ToSIPEndPoint()!.GetIPEndPoint();
+        PresenceSubscriber = new SubscriberData(subscribe, SubscriptionEvents.Presence, remoteEndpoint);
+        ClientNonInviteTransaction Cnit = sipTransport.StartClientNonInviteTransaction(subscribe,
+            remoteEndpoint, OnPresenceSubscribeTransactionComplete, 500);
+    }
+
+    private void OnPresenceSubscribeTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
+        IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
+    {
+        if (PresenceSubscriber == null)
+            return;
+
+        if (sipResponse == null || sipResponse.Status != SIPResponseStatusCodesEnum.Ok)
+        {   // The SUBSCRIBE request failed.
+            PresenceSubscriber = null;
+            SipLogger.LogError($"Presence event SUBSCRIBE to: {remoteEndPoint}, reason = {Transaction.TerminationReason}");
+            return;
+        }
+
+        PresenceSubscriber.SubscribeRequest.Header.To!.ToTag = sipResponse.Header.To!.ToTag;
+        if (sipResponse.Header.Expires != 0)
+            PresenceSubscriber.ExpiresSeconds = sipResponse.Header.Expires;
+    }
+
+    /// <summary>
+    /// Processes a NOTIFY request for the presence event subscription
+    /// </summary>
+    /// <param name="notifyRequest"></param>
+    public void ProcessPresenceNotify(SIPRequest notifyRequest)
+    {
+        string? strPresence = notifyRequest.GetContentsOfType(SipLib.Body.ContentTypes.Pidf);
+        if (strPresence != null)
+        {
+            Presence? presence = XmlHelper.DeserializeFromString<Presence>(strPresence);
+            if (presence != null)
+                AddNewLocation(presence);
+        }
+
+        // Handle subscription termination.
+        string? strSubscriptionState = notifyRequest.Header.SubscriptionState;
+        if (strSubscriptionState != null && strSubscriptionState.IndexOf("terminated") >= 0)
+        {   // The subscription has been terminated
+            PresenceSubscriber = null;
         }
     }
 
@@ -473,7 +580,7 @@ public class Call
         bool HasRtt = false;
         foreach (RtpChannel rtpChannel in RtpChannels)
         {
-            if (rtpChannel.MediaType == "text")
+            if (rtpChannel.MediaType == MediaTypes.RTT)
             {
                 HasRtt = true;
                 break;
@@ -485,6 +592,7 @@ public class Call
     public void AddNewLocation(Presence presence)
     {
         Locations.Add(presence);
+        LastLocationReceivedTime = DateTime.Now;
         NewLocation?.Invoke(presence);  // Notify anyone that is listening.
     }
 
@@ -618,11 +726,12 @@ public class Call
     /// <param name="transaction"></param>
     /// <param name="transport"></param>
     /// <param name="initialState"></param>
+    /// <param name="certificate"></param>
     /// <returns></returns>
     public static Call CreateIncomingCall(SIPRequest invite, ServerInviteTransaction transaction,
-        SipTransport transport, CallStateEnum initialState)
+        SipTransport transport, CallStateEnum initialState, X509Certificate2 certificate)
     {
-        Call call = new Call(transport);
+        Call call = new Call(transport, certificate);
         call.IsIncoming = true;
         call.InviteRequest = invite;
         call.serverInviteTransaction = transaction;

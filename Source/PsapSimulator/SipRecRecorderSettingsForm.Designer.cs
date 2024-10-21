@@ -42,25 +42,33 @@
             RtpEncryptionCombo = new ComboBox();
             label13 = new Label();
             label12 = new Label();
+            LocalIpEndpointTb = new TextBox();
+            label4 = new Label();
+            groupBox1 = new GroupBox();
+            label6 = new Label();
+            label5 = new Label();
+            OptionsIntervalTb = new TextBox();
+            OptionsCheck = new CheckBox();
             groupBox4.SuspendLayout();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // SaveBtn
             // 
-            SaveBtn.Location = new Point(475, 401);
+            SaveBtn.Location = new Point(528, 564);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 45);
-            SaveBtn.TabIndex = 8;
+            SaveBtn.TabIndex = 12;
             SaveBtn.Text = "Save";
             SaveBtn.UseVisualStyleBackColor = true;
             SaveBtn.Click += SaveBtn_Click;
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(356, 401);
+            CancelBtn.Location = new Point(418, 564);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 45);
-            CancelBtn.TabIndex = 9;
+            CancelBtn.TabIndex = 13;
             CancelBtn.Text = "Cancel";
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
@@ -116,9 +124,9 @@
             label3.Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label3.Location = new Point(17, 96);
             label3.Name = "label3";
-            label3.Size = new Size(132, 31);
+            label3.Size = new Size(176, 31);
             label3.TabIndex = 7;
-            label3.Text = "IP Endpoint";
+            label3.Text = "SRS IP Endpoint";
             // 
             // IPEndpointTb
             // 
@@ -133,10 +141,10 @@
             groupBox4.Controls.Add(RtpEncryptionCombo);
             groupBox4.Controls.Add(label13);
             groupBox4.Controls.Add(label12);
-            groupBox4.Location = new Point(17, 203);
+            groupBox4.Location = new Point(12, 320);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(368, 159);
-            groupBox4.TabIndex = 5;
+            groupBox4.Size = new Size(324, 184);
+            groupBox4.TabIndex = 6;
             groupBox4.TabStop = false;
             groupBox4.Text = "Media Encryption";
             // 
@@ -147,8 +155,8 @@
             MsrpEncryptionCombo.Items.AddRange(new object[] { "None", "MSRP over TLS" });
             MsrpEncryptionCombo.Location = new Point(161, 101);
             MsrpEncryptionCombo.Name = "MsrpEncryptionCombo";
-            MsrpEncryptionCombo.Size = new Size(185, 39);
-            MsrpEncryptionCombo.TabIndex = 7;
+            MsrpEncryptionCombo.Size = new Size(139, 39);
+            MsrpEncryptionCombo.TabIndex = 8;
             // 
             // RtpEncryptionCombo
             // 
@@ -157,8 +165,8 @@
             RtpEncryptionCombo.Items.AddRange(new object[] { "None", "SDES-SRTP", "DTLS-SRTP" });
             RtpEncryptionCombo.Location = new Point(161, 56);
             RtpEncryptionCombo.Name = "RtpEncryptionCombo";
-            RtpEncryptionCombo.Size = new Size(185, 39);
-            RtpEncryptionCombo.TabIndex = 6;
+            RtpEncryptionCombo.Size = new Size(139, 39);
+            RtpEncryptionCombo.TabIndex = 7;
             // 
             // label13
             // 
@@ -178,12 +186,80 @@
             label12.TabIndex = 0;
             label12.Text = "RTP Media";
             // 
+            // LocalIpEndpointTb
+            // 
+            LocalIpEndpointTb.Location = new Point(17, 235);
+            LocalIpEndpointTb.Name = "LocalIpEndpointTb";
+            LocalIpEndpointTb.Size = new Size(368, 38);
+            LocalIpEndpointTb.TabIndex = 5;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label4.Location = new Point(17, 201);
+            label4.Name = "label4";
+            label4.Size = new Size(191, 31);
+            label4.TabIndex = 11;
+            label4.Text = "Local IP Endpoint";
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(label6);
+            groupBox1.Controls.Add(label5);
+            groupBox1.Controls.Add(OptionsIntervalTb);
+            groupBox1.Controls.Add(OptionsCheck);
+            groupBox1.Location = new Point(357, 320);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(265, 184);
+            groupBox1.TabIndex = 9;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "SIP OPTIONS";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(153, 121);
+            label6.Name = "label6";
+            label6.Size = new Size(109, 31);
+            label6.TabIndex = 3;
+            label6.Text = "(5 - 3600)";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(22, 84);
+            label5.Name = "label5";
+            label5.Size = new Size(195, 31);
+            label5.TabIndex = 2;
+            label5.Text = "Interval (Seconds)";
+            // 
+            // OptionsIntervalTb
+            // 
+            OptionsIntervalTb.Location = new Point(22, 121);
+            OptionsIntervalTb.Name = "OptionsIntervalTb";
+            OptionsIntervalTb.Size = new Size(125, 38);
+            OptionsIntervalTb.TabIndex = 11;
+            // 
+            // OptionsCheck
+            // 
+            OptionsCheck.AutoSize = true;
+            OptionsCheck.Location = new Point(22, 37);
+            OptionsCheck.Name = "OptionsCheck";
+            OptionsCheck.Size = new Size(105, 35);
+            OptionsCheck.TabIndex = 10;
+            OptionsCheck.Text = "Enable";
+            OptionsCheck.UseVisualStyleBackColor = true;
+            // 
             // SipRecRecorderSettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(590, 458);
+            ClientSize = new Size(643, 621);
             ControlBox = false;
+            Controls.Add(groupBox1);
+            Controls.Add(label4);
+            Controls.Add(LocalIpEndpointTb);
             Controls.Add(groupBox4);
             Controls.Add(IPEndpointTb);
             Controls.Add(label3);
@@ -206,6 +282,8 @@
             Load += SipRecRecorderSettingsForm_Load;
             groupBox4.ResumeLayout(false);
             groupBox4.PerformLayout();
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -226,5 +304,12 @@
         private ComboBox RtpEncryptionCombo;
         private Label label13;
         private Label label12;
+        private TextBox LocalIpEndpointTb;
+        private Label label4;
+        private GroupBox groupBox1;
+        private Label label6;
+        private Label label5;
+        private TextBox OptionsIntervalTb;
+        private CheckBox OptionsCheck;
     }
 }

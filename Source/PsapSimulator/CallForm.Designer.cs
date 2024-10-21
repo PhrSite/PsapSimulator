@@ -95,6 +95,8 @@
             label25 = new Label();
             label23 = new Label();
             label8 = new Label();
+            ProvidersTab = new TabPage();
+            ProvidersTb = new TextBox();
             AACN = new TabPage();
             PreviewVideoPb = new PictureBox();
             ReceiveVideoPb = new PictureBox();
@@ -125,8 +127,7 @@
             label3 = new Label();
             FromLbl = new Label();
             label1 = new Label();
-            ProvidersTab = new TabPage();
-            ProvidersTb = new TextBox();
+            LocTimeLbl = new Label();
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             panel1.SuspendLayout();
@@ -135,9 +136,9 @@
             SubscriberTab.SuspendLayout();
             CommentsTab.SuspendLayout();
             ServiceTab.SuspendLayout();
+            ProvidersTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).BeginInit();
-            ProvidersTab.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -265,6 +266,7 @@
             // LocationTab
             // 
             LocationTab.AutoScroll = true;
+            LocationTab.Controls.Add(LocTimeLbl);
             LocationTab.Controls.Add(ProvidedByLbl);
             LocationTab.Controls.Add(label27);
             LocationTab.Controls.Add(CountyLbl);
@@ -457,6 +459,7 @@
             LocRefreshBtn.TabIndex = 4;
             LocRefreshBtn.Text = "Refresh";
             LocRefreshBtn.UseVisualStyleBackColor = true;
+            LocRefreshBtn.Click += LocRefreshBtn_Click;
             // 
             // label9
             // 
@@ -512,10 +515,10 @@
             SubscriberTab.Controls.Add(label19);
             SubscriberTab.Controls.Add(LastNameLbl);
             SubscriberTab.Controls.Add(label18);
-            SubscriberTab.Location = new Point(4, 40);
+            SubscriberTab.Location = new Point(4, 29);
             SubscriberTab.Name = "SubscriberTab";
             SubscriberTab.Padding = new Padding(3);
-            SubscriberTab.Size = new Size(632, 362);
+            SubscriberTab.Size = new Size(632, 373);
             SubscriberTab.TabIndex = 1;
             SubscriberTab.Text = "Subscriber";
             SubscriberTab.UseVisualStyleBackColor = true;
@@ -676,9 +679,9 @@
             // CommentsTab
             // 
             CommentsTab.Controls.Add(CommentsTb);
-            CommentsTab.Location = new Point(4, 40);
+            CommentsTab.Location = new Point(4, 29);
             CommentsTab.Name = "CommentsTab";
-            CommentsTab.Size = new Size(632, 362);
+            CommentsTab.Size = new Size(632, 373);
             CommentsTab.TabIndex = 2;
             CommentsTab.Text = "Comments";
             CommentsTab.UseVisualStyleBackColor = true;
@@ -708,9 +711,9 @@
             ServiceTab.Controls.Add(label25);
             ServiceTab.Controls.Add(label23);
             ServiceTab.Controls.Add(label8);
-            ServiceTab.Location = new Point(4, 40);
+            ServiceTab.Location = new Point(4, 29);
             ServiceTab.Name = "ServiceTab";
-            ServiceTab.Size = new Size(632, 362);
+            ServiceTab.Size = new Size(632, 373);
             ServiceTab.TabIndex = 3;
             ServiceTab.Text = "Service";
             ServiceTab.UseVisualStyleBackColor = true;
@@ -817,11 +820,32 @@
             label8.TabIndex = 0;
             label8.Text = "Environment";
             // 
+            // ProvidersTab
+            // 
+            ProvidersTab.Controls.Add(ProvidersTb);
+            ProvidersTab.Location = new Point(4, 29);
+            ProvidersTab.Name = "ProvidersTab";
+            ProvidersTab.Size = new Size(632, 373);
+            ProvidersTab.TabIndex = 5;
+            ProvidersTab.Text = "Providers";
+            ProvidersTab.UseVisualStyleBackColor = true;
+            // 
+            // ProvidersTb
+            // 
+            ProvidersTb.AcceptsReturn = true;
+            ProvidersTb.Location = new Point(15, 12);
+            ProvidersTb.Multiline = true;
+            ProvidersTb.Name = "ProvidersTb";
+            ProvidersTb.ReadOnly = true;
+            ProvidersTb.ScrollBars = ScrollBars.Both;
+            ProvidersTb.Size = new Size(599, 335);
+            ProvidersTb.TabIndex = 0;
+            // 
             // AACN
             // 
-            AACN.Location = new Point(4, 40);
+            AACN.Location = new Point(4, 29);
             AACN.Name = "AACN";
-            AACN.Size = new Size(632, 362);
+            AACN.Size = new Size(632, 373);
             AACN.TabIndex = 4;
             AACN.Text = "AACN";
             AACN.UseVisualStyleBackColor = true;
@@ -1070,26 +1094,14 @@
             label1.TabIndex = 0;
             label1.Text = "From";
             // 
-            // ProvidersTab
+            // LocTimeLbl
             // 
-            ProvidersTab.Controls.Add(ProvidersTb);
-            ProvidersTab.Location = new Point(4, 40);
-            ProvidersTab.Name = "ProvidersTab";
-            ProvidersTab.Size = new Size(632, 362);
-            ProvidersTab.TabIndex = 5;
-            ProvidersTab.Text = "Providers";
-            ProvidersTab.UseVisualStyleBackColor = true;
-            // 
-            // ProvidersTb
-            // 
-            ProvidersTb.AcceptsReturn = true;
-            ProvidersTb.Location = new Point(15, 12);
-            ProvidersTb.Multiline = true;
-            ProvidersTb.Name = "ProvidersTb";
-            ProvidersTb.ReadOnly = true;
-            ProvidersTb.ScrollBars = ScrollBars.Both;
-            ProvidersTb.Size = new Size(599, 335);
-            ProvidersTb.TabIndex = 0;
+            LocTimeLbl.AutoSize = true;
+            LocTimeLbl.Location = new Point(493, 60);
+            LocTimeLbl.Name = "LocTimeLbl";
+            LocTimeLbl.Size = new Size(122, 31);
+            LocTimeLbl.TabIndex = 23;
+            LocTimeLbl.Text = "HH:MM:SS";
             // 
             // CallForm
             // 
@@ -1120,10 +1132,10 @@
             CommentsTab.PerformLayout();
             ServiceTab.ResumeLayout(false);
             ServiceTab.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).EndInit();
-            ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).EndInit();
             ProvidersTab.ResumeLayout(false);
             ProvidersTab.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).EndInit();
+            ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).EndInit();
             ResumeLayout(false);
         }
 
@@ -1228,5 +1240,6 @@
         private Label SubscriberDataProviderLbl;
         private TabPage ProvidersTab;
         private TextBox ProvidersTb;
+        private Label LocTimeLbl;
     }
 }
