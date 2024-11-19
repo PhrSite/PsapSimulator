@@ -11,6 +11,7 @@ using SipLib.Transactions;
 using SipLib.Media;
 using SipLib.Channels;
 using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics;
 
 namespace SipLib.SipRec;
 
@@ -37,7 +38,7 @@ internal class SrcCall
     public Sdp.Sdp OfferedSdp;
 
     /// <summary>
-    /// OK reqponse to the INVITE request that was received from the SRS.
+    /// OK response to the INVITE request that was received from the SRS.
     /// </summary>
     public SIPResponse? OkResponse = null;
 
@@ -156,6 +157,8 @@ internal class SrcCall
             answeredMediaDescription = AnsweredSdp.Media[i];
 
             iLabel = int.Parse(offeredMediaDescription.Label!);
+            // Odd media labels are for media that is received. Even media labels are for media that
+            // was sent. See the MediaLabel class.
             IsForReceive = (iLabel % 2) != 0 ? true : false;
             if (offeredMediaDescription.MediaType == MediaTypes.MSRP && CallParameters.CallMsrpConnection != null)
             {

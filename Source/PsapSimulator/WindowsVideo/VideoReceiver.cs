@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 namespace PsapSimulator.WindowsVideo;
 
 /// <summary>
-/// Class that processesses received RTP packets containing fragmented encoded video frame data, decodes
+/// Class that processes received RTP packets containing fragmented encoded video frame data, decodes
 /// the data and fires an event when a Bitmap for a full frame of video has been received.
 /// </summary>
 public class VideoReceiver

@@ -2,23 +2,20 @@
 //  File:   SrcUserAgent.cs                                         14 Oct 24 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
-using System.Security.Cryptography.X509Certificates;
-
-using SipLib.Core;
-using SipLib.Body;
-using SipLib.Sdp;
-using SipLib.Media;
-using SipLib.Channels;
-using SipLib.Transactions;
-using SipLib.I3EventLogging;
-using System.Net;
-using SipLib.Logging;
-using SipLib.Rtp;
-
-using System.Collections.Concurrent;
-using SipRecMetaData;
 using Ng911Lib.Utilities;
-using PsapSimulator.CallManagement;
+using SipLib.Body;
+using SipLib.Channels;
+using SipLib.Core;
+using SipLib.I3EventLogging;
+using SipLib.Logging;
+using SipLib.Media;
+using SipLib.Rtp;
+using SipLib.Sdp;
+using SipLib.Transactions;
+using SipRecMetaData;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SipLib.SipRec;
 
@@ -237,7 +234,7 @@ public class SrcUserAgent
     {
         try
         {
-            return m_Calls[callID];
+            return m_Calls.GetValueOrDefault(callID);
         }
         catch (KeyNotFoundException)
         {
@@ -352,7 +349,7 @@ public class SrcUserAgent
             m_Settings.Name, m_SipChannel.SIPChannelContactURI, UaName);
         // Add the +sip.src feature tag to the Contact header. See Section 6.1.1 of RFC 7866.
         if (Invite.Header.Contact != null && Invite.Header.Contact.Count > 0)
-            Invite.Header.Contact[0].ContactParameters.Set("+sip-rec", null);
+            Invite.Header.Contact[0].ContactParameters.Set("+sip-src", null);
 
         // Use the same Call-ID as the original call
         Invite.Header.CallId = srcCallParameters.CallId;
@@ -390,7 +387,7 @@ public class SrcUserAgent
         }
 
         // Build the initial SIPREC metadata
-        Recording = BuildInitialMetaData(srcCallParameters, offerSdp);
+        Recording = BuildInitialMetaData(srcCallParameters, srcCallParameters.AnsweredSdp);
 
         // Attach the SDP and the SIPREC metadata to the body of the INVITE request
         SipBodyBuilder sipBodyBuilder = new SipBodyBuilder();
@@ -401,7 +398,7 @@ public class SrcUserAgent
         return Invite;
     }
 
-    private recording BuildInitialMetaData(SrcCallParameters srcCallParameters, Sdp.Sdp offerSdp)
+    private recording BuildInitialMetaData(SrcCallParameters srcCallParameters, Sdp.Sdp answeredSdp)
     {
         DateTime Now = DateTime.Now;
 
@@ -426,12 +423,16 @@ public class SrcUserAgent
         participant FromParticipant = new participant();
         nameID FromNameId = new nameID();
         FromNameId.aor = srcCallParameters.FromUri.ToString();
+        FromNameId.name = new name();
+        FromNameId.name.Value = srcCallParameters.FromUri.User != null ? srcCallParameters.FromUri.User : srcCallParameters.FromUri.Host;
         FromParticipant.nameIDs.Add(FromNameId);
         Recording.participants.Add(FromParticipant);
 
         participant ToParticipant = new participant();
         nameID ToNameId = new nameID();
         ToNameId.aor = srcCallParameters.ToUri.ToString();
+        ToNameId.name = new name();
+        ToNameId.name.Value = srcCallParameters.ToUri.User != null ? srcCallParameters.ToUri.User : srcCallParameters.ToUri.Host;
         ToParticipant.nameIDs.Add(ToNameId);
         Recording.participants.Add(ToParticipant);
 
@@ -460,21 +461,62 @@ public class SrcUserAgent
         Recording.participantstreamassocs.Add(ToPartStreamAssoc);
 
         // Create the streams and build the associations
-        foreach (MediaDescription mediaDescription in offerSdp.Media)
+
+        foreach (MediaDescription mediaDescription in answeredSdp.Media)
         {
-            stream stream = new stream();
-            stream.session_id = Session.session_id;
-            stream.label = mediaDescription.Label;
-            Recording.streams.Add(stream);
+            if (mediaDescription.Port == 0)
+                continue;
+
+            switch (mediaDescription.MediaType)
+            {
+                case MediaTypes.Audio:
+                    BuildAndAssociateStreams(Recording, MediaLabel.ReceivedAudio, MediaLabel.SentAudio,
+                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                    break;
+                case MediaTypes.Video:
+                    BuildAndAssociateStreams(Recording, MediaLabel.ReceivedVideo, MediaLabel.SentVideo,
+                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                    break;
+                case MediaTypes.RTT:
+                    BuildAndAssociateStreams(Recording, MediaLabel.ReceivedRTT, MediaLabel.SentRTT,
+                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                    break;
+                case MediaTypes.MSRP:
+                    BuildAndAssociateStreams(Recording, MediaLabel.ReceivedMsrp, MediaLabel.SentMsrp,
+                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                    break;
+            }
         }
 
         return Recording;
     }
 
+    private void BuildAndAssociateStreams(recording Recording, MediaLabel ReceiveLabel,  MediaLabel SendLabel,
+        session Session, participantstreamassoc FromPsa, participantstreamassoc ToPsa)
+    {
+        stream ReceiveStream = new stream();
+        ReceiveStream.session_id = Session.session_id;
+        ReceiveStream.label = ((int) ReceiveLabel).ToString();
+        Recording.streams.Add(ReceiveStream);
+
+        stream SendStream = new stream();
+        SendStream.session_id = Session.session_id;
+        SendStream.label = ((int) SendLabel).ToString();
+        Recording.streams.Add(SendStream);
+
+        FromPsa.recv.Add(SendStream.stream_id);
+        FromPsa.send.Add(ReceiveStream.stream_id);
+        ToPsa.recv.Add(ReceiveStream.stream_id);
+        ToPsa.send.Add(SendStream.stream_id);
+    }
+
+
+
     private MediaDescription BuildOfferRtpMediaDescription(MediaDescription Original, bool ForReceived)
     {
         MediaDescription offerMd = Original.CreateCopy();
         MediaLabel label = MediaLabel.ReceivedAudio;
+
         switch (Original.MediaType)
         {
             case MediaTypes.Audio:

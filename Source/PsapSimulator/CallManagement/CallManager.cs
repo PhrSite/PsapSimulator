@@ -981,18 +981,12 @@ public class CallManager
     /// </summary>
     /// <param name="callID">Call-ID header value for the call.</param>
     /// <returns>Returns the Call object if it exists or null if it does not</returns>
-    public Call? GetCall(string? callID)
+    public Call? GetCall(string callID)
     {
-        if (string.IsNullOrEmpty(callID)) return null;
-
-        try
-        {
-            return m_Calls[callID];
-        }
-        catch (KeyNotFoundException)
-        {
+        if (string.IsNullOrEmpty(callID)) 
             return null;
-        }
+        else
+            return m_Calls.GetValueOrDefault(callID);
     }
 
     /// <summary>
@@ -1003,12 +997,12 @@ public class CallManager
     /// <param name="sipTransport"></param>
     private void ProcessInviteRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
-        string? callId = sipRequest.Header?.CallId;
+        string? callId = sipRequest.Header.CallId;
         if (string.IsNullOrEmpty(callId) == true)
             return;
 
         // Determine if this is a new call or an existing one
-        Call? call = GetCall(sipRequest.Header?.CallId);
+        Call? call = GetCall(sipRequest.Header.CallId);
 
         if (call != null)
         {   // TODO: Its an existing call so handle the re-INVITE
@@ -1227,7 +1221,7 @@ public class CallManager
             }
             else if (rtpChannel.MediaType == MediaTypes.RTT)
             {
-
+                // TODO: ?
             }
 
         }
@@ -1411,7 +1405,7 @@ public class CallManager
 
     private void ProcessCancelRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
-        Call? call = GetCall(sipRequest.Header?.CallId);
+        Call? call = GetCall(sipRequest.Header.CallId);
         if (call == null || call.IsIncoming == false || call.InviteRequest == null ||call.serverInviteTransaction == null)
         {
 
@@ -1434,7 +1428,7 @@ public class CallManager
 
     private void ProcessByeRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
-        Call? call = GetCall(sipRequest.Header?.CallId);
+        Call? call = GetCall(sipRequest.Header.CallId);
         SIPResponse ByeResponse;
         if (call == null)
             ByeResponse = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
