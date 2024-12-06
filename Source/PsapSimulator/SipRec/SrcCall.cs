@@ -9,9 +9,10 @@ using SipLib.Rtp;
 using SipLib.Msrp;
 using SipLib.Transactions;
 using SipLib.Media;
-using SipLib.Channels;
 using System.Security.Cryptography.X509Certificates;
-using System.Diagnostics;
+using I3V3.LoggingHelpers;
+using I3V3.LogEvents;
+using System.Net;
 
 namespace SipLib.SipRec;
 
@@ -69,6 +70,9 @@ internal class SrcCall
     private string m_UaName;
     private X509Certificate2 m_Certificate;
 
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
+    private bool m_EnableLogging;
+
     /// <summary>
     /// MsrpConnection for sending MSRP messages received from the remote endpoint to the SRS
     /// </summary>
@@ -84,15 +88,29 @@ internal class SrcCall
     /// </summary>
     public ClientInviteTransaction? ClientInviteTransaction = null;
 
+    private string m_ElementID;
+    private string m_AgencyID;
+    private string m_AgentID;
+    private IPEndPoint m_SrsEndPoint;
+
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="callParameters">Parameters from the original call that is being recorded</param>
     /// <param name="invite">Original INVITE request sent to the SRS</param>
     /// <param name="offeredSdp">SDP that was offered to the SRS in the INVITE request</param>
-    /// <param name="recording">Initial SIPREC metadata send with the INVITE to the SRS</param>
+    /// <param name="recording">Initial SIPREC metadata sent with the INVITE to the SRS</param>
+    /// <param name="UaName">Name of the SrcUserAgent that is managing this call.</param>
+    /// <param name="certificate">X.509 certificate to use</param>
+    /// <param name="i3LogEventClentMgr">Used for logging NG9-1-1 events.</param>
+    /// <param name="enableLogging">If true then I3 event logging is enabled.</param>
+    /// <param name="elementID">Element ID of the functional element that is handling the call</param>
+    /// <param name="agencyID">Agency ID of the agency that is handling the call.</param>
+    /// <param name="agentID">Agent ID of the agent (call taker) that is handling the call.</param>
+    /// <param name="srsEndPoint">IPEndPoint of the SRS.</param>
     public SrcCall(SrcCallParameters callParameters, SIPRequest invite, Sdp.Sdp offeredSdp, recording recording,
-        string UaName, X509Certificate2 certificate)
+        string UaName, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClentMgr,
+        bool enableLogging, string elementID, string agencyID, string agentID, IPEndPoint srsEndPoint)
     {
         CallParameters = callParameters;
         Invite = invite;
@@ -101,6 +119,12 @@ internal class SrcCall
         Recording = recording;
         m_UaName = UaName;
         m_Certificate = certificate;
+        m_I3LogEventClientMgr = i3LogEventClentMgr;
+        m_EnableLogging = enableLogging;
+        m_ElementID = elementID;
+        m_AgencyID = agencyID;
+        m_AgentID = agentID;
+        m_SrsEndPoint = srsEndPoint;
     }
 
     /// <summary>
@@ -251,14 +275,20 @@ internal class SrcCall
                 case MediaTypes.Audio:
                     rtpChannel.RtpPacketReceived -= OnReceivedAudio;
                     rtpChannel.RtpPacketSent -= OnSentAudio;
+                    SendRecMediaEndEvent(MediaLabel.ReceivedAudio);
+                    SendRecMediaEndEvent(MediaLabel.SentAudio);
                     break;
                 case MediaTypes.Video:
                     rtpChannel.RtpPacketReceived -= OnReceivedVideo;
                     rtpChannel.RtpPacketSent -= OnSentVideo;
+                    SendRecMediaEndEvent(MediaLabel.ReceivedVideo);
+                    SendRecMediaEndEvent(MediaLabel.SentVideo);
                     break;
                 case MediaTypes.RTT:
                     rtpChannel.RtpPacketReceived -= OnReceivedRtt;
                     rtpChannel.RtpPacketSent -= OnSentRtt;
+                    SendRecMediaEndEvent(MediaLabel.ReceivedRTT);
+                    SendRecMediaEndEvent (MediaLabel.SentRTT);
                     break;
             }
         }
@@ -267,6 +297,8 @@ internal class SrcCall
         {
             CallParameters.CallMsrpConnection.MsrpMessageReceived -= OnMsrpMessageReceived;
             CallParameters.CallMsrpConnection.MsrpMessageSent -= OnMsrpMessageSent;
+            SendRecMediaEndEvent(MediaLabel.ReceivedMsrp);
+            SendRecMediaEndEvent(MediaLabel.SentMsrp);
         }
 
         foreach (RtpChannel rtpChannel in m_Channels)
@@ -289,52 +321,148 @@ internal class SrcCall
         }
     }
 
+    private void SendRecMediaEndEvent(MediaLabel mediaLabel)
+    {
+        if (m_EnableLogging == false)
+            return;
+
+        RecMediaEndLogEvent Rmele = new RecMediaEndLogEvent();
+        SetLogEventParams(Rmele);
+        Rmele.mediaLabel = new string[1];
+        Rmele.mediaLabel[0] = ((int)mediaLabel).ToString();
+        m_I3LogEventClientMgr.SendLogEvent(Rmele);
+    }
+
+    private void SendRecMediaStartLogEvent(MediaLabel mediaLabel, ref bool FirstPacketSent)
+    {
+        if (FirstPacketSent == true)
+            return;
+
+        FirstPacketSent = true;
+        if (m_EnableLogging == false)
+            return;
+
+        RecMediaStartLogEvent Rmsle = new RecMediaStartLogEvent();
+        SetLogEventParams(Rmsle);
+        string strMediaLabel = ((int)mediaLabel).ToString();
+        Rmsle.sdp = GetMediaDescriptionForLabel(strMediaLabel)?.ToString();
+        Rmsle.mediaLabel = new string[1];
+        Rmsle.mediaLabel[0] = ((int)mediaLabel).ToString(); 
+        Rmsle.direction = "outgoing";
+        m_I3LogEventClientMgr.SendLogEvent(Rmsle);
+    }
+
+    private void SetLogEventParams(LogEvent logEvent)
+    {
+        logEvent.elementId = m_ElementID;
+        logEvent.agencyId = m_AgencyID;
+        logEvent.agencyAgentId = m_AgentID;
+        logEvent.callId = CallParameters.EmergencyCallIdentifier;
+        logEvent.incidentId = CallParameters.EmergencyIncidentIdentifier;
+        logEvent.callIdSip = CallParameters.CallId;
+        logEvent.ipAddressPort = m_SrsEndPoint.ToString();
+    }
+
+    private MediaDescription? GetMediaDescriptionForLabel(string mediaLabel)
+    {
+        if (AnsweredSdp == null)
+            return null;
+
+        foreach (MediaDescription Md in AnsweredSdp.Media)
+        {
+            if (Md.Label == mediaLabel)
+                return Md;
+        }
+
+        return null;
+    }
+
+    private bool m_FirstReceiveAudioPacketSent = false;
     private void OnReceivedAudio(RtpPacket packet)
     {
         if (m_ReceivedAudioChannel != null)
+        {
             m_ReceivedAudioChannel.Send(packet);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.ReceivedAudio, ref m_FirstReceiveAudioPacketSent);
+        }
     }
 
+    private bool m_FirstSentAudioPacketSent = false;
     private void OnSentAudio(RtpPacket packet)
     {
         if (m_SentAudioChannel != null)
+        {
             m_SentAudioChannel.Send(packet);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.SentAudio, ref m_FirstSentAudioPacketSent);
+        }
     }
 
+    private bool m_FirstReceiveVideoPacketSent = false;
     private void OnReceivedVideo(RtpPacket packet)
     {
         if (m_ReceiveVideoChannel != null)
+        {
             m_ReceiveVideoChannel.Send(packet);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.ReceivedVideo, ref m_FirstReceiveVideoPacketSent);
+        }
     }
 
+    private bool m_FirstSentVideoPacketSent = false;
     private void OnSentVideo(RtpPacket packet)
     {
         if (m_SentVideoChannel != null)
+        {
             m_SentVideoChannel.Send(packet);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.SentVideo, ref m_FirstSentVideoPacketSent);
+        }
     }
 
+    private bool m_FirstReceiveRttPacketSent = false;
     private void OnReceivedRtt(RtpPacket packet)
     {
         if (m_ReceiveRttChannel != null)
+        {
             m_ReceiveRttChannel.Send(packet);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.ReceivedRTT, ref m_FirstReceiveRttPacketSent);
+        }
     }
 
+    private bool m_FirstRttSentPacketSent = false;
     private void OnSentRtt(RtpPacket packet)
     {
         if (m_SentRttChannel != null)
+        {
             m_SentRttChannel.Send(packet);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.SentRTT, ref m_FirstRttSentPacketSent);
+        }
     }
 
+    private bool m_FirstReceiveMsrpPacketSent = false;
     private void OnMsrpMessageReceived(string ContentType, byte[] Contents, string from)
     {
         if (m_ReceivedMsrpConnection != null)
+        {
             m_ReceivedMsrpConnection.SendMsrpMessage(ContentType, Contents);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.ReceivedMsrp, ref m_FirstReceiveMsrpPacketSent);
+        }
     }
 
+    private bool m_FirstSentMsrpPacketSent = false;
     private void OnMsrpMessageSent(string ContentType, byte[] Contents)
     {
         if (m_SentMsrpConnection != null)
+        {
             m_SentMsrpConnection.SendMsrpMessage(ContentType, Contents);
+            if (m_EnableLogging == true)
+                SendRecMediaStartLogEvent(MediaLabel.SentMsrp, ref m_FirstSentMsrpPacketSent);
+        }
     }
 
     private RtpChannel? GetCallRtpChannel(SrcCallParameters srcCallParameters, string strMediaType)

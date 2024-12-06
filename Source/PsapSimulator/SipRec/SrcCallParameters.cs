@@ -7,7 +7,6 @@ using System.Net;
 using SipLib.Core;
 using SipLib.Rtp;
 using SipLib.Msrp;
-using SipLib.Sdp;
 
 namespace SipLib.SipRec;
 

@@ -6,7 +6,8 @@ using Ng911Lib.Utilities;
 using SipLib.Body;
 using SipLib.Channels;
 using SipLib.Core;
-using SipLib.I3EventLogging;
+using I3V3.LoggingHelpers;
+using I3V3.LogEvents;
 using SipLib.Logging;
 using SipLib.Media;
 using SipLib.Rtp;
@@ -16,11 +17,13 @@ using SipRecMetaData;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using PsapSimulator.CallManagement;
+using SipLib.Threading;
 
 namespace SipLib.SipRec;
 
 /// <summary>
-/// SIPREC Recording Client User Agent class. This class handles all calls being recorded by a SIPREC Recording
+/// SIP Recording Client (SRC) User Agent class. This class handles all calls being recorded by a SIP Recording
 /// Server (SRS) using a single, permanent connection to the SRS. It also logs I3V3 events.
 /// <para>
 /// To use this class, construct an instance of it, hook the events and then call the Start() method.
@@ -30,7 +33,7 @@ namespace SipLib.SipRec;
 /// is closing or when the interface to the SIPREC recorder is no longer needed.
 /// </para>
 /// </summary>
-public class SrcUserAgent
+public class SrcUserAgent : QueuedActionWorkerTask
 {
     private SipRecRecorderSettings m_Settings;
     private MediaPortManager m_PortManager;    
@@ -38,7 +41,7 @@ public class SrcUserAgent
     private string m_ElementID;
     private string m_AgencyID;
     private string m_AgentID;
-    private I3EventLoggingManager m_I3EventLoggingManager;
+    private bool m_EnableLogging;
 
     private const string UaName = "SrcUserAgent";
 
@@ -48,11 +51,6 @@ public class SrcUserAgent
 
     private bool m_IsStarted = false;
     private bool m_IsShutdown = false;
-    private CancellationTokenSource m_CancellationTokenSource = new CancellationTokenSource();
-    private Task? m_UserAgentTask = null;
-    private SemaphoreSlim m_Semaphore = new SemaphoreSlim(0, int.MaxValue);
-    private const int WaitIntervalMsec = 100;
-    private ConcurrentQueue<Action> m_WorkQueue = new ConcurrentQueue<Action>();
 
     /// <summary>
     /// The key is the Call-ID header value of the original call, which is the same as the Call-ID of
@@ -68,6 +66,7 @@ public class SrcUserAgent
     private const int OPTIONS_TIMEOUT_MS = 1000;
 
     private SIPURI m_SrsUri;
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
 
     /// <summary>
     /// Constructor
@@ -80,8 +79,10 @@ public class SrcUserAgent
     /// <param name="agentID">Identity of the agent or call taker that is recording and logging calls.</param>
     /// <param name="elementID">NG9-1-1 Element Identifier of the entity recording calls.</param>
     /// <param name="i3EventLoggingManager">Used for logging NG9-1-1 events.</param>
+    /// <param name="enableLogging">If true then I3 event logging is enabled.</param>
     public SrcUserAgent(SipRecRecorderSettings settings, MediaPortManager portManager, X509Certificate2 certificate,
-        string agencyID, string agentID, string elementID, I3EventLoggingManager i3EventLoggingManager)
+        string agencyID, string agentID, string elementID, I3LogEventClientMgr i3LogEventClentMgr,
+        bool enableLogging) : base(10)
     {
         m_Settings = settings;
         m_PortManager = portManager;
@@ -89,7 +90,8 @@ public class SrcUserAgent
         m_ElementID = elementID;
         m_AgencyID = agencyID;
         m_AgentID = agentID;
-        m_I3EventLoggingManager = i3EventLoggingManager;
+        m_I3LogEventClientMgr = i3LogEventClentMgr;
+        m_EnableLogging = enableLogging;
 
         m_LocalEndPoint = IPEndPoint.Parse(m_Settings.LocalIpEndpoint);
 
@@ -115,7 +117,7 @@ public class SrcUserAgent
     /// <summary>
     /// Initializes the SIP transport interface to the SRS and starts communication with the SRS.
     /// </summary>
-    public void Start()
+    public override void Start()
     {
         if (m_IsStarted == true || m_IsShutdown == true)
             return;
@@ -128,15 +130,15 @@ public class SrcUserAgent
         // Force an OPTIONS request to be sent to the SRS as soon as this SRC is started.
         m_LastOptionsTime = DateTime.Now - TimeSpan.FromSeconds(m_Settings.OptionsIntervalSeconds);
 
-        m_UserAgentTask = Task.Run(() => { SrcUserAgentTask(m_CancellationTokenSource.Token); });
         m_IsStarted = true;
+        base.Start();
         m_SipTransport.Start();
     }
 
     /// <summary>
     /// Shuts down all SIP transport connections and releases resources.
     /// </summary>
-    public async Task Shutdown()
+    public override async Task Shutdown()
     {
         if (m_IsStarted == false)
             return;
@@ -156,42 +158,13 @@ public class SrcUserAgent
         m_SipTransport.LogSipResponse -= OnLogSipResponse;
         m_SipTransport.Shutdown();
 
-        m_CancellationTokenSource.Cancel();
-        if (m_UserAgentTask != null)
-            await m_UserAgentTask.WaitAsync(TimeSpan.FromMilliseconds(500));
-
-        m_UserAgentTask = null;
+        await base.Shutdown();
     }
 
-    private void SrcUserAgentTask(CancellationToken cancellationToken)
-    {
-        CancellationToken token = cancellationToken;
-        try
-        {
-            while (token.IsCancellationRequested == false)
-            {
-                m_Semaphore.Wait(WaitIntervalMsec);
-
-                DoTimedEvents();
-
-                while (token.IsCancellationRequested == false && m_WorkQueue.TryDequeue(out Action? action) == true)
-                {
-                    if (action != null)
-                        action();
-                }
-
-            } // end while
-        }
-        catch (Exception ex)
-        {
-            SipLogger.LogError(ex, "Unexpected exception.");
-        }
-    }
-
-    private void DoTimedEvents()
+    protected override void DoTimedEvents()
     {
         DateTime Now = DateTime.Now;
-        if (m_Settings.EnableOptions == true)
+        if (m_Settings.EnableOptions == true && m_Settings.Enabled == true)
         {
             if (Now >= (m_LastOptionsTime + TimeSpan.FromSeconds(m_Settings.OptionsIntervalSeconds)))
             {
@@ -256,14 +229,15 @@ public class SrcUserAgent
     /// <param name="srcCallParameters">Contains the parameters for the new call</param>
     public void StartRecording(SrcCallParameters srcCallParameters)
     {
-        m_WorkQueue.Enqueue(() => { DoStartRecording(srcCallParameters); });
+        EnqueueWork(() => { DoStartRecording(srcCallParameters); });
     }
 
     private void DoStartRecording(SrcCallParameters srcCallParameters)
     {
         SIPRequest Invite = BuildInitialInviteRequest(srcCallParameters, out Sdp.Sdp offerSdp,
             out recording Recording);
-        SrcCall srcCall = new SrcCall(srcCallParameters, Invite, offerSdp, Recording, UaName, m_Certificate);
+        SrcCall srcCall = new SrcCall(srcCallParameters, Invite, offerSdp, Recording, UaName, m_Certificate,
+            m_I3LogEventClientMgr, m_EnableLogging, m_ElementID, m_AgencyID, m_AgentID, m_SrsRemoteEndPoint);
         m_Calls.Add(srcCallParameters.CallId, srcCall);
 
         srcCall.ClientInviteTransaction = m_SipTransport.StartClientInvite(Invite, m_SrsRemoteEndPoint,
@@ -273,7 +247,7 @@ public class SrcUserAgent
     private void OnInviteTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
         IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
     {
-        m_WorkQueue.Enqueue(() => {
+        EnqueueWork(() => {
             DoInviteTransactionComplete(sipRequest, sipResponse, remoteEndPoint, sipTransport, 
                 Transaction);
         });
@@ -282,12 +256,6 @@ public class SrcUserAgent
     private void DoInviteTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
         IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
     {
-        if (string.IsNullOrEmpty(sipRequest.Header.CallId) == true)
-        {
-            // TODO: log the error
-            return;
-        }
-
         SrcCall? srcCall = GetCall(sipRequest.Header.CallId);
         if (srcCall == null)
         {   // Error: Call not found
@@ -316,7 +284,7 @@ public class SrcUserAgent
             return;
         }
 
-        string? strAnsweredSdp = sipResponse.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
+        string? strAnsweredSdp = sipResponse.GetContentsOfType(Body.ContentTypes.Sdp);
         if (strAnsweredSdp == null)
         {   // Error: No answered SDP in the 200 OK response
 
@@ -339,7 +307,30 @@ public class SrcUserAgent
         srcCall.AnsweredSdp = AnsweredSdp;
         srcCall.Invite.Header.To!.ToTag = sipResponse.Header.To!.ToTag;
 
+        SendRecCallStartLogEvent(srcCall);
         srcCall.SetupMediaChannels();
+    }
+
+    private void SendRecCallStartLogEvent(SrcCall srcCall)
+    {
+        if (m_EnableLogging == false)
+            return;
+
+        RecCallStartLogEvent Rcsle = new RecCallStartLogEvent();
+        SetCallLogEventParams(srcCall, Rcsle);
+        Rcsle.direction = "outgoing";
+        m_I3LogEventClientMgr.SendLogEvent(Rcsle);
+    }
+
+    private void SetCallLogEventParams(SrcCall call, LogEvent logEvent)
+    {
+        logEvent.elementId = m_ElementID;
+        logEvent.agencyId = m_AgentID;
+        logEvent.agencyAgentId = m_AgentID;
+        logEvent.callId = call.CallParameters.EmergencyCallIdentifier;
+        logEvent.incidentId = call.CallParameters.EmergencyIncidentIdentifier;
+        logEvent.callIdSip = call.Invite.Header.CallId;
+        logEvent.ipAddressPort = m_SrsRemoteEndPoint.ToString();
     }
 
     private SIPRequest BuildInitialInviteRequest(SrcCallParameters srcCallParameters, out Sdp.Sdp offerSdp,
@@ -510,8 +501,6 @@ public class SrcUserAgent
         ToPsa.send.Add(SendStream.stream_id);
     }
 
-
-
     private MediaDescription BuildOfferRtpMediaDescription(MediaDescription Original, bool ForReceived)
     {
         MediaDescription offerMd = Original.CreateCopy();
@@ -566,7 +555,7 @@ public class SrcUserAgent
     /// <param name="strCallId">Call-ID for the call.</param>
     public void StopRecording(string strCallId)
     {
-        m_WorkQueue.Enqueue(() => { DoStopRecording(strCallId); });
+        EnqueueWork(() => { DoStopRecording(strCallId); });
     }
 
     private void DoStopRecording(string strCallId)
@@ -589,17 +578,68 @@ public class SrcUserAgent
         // Fire and forget the BYE request transaction
         m_SipTransport.StartClientNonInviteTransaction(ByeRequest, m_SrsRemoteEndPoint, null, 1000);
         srcCall.ShutdownMediaConnections();
+        EnqueueWork(() => SendRecCallEndLogEvent(srcCall));
         m_Calls.Remove(strCallId);
+    }
+
+    private void SendRecCallEndLogEvent(SrcCall call)
+    {
+        if (m_EnableLogging == false)
+            return;
+
+        RecCallEndLogEvent Rcele = new RecCallEndLogEvent();
+        SetCallLogEventParams(call, Rcele);
+        Rcele.direction = "outgoing";
+        m_I3LogEventClientMgr.SendLogEvent(Rcele);
     }
 
     private void OnLogSipRequest(SIPRequest sipRequest, IPEndPoint remoteEndPoint, bool Sent, SipTransport sipTransport)
     {
-        
+        if (m_EnableLogging == false)
+            return;
+
+        if (sipRequest.Method == SIPMethodsEnum.OPTIONS)
+            return;
+
+        EnqueueWork(() => SendCallSignalingEvent(sipRequest.ToString(), sipRequest.Header, remoteEndPoint, Sent, sipTransport));
     }
 
     private void OnLogSipResponse(SIPResponse sipResponse, IPEndPoint remoteEndPoint, bool Sent, SipTransport sipTransport)
     {
+        if (m_EnableLogging == false)
+            return;
 
+        if (sipResponse.Header.CSeqMethod == SIPMethodsEnum.OPTIONS)
+            return;
+
+        EnqueueWork(() => SendCallSignalingEvent(sipResponse.ToString(), sipResponse.Header, remoteEndPoint, Sent, sipTransport));
+    }
+
+    private void SendCallSignalingEvent(string sipString, SIPHeader header, IPEndPoint remoteEndpoint, bool Sent, SipTransport sipTransport)
+    {
+        CallSignalingMessageLogEvent Csm = new CallSignalingMessageLogEvent();
+        Csm.elementId = m_ElementID;
+        Csm.agencyId = m_AgencyID;
+        Csm.agencyAgentId = m_AgentID;
+
+        SrcCall? call = GetCall(header.CallId);
+        // Handle callId and incidentId
+        string? EmergencyCallIdentifier = SipUtils.GetCallInfoValueForPurpose(header, "emergency-CallId");
+        if (string.IsNullOrEmpty(EmergencyCallIdentifier) == true && call != null)
+            Csm.callId = call.CallParameters.EmergencyCallIdentifier;
+        else
+            Csm.callId = EmergencyCallIdentifier;
+
+        string? EmergencyIncidentIdentifier = SipUtils.GetCallInfoValueForPurpose(header, "emergency-IncidentId");
+        if (string.IsNullOrEmpty(EmergencyIncidentIdentifier) == true && call != null)
+            Csm.incidentId = call.CallParameters.EmergencyIncidentIdentifier;
+        else
+            Csm.incidentId = EmergencyIncidentIdentifier;
+
+        Csm.text = sipString;
+        Csm.direction = Sent == true ? "outgoing" : "incoming";
+
+        m_I3LogEventClientMgr.SendLogEvent(Csm);
     }
 
     private void OnSipRequestReceived(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)

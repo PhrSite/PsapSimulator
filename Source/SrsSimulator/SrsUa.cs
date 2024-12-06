@@ -8,13 +8,12 @@ using SipLib.Logging;
 using SipLib.Transactions;
 using SipLib.Media;
 using SipLib.Rtp;
+using SipLib.Threading;
 
 using System.Collections.Concurrent;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using SipLib.Sdp;
-
-using System.IO;
 
 namespace SrsSimulator;
 
@@ -93,10 +92,10 @@ internal class SrsUa : QueuedActionWorkerTask
         if (m_Started == false)
             return;
 
-        base.Shutdown();
 
         // TODO: Terminate any calls that are currently active
 
+        await base.Shutdown();
 
         // Unhook the event handlers
         m_SipTransport.SipRequestReceived -= OnSipRequestReceived;

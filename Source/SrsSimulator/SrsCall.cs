@@ -16,7 +16,7 @@ using Ng911Lib.Utilities;
 namespace SrsSimulator;
 
 /// <summary>
-/// Class for a SIPREC Recording Server (SRS) incoming call from a SIPREC Recording Client (SRC).
+/// Class for a SIP Recording Server (SRS) incoming call from a SIPREC Recording Client (SRC).
 /// </summary>
 internal class SrsCall
 {
@@ -201,8 +201,6 @@ internal class SrsCall
                         m_RtpRecordingChannels.Add(audioChannelData);
                         break;
                     case MediaTypes.RTT:
-                        // For debug only
-                        Console.WriteLine($"Label: {AnsweredMd.Label} Participant: {ParticipantName}");
                         RttChannelData rttChannelData = new RttChannelData(ParticipantName, rtpChannel,
                             m_CallRecordingDirectory, AnsweredMd);
                         m_RtpRecordingChannels.Add(rttChannelData);

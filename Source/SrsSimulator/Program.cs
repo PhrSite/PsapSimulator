@@ -44,7 +44,6 @@ internal class Program
             Directory.CreateDirectory(RecordingsDirectory);
 
         srsUa = new SrsUa(Channel, UserName, myCertificate, RecordingsDirectory);
-        // TODO: hook the events of the SrsUa
 
         srsUa.Start();
 

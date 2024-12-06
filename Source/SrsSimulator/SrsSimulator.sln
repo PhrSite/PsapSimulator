@@ -5,7 +5,7 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SrsSimulator", "SrsSimulator.csproj", "{249C3E96-DC69-480F-BEBB-6DCD774E3B1F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SipLib", "..\..\SipLib\ClassLibrary\SipLib.csproj", "{D5D87939-317C-4207-83C7-7B1425BBF21A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SipLib", "..\..\..\SipLib\ClassLibrary\SipLib.csproj", "{DC799DAF-199C-464B-972B-C78AD41A3919}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,14 +23,14 @@ Global
 		{249C3E96-DC69-480F-BEBB-6DCD774E3B1F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{249C3E96-DC69-480F-BEBB-6DCD774E3B1F}.Release|x64.ActiveCfg = Release|Any CPU
 		{249C3E96-DC69-480F-BEBB-6DCD774E3B1F}.Release|x64.Build.0 = Release|Any CPU
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Debug|x64.ActiveCfg = Debug|x64
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Debug|x64.Build.0 = Debug|x64
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Release|x64.ActiveCfg = Release|x64
-		{D5D87939-317C-4207-83C7-7B1425BBF21A}.Release|x64.Build.0 = Release|x64
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Debug|x64.ActiveCfg = Debug|x64
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Debug|x64.Build.0 = Debug|x64
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Release|x64.ActiveCfg = Release|x64
+		{DC799DAF-199C-464B-972B-C78AD41A3919}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

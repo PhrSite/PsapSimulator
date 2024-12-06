@@ -29,12 +29,14 @@ using Ng911Lib.Utilities;
 using Held;
 using HttpUtils;
 using SIPSorceryMedia.FFmpeg;
-using SipLib.I3EventLogging;
+using I3V3.LoggingHelpers;
+using I3V3.LogEvents;
 
 using PsapSimulator.WindowsVideo;
 using System.Net.Security;
 using SipLib.Subscriptions;
 using SipLib.SipRec;
+using System.Text;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -84,8 +86,9 @@ public class CallManager
 
     public WindowsCameraCapture? CameraCapture = null;
 
-    private SrcManager m_SrcManager;
-    private I3EventLoggingManager m_I3EventLoggingManager;
+    private SrcManager? m_SrcManager = null;
+
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
 
     /// <summary>
     /// Constructor
@@ -123,29 +126,7 @@ public class CallManager
         // Set up the media sources for hold
         m_OnHoldAudioSampleData = WindowsAudioUtils.ReadWaveFile(m_Settings.CallHandling.CallHoldAudioFile!);
 
-        // For debug only
-        m_I3EventLoggingManager = new I3EventLoggingManager();
-
-        m_SrcManager = new SrcManager(m_Settings.SipRec, m_PortManager, m_Certificate, m_Settings.Identity.AgencyID,
-            m_Settings.Identity.AgentID, m_Settings.Identity.ElementID, m_I3EventLoggingManager);
-    }
-
-    private Bitmap? GetImageBitmap(string? path)
-    {
-        Bitmap? bitmap = null;
-        if (path != null && File.Exists(path) == true)
-        {
-            try
-            {
-                bitmap = new Bitmap(path);
-            }
-            catch (Exception ex)
-            {
-                SipLogger.LogError(ex, $"Unable to read the bitmap image file: {path}");
-            }
-        }
-
-        return bitmap;
+        m_I3LogEventClientMgr = new I3LogEventClientMgr();
     }
 
     /// <summary>
@@ -182,6 +163,19 @@ public class CallManager
             throw;
         }
 
+        // Setup for I3 event logging.
+        m_I3LogEventClientMgr = new I3LogEventClientMgr();
+        foreach (EventLoggerSettings loggerSettings in m_Settings.EventLogging.Loggers)
+        {
+            I3LogEventClient client = new I3LogEventClient(loggerSettings.LoggerUri, loggerSettings.Name,
+                m_Certificate, loggerSettings.Enabled);
+            m_I3LogEventClientMgr.AddLoggingClient(client);
+            client.Start();
+        }
+        m_I3LogEventClientMgr.LoggingServerError += OnLoggingServerError;
+        m_I3LogEventClientMgr.LoggingServerStatusChanged += OnLoggingServerStatusChanged;
+        m_I3LogEventClientMgr.Start();
+
         NetworkSettings Ns = m_Settings.NetworkSettings;
         CallHandlingSettings Ch = m_Settings.CallHandling;
 
@@ -202,21 +196,43 @@ public class CallManager
             if (Ns.EnableUdp == true)
             {
                 Ipe = new IPEndPoint(Ipr, Ns.SipPort);
-                m_SipChannels.Add(new SIPUDPChannel(Ipe, UserName));
+                try
+                {
+                    SIPUDPChannel udpChannel = new SIPUDPChannel(Ipe, UserName);
+                    m_SipChannels.Add(udpChannel);
+                }
+                catch (Exception UdpEx)
+                {
+                    SipLogger.LogError(UdpEx, $"Unable to create a SIPUDPChannel for IP endpoint: {Ipe}");
+                }
             }
 
             if (Ns.EnableTcp == true)
             {
                 Ipe = new IPEndPoint(Ipr, Ns.SipPort);
-                m_SipChannels.Add(new SIPTCPChannel(Ipe, UserName));
+                try
+                {
+                    SIPTCPChannel tcpChannel = new SIPTCPChannel(Ipe, UserName);
+                    m_SipChannels.Add(tcpChannel);
+                }
+                catch (Exception TcpEx)
+                {
+                    SipLogger.LogError(TcpEx, $"Unable to create a SIPTCPChannel for IP endpoint: {Ipe}");
+                }
             }
 
             if (Ns.EnableTls == true)
             {
                 Ipe = new IPEndPoint(Ipr, Ns.SipsPort);
-                SIPTLSChannel sipTlsChannel = new SIPTLSChannel(m_Certificate, Ipe, UserName, 
-                    Ns.UseMutualTlsAuthentication);
-                m_SipChannels.Add(sipTlsChannel);
+                try
+                {
+                    SIPTLSChannel sipTlsChannel = new SIPTLSChannel(m_Certificate, Ipe, UserName, Ns.UseMutualTlsAuthentication);
+                    m_SipChannels.Add(sipTlsChannel);
+                }
+                catch (Exception TlsEx)
+                {
+                    SipLogger.LogError(TlsEx, $"Unable to create a SIPTLSChannel for IP endpoint: {Ipe}");
+                }
             }
         }
 
@@ -229,7 +245,7 @@ public class CallManager
             sipTransport.SipResponseReceived += OnSipResponseReceived;
             sipTransport.LogSipRequest += OnLogSipRequest;
             sipTransport.LogSipResponse += OnLogSipResponse;
-
+            sipTransport.LogInvalidSipMessage += OnLogInvalidSipMessage;
             m_SipTransports.Add(sipTransport);
             sipTransport.Start();
         }
@@ -263,10 +279,63 @@ public class CallManager
         OnHoldCapture = new StaticImageCapture(Ch.CallHoldVideoFile!, 30, ImageWidth, ImageHeight);
         await OnHoldCapture.StartCapture();
 
+        m_SrcManager = new SrcManager(m_Settings.SipRec, m_PortManager, m_Certificate, m_Settings.Identity.AgencyID,
+            m_Settings.Identity.AgentID, m_Settings.Identity.ElementID, m_I3LogEventClientMgr, m_Settings.EventLogging.EnableLogging);
+
         m_SrcManager.Start();
 
         m_Started = true;
         
+    }
+
+    private void OnLogInvalidSipMessage(byte[] msgBytes, IPEndPoint remoteEndPoint, SIPMessageTypesEnum messageType, SipTransport sipTransport)
+    {
+        // For debug only
+        if (messageType == SIPMessageTypesEnum.Request)
+        {
+            try
+            {
+                SIPRequest sipRequest = SIPRequest.ParseSIPRequest(Encoding.UTF8.GetString(msgBytes));
+                SIPValidationFieldsEnum ValidationEnum;
+                string? strError;
+                if (sipRequest != null)
+                {
+                    bool isValid = sipRequest.IsValid(out ValidationEnum, out strError);
+                    if (isValid == false)
+                    {
+                    }
+                }    
+            }
+            catch (SIPValidationException Sve)
+            {
+
+            }
+
+        }
+
+
+        if (m_Settings.EventLogging.EnableLogging == false)
+            return;
+
+        MalformedMessageLogEvent Mmle = new MalformedMessageLogEvent();
+        Mmle.elementId = m_Settings.Identity.ElementID;
+        Mmle.agencyId = m_Settings.Identity.AgencyID;
+        Mmle.agencyAgentId = m_Settings.Identity.AgentID;
+        Mmle.ipAddressPort = remoteEndPoint.ToString();
+        Mmle.ipAddress = remoteEndPoint.Address.ToString();
+        Mmle.text = Encoding.UTF8.GetString(msgBytes);
+        Mmle.explanationText = $"Unable to parse a SIP message of type: {messageType.ToString()}";
+        m_I3LogEventClientMgr.SendLogEvent(Mmle);
+    }
+
+    private void OnLoggingServerStatusChanged(string strLoggerName, bool Responding)
+    {
+        // TODO: handle this event
+    }
+
+    private void OnLoggingServerError(HttpResults Hr, string strLoggerName, string strLogEvent)
+    {
+        // TODO: handle this event
     }
 
     private bool ValidateClientTlsCertificate(X509Certificate? certificate, X509Chain? chain,
@@ -308,6 +377,10 @@ public class CallManager
 
         m_CancellationTokenSource.Cancel();
 
+        m_I3LogEventClientMgr.LoggingServerError -= OnLoggingServerError;
+        m_I3LogEventClientMgr.LoggingServerStatusChanged -= OnLoggingServerStatusChanged;
+        m_I3LogEventClientMgr.Shutdown();
+
         foreach (SipTransport sipTransport in m_SipTransports)
         {
             // Unhook the events
@@ -315,6 +388,7 @@ public class CallManager
             sipTransport.SipResponseReceived -= OnSipResponseReceived;
             sipTransport.LogSipRequest -= OnLogSipRequest;
             sipTransport.LogSipResponse -= OnLogSipResponse;
+            sipTransport.LogInvalidSipMessage -= OnLogInvalidSipMessage;
 
             sipTransport.Shutdown();
         }
@@ -355,7 +429,8 @@ public class CallManager
 
         m_Started = false;
 
-        await m_SrcManager.Shutdown();
+        if (m_SrcManager != null)
+            await m_SrcManager.Shutdown();
     }
 
     private async Task ShutdownCameraCapture()
@@ -464,35 +539,35 @@ public class CallManager
 
     private void DoAutoAnsweredStateWork(Call call, CallHandlingSettings Chs, DateTime Now)
     {
-        if (call.RttSender != null && (Now - call.LastRttAutoAnsweredSentTime).TotalSeconds >
+        if (call.RttSender != null && (Now - call.LastAutoAnsweredTextSentTime).TotalSeconds >
             Chs.AutoAnswerTextMessageRepeatSeconds && string.IsNullOrEmpty(
                 Chs.AutoAnswerTextMessage) == false)
         {
             call.SendRttMessage(Chs.AutoAnswerTextMessage + "\r\n");
-            call.LastRttAutoAnsweredSentTime = Now;
+            call.LastAutoAnsweredTextSentTime = Now;
         }
-        else if (call.MsrpConnection != null && (Now - call.LastRttAutoAnsweredSentTime).TotalSeconds >
+        else if (call.MsrpConnection != null && (Now - call.LastAutoAnsweredTextSentTime).TotalSeconds >
             Chs.AutoAnswerTextMessageRepeatSeconds && string.IsNullOrEmpty(Chs.AutoAnswerTextMessage) == false)
         {
             call.SendTextPlainMsrp(Chs.AutoAnswerTextMessage);
-            call.LastRttAutoAnsweredSentTime = Now;
+            call.LastAutoAnsweredTextSentTime = Now;
         }
     }
 
     private void DoOnHoldStateWork(Call call, CallHandlingSettings Chs, DateTime Now)
     {
-        if (call.RttSender != null && (Now - call.LastRttOnHoldSentTime).TotalSeconds >
+        if (call.RttSender != null && (Now - call.LastOnHoldTextSentTime).TotalSeconds >
             Chs.CallHoldTextMessageRepeatSeconds && string.IsNullOrEmpty(
                 Chs.CallHoldTextMessage) == false)
         {
             call.SendRttMessage(Chs.CallHoldTextMessage + "\r\n");
-            call.LastRttOnHoldSentTime = Now;
+            call.LastOnHoldTextSentTime = Now;
         }
-        else if (call.MsrpConnection != null && (Now - call.LastRttOnHoldSentTime).TotalSeconds >
+        else if (call.MsrpConnection != null && (Now - call.LastOnHoldTextSentTime).TotalSeconds >
             Chs.CallHoldTextMessageRepeatSeconds && string.IsNullOrEmpty(Chs.CallHoldTextMessage) == false)
         {
             call.SendTextPlainMsrp(Chs.CallHoldTextMessage);
-            call.LastRttOnHoldSentTime = Now;
+            call.LastOnHoldTextSentTime = Now;
         }
     }
 
@@ -593,7 +668,7 @@ public class CallManager
         }
 
         if (call.RttSender != null)
-            call.LastRttOnHoldSentTime = DateTime.MinValue;
+            call.LastOnHoldTextSentTime = DateTime.MinValue;
 
         call.CallState = CallStateEnum.OnHold;
         // Notify the user
@@ -659,12 +734,14 @@ public class CallManager
             EmergencyIncidentIdentifier = call.EmergencyIncidentIdentifier != null ? call.EmergencyIncidentIdentifier : string.Empty
         };
 
-        m_SrcManager.StartRecording(parameters);
+        if (m_SrcManager != null)
+            m_SrcManager.StartRecording(parameters);
     }
 
     private void StopSipRecRecording(string strCallId)
     {
-        m_SrcManager.StopRecording(strCallId);
+        if (m_SrcManager != null)
+            m_SrcManager.StopRecording(strCallId);
     }
 
     /// <summary>
@@ -893,11 +970,10 @@ public class CallManager
     /// <param name="sipTransport"></param>
     private void OnLogSipRequest(SIPRequest sipRequest, IPEndPoint remoteEndPoint, bool Sent, SipTransport sipTransport)
     {
-        // For debug only
-        if (sipRequest.Method == SIPMethodsEnum.ACK)
-        {
+        if (sipRequest.Method == SIPMethodsEnum.OPTIONS)
+            return;
 
-        }
+        EnqueueWorkItem(() => { SendCallSignalingEvent(sipRequest.ToString(), sipRequest.Header, remoteEndPoint, Sent, sipTransport); });
     }
 
     /// <summary>
@@ -909,7 +985,76 @@ public class CallManager
     /// <param name="sipTransport"></param>
     private void OnLogSipResponse(SIPResponse sipResponse, IPEndPoint remoteEndPoint, bool Sent, SipTransport sipTransport)
     {
+        if (sipResponse.Header.CSeqMethod == SIPMethodsEnum.OPTIONS)
+            return;
 
+        EnqueueWorkItem(() => { SendCallSignalingEvent(sipResponse.ToString(), sipResponse.Header, remoteEndPoint, Sent, sipTransport); });
+    }
+
+    private void SendCallSignalingEvent(string sipString, SIPHeader header, IPEndPoint remoteEndpoint, bool Sent, SipTransport sipTransport)
+    {
+        if (m_Settings.EventLogging.EnableLogging == false)
+            return;
+
+        CallSignalingMessageLogEvent Csm = new CallSignalingMessageLogEvent();
+        Csm.elementId = m_Settings.Identity.ElementID;
+        Csm.agencyId = m_Settings.Identity.AgencyID;
+        Csm.agencyAgentId = m_Settings.Identity.AgentID;
+
+        Call? call = GetCall(header.CallId);
+        // Handle callId and incidentId
+        string? EmergencyCallIdentifier = SipUtils.GetCallInfoValueForPurpose(header, "emergency-CallId");
+        if (string.IsNullOrEmpty(EmergencyCallIdentifier) == true && call != null)
+            Csm.callId = call.EmergencyCallIdentifier;
+        else
+            Csm.callId = EmergencyCallIdentifier;
+
+        string? EmergencyIncidentIdentifier = SipUtils.GetCallInfoValueForPurpose(header, "emergency-IncidentId");
+        if (string.IsNullOrEmpty(EmergencyIncidentIdentifier) == true && call != null)
+            Csm.incidentId = call.EmergencyIncidentIdentifier;
+        else
+            Csm.incidentId = EmergencyIncidentIdentifier;
+
+        Csm.callIdSip = header.CallId;
+        Csm.ipAddressPort = remoteEndpoint.ToString();
+
+        Csm.text = sipString;
+        Csm.direction = Sent == true ? "outgoing" : "incoming";
+
+        m_I3LogEventClientMgr.SendLogEvent(Csm);
+    }
+
+    private void SendCallStartLogEvent(Call call)
+    {
+        if (m_Settings.EventLogging.EnableLogging == false)
+            return;
+
+        CallStartLogEvent Csle = new CallStartLogEvent();
+        Csle.direction = call.IsIncoming == true ? "incoming" : "outgoing";
+        SetCallLogEventParams(call, Csle);
+        m_I3LogEventClientMgr.SendLogEvent(Csle);
+    }
+
+    private void SendCallEndLogEvent(Call call)
+    {
+        if (m_Settings.EventLogging.EnableLogging == false)
+            return;
+
+        CallEndLogEvent Cele = new CallEndLogEvent();
+        Cele.direction = call.IsIncoming == true ? "incoming" : "outgoing";
+        SetCallLogEventParams(call, Cele);
+        m_I3LogEventClientMgr.SendLogEvent(Cele);
+    }
+
+    private void SetCallLogEventParams(Call call, LogEvent logEvent)
+    {
+        logEvent.elementId = m_Settings.Identity.ElementID;
+        logEvent.agencyId = m_Settings.Identity.AgentID;
+        logEvent.agencyAgentId = m_Settings.Identity.AgentID;
+        logEvent.callId = call.EmergencyCallIdentifier;
+        logEvent.incidentId = call.EmergencyIncidentIdentifier;
+        logEvent.callIdSip = call.CallID;
+        logEvent.ipAddressPort = call.RemoteIpEndPoint?.ToString();
     }
 
     private void ProcessSipNotifyRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
@@ -1032,8 +1177,9 @@ public class CallManager
             "Trying", sipTransport.SipChannel, UserName);
         ServerInviteTransaction Sit = sipTransport.StartServerInviteTransaction(sipRequest,
             remoteEndPoint.GetIPEndPoint(), OnServerInviteTransactionComplete, Trying);
+
         Call newCall = Call.CreateIncomingCall(sipRequest, Sit, sipTransport, CallStateEnum.Trying,
-            m_Certificate);
+            m_Certificate, m_I3LogEventClientMgr, m_Settings.Identity, m_Settings.EventLogging);
 
         // Treating all incoming calls as emergency calls, so make sure that a call has both an emergency call
         // identifier and an emergency incident identifier.
@@ -1071,7 +1217,7 @@ public class CallManager
             newCall.CallState = CallStateEnum.Ringing;
         }
 
-        newCall.GetLocationAndAdditionalData();
+        EnqueueWorkItem(() =>  newCall.GetLocationAndAdditionalData());
 
         // TODO: EIDO stuff
 
@@ -1196,6 +1342,8 @@ public class CallManager
             }
         } // end foreach MediaDescription 
 
+        call.HookMediaEvents();
+        EnqueueWorkItem(() => SendCallStartLogEvent(call));
         StartSipRecRecording(call);
     }
 
@@ -1223,77 +1371,21 @@ public class CallManager
             {
                 // TODO: ?
             }
-
         }
+
+        // Delay sending the auto-answer text message so that there is enough time for the call to
+        // any SIPREC recorders be set up.
+        call.LastAutoAnsweredTextSentTime = DateTime.Now - TimeSpan.FromSeconds(m_Settings.CallHandling.AutoAnswerTextMessageRepeatSeconds) -
+            - TimeSpan.FromMilliseconds(500);
     }
 
     private void EndCall(Call call)
     {
-        m_SrcManager.StopRecording(call.CallID);
+        EnqueueWorkItem(() => SendCallEndLogEvent(call));
+        if (m_SrcManager != null)
+            m_SrcManager.StopRecording(call.CallID);
 
         call.EndCall();
-
-        if (call.RtpChannels.Count > 0)
-        {
-
-            if (call.AudioSampleSource != null)
-            {
-                call.AudioSampleSource.Stop();
-                call.AudioSampleSource= null;
-            }
-
-            if (call.CurrentAudioSampleSource != null)
-            {
-                call.CurrentAudioSampleSource.Stop();
-                call.CurrentAudioSampleSource= null;
-            }
-
-            if (call.VideoSender != null && call.CurrentVideoCapture != null)
-            {
-                call.CurrentVideoCapture.FrameReady -= call.VideoSender.SendVideoFrame;
-            }
-
-            foreach (RtpChannel rtpChannel in call.RtpChannels)
-            {
-                // TODO: Unhook the events and other things
-                if (rtpChannel.MediaType == "text" && call.RttReceiver != null)
-                {
-                    rtpChannel.RtpPacketReceived -= call.RttReceiver.ProcessRtpPacket;
-                }
-
-                rtpChannel.Shutdown();
-            }
-
-            call.RtpChannels.Clear();
-
-        }
-
-        if (call.RttSender != null)
-        {
-            call.RttSender.Stop();
-            // TODO: unhook the events
-            call.RttSender = null;
-        }
-
-        if (call.MsrpConnection != null)
-        {
-            call.MsrpConnection.Shutdown();
-            call.MsrpConnection = null;
-        }
-
-        if (call.VideoSender != null)
-        {
-            if (call.CurrentVideoCapture != null)
-                call.CurrentVideoCapture.FrameReady -= call.VideoSender.SendVideoFrame;
-
-            call.VideoSender.Shutdown();
-        }
-
-        if (call.VideoReceiver != null)
-        {
-            call.VideoReceiver.Shutdown();
-            call.VideoReceiver = null;
-        }
 
         if (m_OnLineCall != null && m_OnLineCall.CallID == call.CallID)
             m_OnLineCall = null;

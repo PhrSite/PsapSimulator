@@ -4,7 +4,8 @@
 
 namespace PsapSimulator.CallManagement;
 
-using SipLib.Channels;
+using PsapSimulator.Settings;
+
 using SipLib.Core;
 using SipLib.Media;
 using SipLib.Msrp;
@@ -13,21 +14,24 @@ using SipLib.Rtp;
 using SipLib.Sdp;
 using SipLib.Transactions;
 using SipLib.Collections;
+using SipLib.SipRec;
 using Pidf;
 
 using System.Net;
 using System.Text;
+using System.Collections.Concurrent;
+using System.Security.Cryptography.X509Certificates;
 
 using SipLib.Body;
 using PsapSimulator.WindowsVideo;
 using AdditionalData;
-using System.Security.Cryptography.X509Certificates;
 using Held;
 using HttpUtils;
 using Ng911Lib.Utilities;
+using I3V3.LogEvents;
 using SipLib.Logging;
-using System.Collections.Concurrent;
 using SipLib.Subscriptions;
+using I3V3.LoggingHelpers;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
 
@@ -48,14 +52,30 @@ public class Call
     public bool IsIncoming { get; private set; } = true;
 
     /// <summary>
-    /// Last invite request that was received
+    /// Last invite request that was received or sent.
     /// </summary>
     internal SIPRequest? InviteRequest { get; set; } = null;
 
+    private SIPResponse? m_OKResponse = null;
     /// <summary>
-    /// 200 OK resonse that was received
+    /// 200 OK response that was sent or received.
     /// </summary>
-    internal SIPResponse? OKResponse { get; set; } = null;
+    internal SIPResponse? OKResponse
+    {
+        get { return m_OKResponse; }
+        set
+        {   
+            m_OKResponse = value;
+            if (IsIncoming == true)
+                LocalTag = m_OKResponse?.Header.To?.ToTag;
+            else
+                LocalTag = m_OKResponse?.Header.From?.FromTag;
+        }
+    }
+
+    internal string? RemoteTag = string.Empty;
+
+    internal string? LocalTag = string.Empty;
 
     /// <summary>
     /// Call-ID header value for the call
@@ -70,7 +90,7 @@ public class Call
     /// <summary>
     /// SipTransport for the call
     /// </summary>
-    internal SipTransport sipTransport {  get; set; }
+    internal SipTransport sipTransport { get; set; }
 
     /// <summary>
     /// Time that the last 180 Ringing response was sent for an incoming call if the current call state is
@@ -86,7 +106,7 @@ public class Call
     /// <summary>
     /// NG9-1-1 emergency-incidentId for the call
     /// </summary>
-    public string? EmergencyIncidentIdentifier {  get; set; } = null;
+    public string? EmergencyIncidentIdentifier { get; set; } = null;
 
     /// <summary>
     /// Call start time
@@ -146,10 +166,10 @@ public class Call
     internal IVideoCapture? CurrentVideoCapture = null;
 
     public VideoReceiver? VideoReceiver = null;
-    
-    internal DateTime LastRttAutoAnsweredSentTime = DateTime.MinValue;
 
-    internal DateTime LastRttOnHoldSentTime = DateTime.MinValue;
+    internal DateTime LastAutoAnsweredTextSentTime = DateTime.MinValue;
+
+    internal DateTime LastOnHoldTextSentTime = DateTime.MinValue;
 
     /// <summary>
     /// Contains a list of locations that have been received.
@@ -181,7 +201,7 @@ public class Call
     /// Contains a dictionary of data providers. The key is the ProviderID property of the ProviderInfoType class.
     /// </summary>
     public ConcurrentDictionary<string, ProviderInfoType> Providers { get; private set; } = new ConcurrentDictionary<string, ProviderInfoType>();
-    
+
     /// <summary>
     /// Gets or sets the caller's DeviceInfo additional data information
     /// </summary>
@@ -202,19 +222,132 @@ public class Call
 
     private X509Certificate2 m_Certificate;
 
-    private Call(SipTransport transport, X509Certificate2 certificate)
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
+    private IdentitySettings m_IdentitySettings;
+    private EventLoggingSettings m_EventLoggingSettings;
+
+    private Call(SipTransport transport, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
+        IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
     {
         m_Certificate = certificate;
         sipTransport = transport;
+        m_I3LogEventClientMgr = i3LogEventClientMgr;
+        m_IdentitySettings = identitySettings;
+        m_EventLoggingSettings = eventLoggingSettings;
     }
 
     /// <summary>
-    /// Call this method when the call has ended to terminate all call related operations and release
-    /// any resources being held by the call.
+    /// Call this method when the call has ended. This method sends the MediaEndLogEvent to the logging server
+    /// for each media type.
     /// </summary>
     public void EndCall()
     {
+        if (m_EventLoggingSettings.EnableLogging == true)
+        {
+            foreach (RtpChannel rtpChannel in RtpChannels)
+            {
+                switch (rtpChannel.MediaType)
+                {
+                    case MediaTypes.Audio:
+                        SendAudioMediaEndLogEvents();
+                        break;
+                    case MediaTypes.Video:
+                        SendVideoMediaEndLogEvents();
+                        break;
+                    case MediaTypes.RTT:
+                        SendRttMediaEndLogEvents();
+                        break;
+                }
+            }
 
+            if (MsrpConnection != null)
+                SendMsrpMediaEndEvents();
+        }
+
+ 
+        if (AudioSampleSource != null)
+        {
+            AudioSampleSource.Stop();
+            AudioSampleSource = null;
+        }
+
+        if (CurrentAudioSampleSource != null)
+        {
+            CurrentAudioSampleSource.Stop();
+            CurrentAudioSampleSource = null;
+        }
+
+        foreach (RtpChannel rtpChannel in RtpChannels)
+        {
+            if (rtpChannel.MediaType == MediaTypes.RTT && RttReceiver != null)
+                rtpChannel.RtpPacketReceived -= RttReceiver.ProcessRtpPacket;
+
+            rtpChannel.Shutdown();
+        }
+
+        RtpChannels.Clear();
+
+        if (RttSender != null)
+        {
+            RttSender.Stop();
+            RttSender = null;
+        }
+
+        if (MsrpConnection != null)
+        {
+            MsrpConnection.Shutdown();
+            MsrpConnection = null;
+        }
+
+        if (VideoSender != null)
+        {
+            if (CurrentVideoCapture != null)
+                CurrentVideoCapture.FrameReady -= VideoSender.SendVideoFrame;
+
+            VideoSender.Shutdown();
+        }
+
+        if (VideoReceiver != null)
+        {
+            VideoReceiver.Shutdown();
+            VideoReceiver = null;
+        }
+    }
+
+    private void SendAudioMediaEndLogEvents()
+    {
+        if (m_FirstAudioPacketReceived == true)
+            SendMediaEndLogEvent(MediaLabel.ReceivedAudio);
+
+        if (m_FirstAudioPacketSent == true)
+            SendMediaEndLogEvent (MediaLabel.SentAudio);
+    }
+
+    private void SendVideoMediaEndLogEvents()
+    {
+        if (m_FirstVideoPacketReceived == true)
+            SendMediaEndLogEvent(MediaLabel.ReceivedVideo);
+
+        if (m_FirstVideoPacketSent == true)
+            SendMediaEndLogEvent(MediaLabel.SentVideo);
+    }
+
+    private void SendRttMediaEndLogEvents()
+    {
+        if (m_FirstRttPacketReceived == true)
+            SendMediaEndLogEvent(MediaLabel.ReceivedRTT);
+
+        if (m_FirstRttPacketSent == true)
+            SendMediaEndLogEvent(MediaLabel.SentRTT);
+    }
+
+    private void SendMsrpMediaEndEvents()
+    {
+        if (m_FirstMsrpMessageReceived == true)
+            SendMediaEndLogEvent(MediaLabel.ReceivedMsrp);
+
+        if (m_FirstMsrpMessageSent == true)
+            SendMediaEndLogEvent(MediaLabel.SentMsrp);
     }
 
     /// <summary>
@@ -278,7 +411,7 @@ public class Call
         SIPCallInfoHeader? serviceInfoCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
             PurposeTypes.ServiceInfo, SIPSchemesEnum.cid);
         if (serviceInfoCallInfo != null)
-            GetAdditionalDataByReference(serviceInfoCallInfo, m_Certificate, PurposeTypes.ServiceInfo, 
+            GetAdditionalDataByReference(serviceInfoCallInfo, m_Certificate, PurposeTypes.ServiceInfo,
                 Ng911Lib.Utilities.ContentTypes.ServiceInfo, typeof(ServiceInfoType), SetServiceInfo);
 
         // Subscriber Info by-value
@@ -288,7 +421,7 @@ public class Call
         SIPCallInfoHeader? subCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
             PurposeTypes.SubscriberInfo, SIPSchemesEnum.cid);
         if (subCallInfo != null)
-            GetAdditionalDataByReference(subCallInfo, m_Certificate, PurposeTypes.SubscriberInfo, 
+            GetAdditionalDataByReference(subCallInfo, m_Certificate, PurposeTypes.SubscriberInfo,
                 Ng911Lib.Utilities.ContentTypes.SubscriberInfo, typeof(SubscriberInfoType), SetSubscriberInfo);
 
         // Provider Info by-value -- There may be multiple ProviderInfo blocks
@@ -318,7 +451,7 @@ public class Call
         foreach (SIPCallInfoHeader Sch in InviteRequest.Header.CallInfo)
         {
             string? strPurpose = Sch.CallInfoField.Parameters.Get("purpose");
-            
+
             if (string.IsNullOrEmpty(strPurpose) == false && strPurpose == PurposeTypes.ProviderInfo &&
                 Sch.CallInfoField.URI is not null && Sch.CallInfoField.URI.Scheme != SIPSchemesEnum.cid)
             {
@@ -334,7 +467,7 @@ public class Call
         SIPCallInfoHeader? deviceCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
             PurposeTypes.DeviceInfo, SIPSchemesEnum.cid);
         if (deviceCallInfo != null)
-            GetAdditionalDataByReference(deviceCallInfo, m_Certificate, PurposeTypes.DeviceInfo, 
+            GetAdditionalDataByReference(deviceCallInfo, m_Certificate, PurposeTypes.DeviceInfo,
                 Ng911Lib.Utilities.ContentTypes.DeviceInfo, typeof(DeviceInfoType), SetDeviceInfo);
 
         // Comments by-value -- There may be multiple blocks in the body
@@ -411,6 +544,18 @@ public class Call
 
         Task.Factory.StartNew(async () =>
         {
+            string queryId = Guid.NewGuid().ToString();
+            if (m_EventLoggingSettings.EnableLogging == true)
+            {
+                LocationQueryLogEvent Lqle = new LocationQueryLogEvent();
+                SetLogEventParams(Lqle);
+                Lqle.uri = httpUri.ToString();
+                Lqle.text = strLocReq;
+                Lqle.queryId = queryId;
+                Lqle.direction = "outgoing";
+                m_I3LogEventClientMgr.SendLogEvent(Lqle);
+            }
+
             AsyncHttpRequestor Ahr = new AsyncHttpRequestor(m_Certificate, 10000, null);
             HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.POST, httpUri.ToString(),
                 Ng911Lib.Utilities.ContentTypes.Held, strLocReq, true);
@@ -425,6 +570,17 @@ public class Call
                     else
                         SipLogger.LogError($"Unable to deserialize LocationResponse:\n{results.Body}");
                 }
+            }
+
+            if (m_EventLoggingSettings.EnableLogging == true)
+            {
+                LocationResponseLogEvent Lrle = new LocationResponseLogEvent();
+                SetLogEventParams(Lrle);
+                Lrle.text = results.Body;
+                Lrle.direction = "incoming";
+                Lrle.responseStatus = ((int) results.StatusCode).ToString();
+                Lrle.responseId = queryId;
+                m_I3LogEventClientMgr.SendLogEvent(Lrle);
             }
 
             Ahr.Dispose();
@@ -492,7 +648,7 @@ public class Call
     private void SetComment(object Obj)
     {
         if (Obj is CommentType)
-            Comments.Add((CommentType) Obj);
+            Comments.Add((CommentType)Obj);
     }
 
     private void SetProviderInfo(object Obj)
@@ -550,6 +706,16 @@ public class Call
         {
             Task.Factory.StartNew(async () =>
             {
+                string queryId = Guid.NewGuid().ToString();
+                if (m_EventLoggingSettings.EnableLogging == true)
+                {
+                    AdditionalDataQueryLogEvent Adqle = new AdditionalDataQueryLogEvent();
+                    SetLogEventParams(Adqle);
+                    Adqle.direction = "outgoing";
+                    Adqle.uri = uri.ToString();
+                    m_I3LogEventClientMgr.SendLogEvent(Adqle);
+                }
+
                 AsyncHttpRequestor Ahr = new AsyncHttpRequestor(certificate, 10000, null);
                 HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.GET, uri.ToString(),
                     null, null, true);
@@ -564,6 +730,17 @@ public class Call
                         else
                             SipLogger.LogError($"Unable to deserialize {AddDataType} by-reference:\n{results.Body}");
                     }
+                }
+
+                if (m_EventLoggingSettings.EnableLogging == true)
+                {
+                    AdditionalDataResponseLogEvent Adrle = new AdditionalDataResponseLogEvent();
+                    SetLogEventParams(Adrle);
+                    Adrle.text = results.Body;
+                    Adrle.direction = "incoming";
+                    Adrle.responseStatus = ((int) results.StatusCode).ToString();
+                    Adrle.responseId = queryId;
+                    m_I3LogEventClientMgr.SendLogEvent(Adrle);
                 }
 
                 Ahr.Dispose();
@@ -682,8 +859,25 @@ public class Call
         }
     }
 
+    private bool m_FirstMsrpMessageSent = false;
+    private void OnMsrpMessageSent(string ContentType, byte[] Contents)
+    {
+        if (m_FirstMsrpMessageSent == true)
+            return;
+
+        m_FirstMsrpMessageSent = true;
+        SendMediaStartLogEvent(MediaTypes.MSRP, MediaLabel.SentMsrp, "outgoing");
+    }
+
+    private bool m_FirstMsrpMessageReceived = false;
     public void OnMsrpMessageReceived(string ContentType, byte[] Contents, string from)
     {
+        if (m_FirstMsrpMessageReceived == false)
+        {
+            m_FirstMsrpMessageReceived = true;
+            SendMediaStartLogEvent(MediaTypes.MSRP, MediaLabel.ReceivedMsrp, "incoming");
+        }
+
         string strContents = Encoding.UTF8.GetString(Contents);
 
         if (ContentType == "text/plain")
@@ -703,7 +897,6 @@ public class Call
                 MsrpMessages.AddReceivedMessage(From, strContents);
             }
         }
-
     }
 
     /// <summary>
@@ -729,9 +922,10 @@ public class Call
     /// <param name="certificate"></param>
     /// <returns></returns>
     public static Call CreateIncomingCall(SIPRequest invite, ServerInviteTransaction transaction,
-        SipTransport transport, CallStateEnum initialState, X509Certificate2 certificate)
+        SipTransport transport, CallStateEnum initialState, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
+        IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
     {
-        Call call = new Call(transport, certificate);
+        Call call = new Call(transport, certificate, i3LogEventClientMgr, identitySettings, eventLoggingSettings);
         call.IsIncoming = true;
         call.InviteRequest = invite;
         call.serverInviteTransaction = transaction;
@@ -739,8 +933,134 @@ public class Call
         call.CallID = invite.Header!.CallId!;   // Will never be null here
         call.LastInviteSequenceNumber = invite.Header.CSeq;
         call.RemoteIpEndPoint = transaction.RemoteEndPoint;
+        call.RemoteTag = invite.Header.From?.FromTag;
 
         return call;
+    }
+
+    public void HookMediaEvents()
+    {
+        foreach (RtpChannel rtpChannel in RtpChannels)
+        {
+            switch (rtpChannel.MediaType)
+            {
+                case MediaTypes.Audio:
+                    rtpChannel.RtpPacketReceived += OnAudioPacketReceived;
+                    rtpChannel.RtpPacketSent += OnAudioPacketSent;
+                    break;
+                case MediaTypes.Video:
+                    rtpChannel.RtpPacketReceived += OnVideoPacketReceived;
+                    rtpChannel.RtpPacketSent += OnVideoPacketSent;
+                    break;
+                case MediaTypes.RTT:
+                    rtpChannel.RtpPacketReceived += OnRttPacketReceived;
+                    rtpChannel.RtpPacketSent += OnRttPacketSent;
+                    break;
+            }
+        }
+
+        if (MsrpConnection != null)
+        {
+            // Note: The MsrpMessageReceived event is hooked externally. See OnMsrpMessageReceived.
+            MsrpConnection.MsrpMessageSent += OnMsrpMessageSent;
+        }
+    }
+
+    private void SendMediaStartLogEvent(string mediaType, MediaLabel mediaLabel, string direction)
+    {
+        if (m_EventLoggingSettings.EnableLogging == false)
+            return;
+
+        MediaStartLogEvent Msle = new MediaStartLogEvent();
+        SetLogEventParams(Msle);
+        Msle.sdp = AnsweredSdp?.GetMediaType(mediaType)?.ToString();
+        Msle.mediaLabel = new string[1];
+        Msle.mediaLabel[0] = ((int)mediaLabel).ToString();
+        Msle.direction = direction;
+        m_I3LogEventClientMgr.SendLogEvent(Msle);
+    }
+
+    private void SendMediaEndLogEvent(MediaLabel mediaLabel)
+    {
+        if (m_EventLoggingSettings.EnableLogging == false)
+            return;
+
+        MediaEndLogEvent Mele = new MediaEndLogEvent();
+        SetLogEventParams(Mele);
+        Mele.mediaLabel = new string[1];
+        Mele.mediaLabel[0] = ((int)mediaLabel).ToString();
+        m_I3LogEventClientMgr?.SendLogEvent(Mele);
+    }
+
+    private void SetLogEventParams(LogEvent logEvent)
+    {
+        logEvent.elementId = m_IdentitySettings.ElementID;
+        logEvent.agencyId = m_IdentitySettings.AgencyID;
+        logEvent.agencyAgentId = m_IdentitySettings.AgentID;
+        logEvent.callId = EmergencyCallIdentifier;
+        logEvent.incidentId = EmergencyIncidentIdentifier;
+        logEvent.callIdSip = CallID;
+        logEvent.ipAddressPort = RemoteIpEndPoint?.ToString();
+    }
+
+    private bool m_FirstAudioPacketReceived = false;
+    private void OnAudioPacketReceived(RtpPacket rtpPacket)
+    {
+        if (m_FirstAudioPacketReceived == true)
+            return;
+
+        m_FirstAudioPacketReceived = true;
+        SendMediaStartLogEvent(MediaTypes.Audio, MediaLabel.ReceivedAudio, "incoming");
+    }
+
+    private bool m_FirstAudioPacketSent = false;
+    private void OnAudioPacketSent(RtpPacket rtpPacket)
+    {
+        if (m_FirstAudioPacketSent == true)
+            return;
+
+        m_FirstAudioPacketSent = true;
+        SendMediaStartLogEvent(MediaTypes.Audio, MediaLabel.SentAudio, "outgoing");
+    }
+
+    private bool m_FirstVideoPacketReceived = false;
+    private void OnVideoPacketReceived(RtpPacket rtpPacket)
+    {
+        if (m_FirstVideoPacketReceived == true)
+            return;
+
+        m_FirstVideoPacketReceived = true;
+        SendMediaStartLogEvent(MediaTypes.Video, MediaLabel.ReceivedVideo, "incoming");
+    }
+
+    private bool m_FirstVideoPacketSent = false;
+    private void OnVideoPacketSent(RtpPacket rtpPacket)
+    {
+        if (m_FirstVideoPacketSent == true)
+            return;
+
+        m_FirstVideoPacketSent = true;
+        SendMediaStartLogEvent(MediaTypes.Video, MediaLabel.SentVideo, "outgoing");
+    }
+
+    private bool m_FirstRttPacketReceived = false;
+    private void OnRttPacketReceived(RtpPacket rtpPacket)
+    {
+        if (m_FirstRttPacketReceived == true)
+            return;
+
+        m_FirstRttPacketReceived = true;
+        SendMediaStartLogEvent(MediaTypes.RTT, MediaLabel.ReceivedRTT, "incoming");
+    }
+
+    private bool m_FirstRttPacketSent = false;
+    private void OnRttPacketSent(RtpPacket rtpPacket)
+    {
+        if (m_FirstRttPacketSent == true)
+            return;
+
+        m_FirstRttPacketSent = true;
+        SendMediaStartLogEvent(MediaTypes.RTT, MediaLabel.SentRTT, "outgoing");
     }
 }
 

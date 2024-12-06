@@ -55,10 +55,6 @@ internal class RttChannelData : RtpRecordingChannelData
             return;
 
         m_TextFileFormat.TextLines.Add(new TextLine(Source, RxChars));
-
-        // For debug only
-        string time = TimeUtils.GetCurrentNenaTimestamp();
-        Console.WriteLine($"{time}:{Source}: Length: {RxChars.Length}: {RxChars.Replace("\r", "").Replace("\n", "")}");
     }
 
     /// <summary>

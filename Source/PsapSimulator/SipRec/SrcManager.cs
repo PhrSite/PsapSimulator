@@ -3,9 +3,11 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 using PsapSimulator.Settings;
-using SipLib.I3EventLogging;
+using I3V3.LoggingHelpers;
+using I3V3.LogEvents;
 using SipLib.Media;
 using System.Security.Cryptography.X509Certificates;
+using SipLib.Logging;
 
 namespace SipLib.SipRec;
 
@@ -28,16 +30,26 @@ public class SrcManager
     /// <param name="agentID">Identity of the agent or call taker that is recording and logging calls.</param>
     /// <param name="elementID">NG9-1-1 Element Identifier of the entity recording calls.</param>
     /// <param name="i3EventLoggingManager">Used for logging NG9-1-1 events.</param>
+    /// <param name="enableLogging">If true then I3 event logging is enabled</param>
     public SrcManager(SipRecSettings sipRecSettings, MediaPortManager portManager, X509Certificate2 certificate,
-        string agencyID, string agentID, string elementID, I3EventLoggingManager i3EventLoggingManager)
+        string agencyID, string agentID, string elementID, I3LogEventClientMgr i3EventClientManager, bool enableLogging)
     {
         m_SipRecSettings = sipRecSettings;
 
         foreach (SipRecRecorderSettings settings in m_SipRecSettings.SipRecRecorders)
         {
-            SrcUserAgent Ua = new SrcUserAgent(settings, portManager, certificate, agencyID, agentID, elementID, 
-                i3EventLoggingManager);
-            m_SrcUserAgents.Add(Ua);
+            SrcUserAgent Ua;
+            try
+            {
+                Ua = new SrcUserAgent(settings, portManager, certificate, agencyID, agentID, elementID,
+                    i3EventClientManager, enableLogging);
+                m_SrcUserAgents.Add(Ua);
+            }
+            catch (Exception ex)
+            {
+                SipLogger.LogError(ex, $"Failed to create the SrcUserAgent for SIPREC recorder: {settings.Name} " +
+                    $"using local endpoint: {settings.LocalIpEndpoint}");
+            }
         }
     }
 
