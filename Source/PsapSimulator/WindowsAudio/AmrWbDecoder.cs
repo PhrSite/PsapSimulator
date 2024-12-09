@@ -87,7 +87,7 @@ public class AmrWbDecoder : IAudioDecoder
             return samples;
         }
 
-        // The encoded AMR-WB data in the RTP packet payload contains multiple voide frames but
+        // The encoded AMR-WB data in the RTP packet payload contains multiple voice frames but
         // the decoder can only handle a single voice frame at a time. Split the input encoded
         // data into packets with each packet containing the encoded data for a single voice frame.
         short Mode;
@@ -103,8 +103,8 @@ public class AmrWbDecoder : IAudioDecoder
             {
                 Toc = TocList[i];
                 Mode = (short)((Toc >> MODE_SHIFT) & MODE_MASK);
-                PackedSize = m_Decoder!.GetPackedSize(Mode);
-
+                PackedSize = m_Decoder!.GetPacketSize(Mode);
+                
                 byte[] NewEncodedData = new byte[PackedSize + 2];
                 NewEncodedData[PACKET_HEADER_INDEX] = Header;
                 NewEncodedData[FIRST_TOC_INDEX] = (byte)(Toc & ~F_BIT_MASK);    // Clear the F bit

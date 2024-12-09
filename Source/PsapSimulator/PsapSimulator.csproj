@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <Reference Include="AmrWbCppLib">
-      <HintPath>..\..\..\AmrWbCppLib\ClassLibrary\lib\net8.0\AmrWbCppLib.dll</HintPath>
+      <HintPath>..\..\..\AmrWbCppLib\ClassLibrary\x64\Release\AmrWbCppLib.dll</HintPath>
     </Reference>
     <Reference Include="Ng911Lib">
       <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net7.0\Ng911Lib.dll</HintPath>
