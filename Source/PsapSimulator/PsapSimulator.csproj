@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AmrWbCppLib" Version="0.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
@@ -20,9 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="AmrWbCppLib">
-      <HintPath>..\..\..\AmrWbCppLib\ClassLibrary\x64\Release\AmrWbCppLib.dll</HintPath>
-    </Reference>
     <Reference Include="Ng911Lib">
       <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net7.0\Ng911Lib.dll</HintPath>
     </Reference>
