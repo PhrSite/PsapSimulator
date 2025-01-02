@@ -52,7 +52,8 @@ public class AmrWbDecoder : IAudioDecoder
     private int m_MaxDecodeLogErrors;
 
     /// <summary>
-    /// Decodes the AMR-WB encoded data into linear 16-bit PCM samples
+    /// Decodes the AMR-WB encoded data from the payload of an RTP packet into linear 16-bit PCM samples. Sections 
+    /// 4.2 and 4.3 of RFC 4867 describe the format of the RTP packet payload for the AMR-WB codec.
     /// </summary>
     /// <param name="EncodedData">AMR-WB encoded input data.</param>
     /// <returns></returns>
@@ -61,44 +62,47 @@ public class AmrWbDecoder : IAudioDecoder
         if (EncodedData.Length < 2)
             return null!;
 
-        // Determine the number of voice frames in the EncodedData from an RTP packet.
-        // There may be more than 1.
-        int TocIndex = FIRST_TOC_INDEX;
-        bool Done = false;
-        byte Toc;
-        List<byte> TocList = new List<byte>();
-        byte Header = EncodedData[PACKET_HEADER_INDEX];
-
-        // If the F bit in the TOC is set, then there are more voice frames to follow this TOC. The
-        // first TOC byte with the F bit = 0 is the last TOC.
-        while (Done == false)
-        {
-            Toc = EncodedData[TocIndex++];
-            TocList.Add(Toc);
-            if ((byte) (Toc & F_BIT_MASK) == 0)
-                Done = true;
-        }
-
-        short[] samples;
-        // Simple case of 1 voice frame so just decode it and return.
-        if (TocList.Count == 1)
-        {
-            samples = m_Decoder!.DecodePacketPayload(EncodedData);
-            return samples;
-        }
-
-        // The encoded AMR-WB data in the RTP packet payload contains multiple voice frames but
-        // the decoder can only handle a single voice frame at a time. Split the input encoded
-        // data into packets with each packet containing the encoded data for a single voice frame.
-        short Mode;
-        int PackedSize;
-        int SourceIndex = TocList.Count + 1;   // Skip the Header and the TOCs
-        int DestIndex;
-
         List<short> SamplesList = new List<short>();
 
         try
         {
+            // Determine the number of voice frames in the EncodedData from an RTP packet.
+            // There may be more than 1.
+            int TocIndex = FIRST_TOC_INDEX;
+            bool Done = false;
+
+            // Table of Contents byte
+            byte Toc;
+
+            List<byte> TocList = new List<byte>();
+            byte Header = EncodedData[PACKET_HEADER_INDEX];
+
+            // If the F bit in the TOC is set, then there are more voice frames to follow this TOC. The
+            // first TOC byte with the F bit = 0 is the last TOC.
+            while (Done == false)
+            {
+                Toc = EncodedData[TocIndex++];
+                TocList.Add(Toc);
+                if ((byte) (Toc & F_BIT_MASK) == 0)
+                    Done = true;
+            }
+
+            short[] samples;
+            // Simple case of 1 voice frame so just decode it and return.
+            if (TocList.Count == 1)
+            {
+                samples = m_Decoder!.DecodePacketPayload(EncodedData);
+                return samples;
+            }
+
+            // The encoded AMR-WB data in the RTP packet payload contains multiple voice frames but
+            // the decoder can only handle a single voice frame at a time. Split the input encoded
+            // data into packets with each packet containing the encoded data for a single voice frame.
+            short Mode;
+            int PackedSize;
+            int SourceIndex = TocList.Count + 1;   // Skip the Header and the TOCs
+            int DestIndex;
+
             for (int i = 0; i < TocList.Count; i++)
             {
                 Toc = TocList[i];

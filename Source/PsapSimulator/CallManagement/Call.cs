@@ -42,6 +42,14 @@ internal delegate void SetAdditionalDataDelegate(object Obj);
 public delegate void NewLocationDelegate(Presence newPresence);
 
 /// <summary>
+/// Delegate type for the CallVideoReceiverChanged event of the Call class.
+/// </summary>
+/// <param name="oldVideoReceiver">If not null, then the event handler for this event must unhook the FrameReady
+/// event of this object.</param>
+/// <param name="newVideoReceiver">The event handler must hook the FrameReady event of this object.</param>
+public delegate void CallVideoReceiverChangedDelegate(VideoReceiver? oldVideoReceiver, VideoReceiver newVideoReceiver);
+
+/// <summary>
 /// Class for maintaining information about a call
 /// </summary>
 public class Call
@@ -76,6 +84,8 @@ public class Call
     internal string? RemoteTag = string.Empty;
 
     internal string? LocalTag = string.Empty;
+
+    internal bool OfferlessInvite { get; set; } = false;
 
     /// <summary>
     /// Call-ID header value for the call
@@ -147,15 +157,24 @@ public class Call
     public TextMessagesCollection RttMessages { get; private set; } = new TextMessagesCollection(TextTypeEnum.RTT);
 
     /// <summary>
-    /// 
+    /// This object uses an RtpChannel to send audio packets to the remote endpoint. The CurrentAudioSample
+    /// source uses this object to send packets by calling the SendAudioSamples() method of this object when
+    /// a full RTP packet's worth of samples are available.
     /// </summary>
     internal AudioSource? AudioSampleSource = null;
 
     /// <summary>
-    /// 
+    /// This object is the source of audio samples to send to the remote endpoint. The current audio source
+    /// could be the PC's microphone or a file source of audio samples. When this object changes, be sure
+    /// to hook it's AudioSamples ready event to the SendAudioSamples() methof of the AudioSampleSource object
+    /// for this call.
     /// </summary>
     internal IAudioSampleSource? CurrentAudioSampleSource = null;
 
+    /// <summary>
+    /// Receives audio RTP packets from a RtpChannel, decodes them and then calls its AudioDestinationDelegate.
+    /// You can change the audio destination handler by calling the SetDestinationHandler() method.
+    /// </summary>
     internal AudioDestination? AudioDestination = null;
 
     internal RttSender? RttSender = null;
@@ -163,6 +182,7 @@ public class Call
     internal RttReceiver? RttReceiver = null;
 
     internal VideoSender? VideoSender = null;
+
     internal IVideoCapture? CurrentVideoCapture = null;
 
     public VideoReceiver? VideoReceiver = null;
@@ -186,6 +206,21 @@ public class Call
     /// This event is fired when new location for the call is received.
     /// </summary>
     public event NewLocationDelegate? NewLocation = null;
+
+    /// <summary>
+    /// This event is fired if the VideoReceiver object of this call is changed due to a re-INVITE condition.
+    /// </summary>
+    public event CallVideoReceiverChangedDelegate? CallVideoReceiverChanged = null;
+    
+    /// <summary>
+    /// Fires the CallVideoReceiverChanged event.
+    /// </summary>
+    /// <param name="oldVideoReceiver"></param>
+    /// <param name="newVideoReceiver"></param>
+    internal void FireCallVideoReceiverChanged(VideoReceiver? oldVideoReceiver, VideoReceiver newVideoReceiver)
+    {
+        CallVideoReceiverChanged?.Invoke(oldVideoReceiver, newVideoReceiver);
+    }
 
     /// <summary>
     /// Gets or sets the caller's ServiceInfo additional data information
@@ -815,19 +850,24 @@ public class Call
     /// <returns></returns>
     public string GetMediaTypeDisplayList()
     {
-        Sdp? sdp = AnsweredSdp != null ? AnsweredSdp : OfferedSdp;
-
+        //Sdp? sdp = AnsweredSdp != null ? AnsweredSdp : OfferedSdp;
+        Sdp? sdp = OfferedSdp != null ? OfferedSdp : AnsweredSdp;
         if (sdp == null)
         {   // The OfferedSdp and the AnsweredSdp have not been set up yet. Use the offered SDP from the
             // Invite request
-            sdp = Sdp.ParseSDP(InviteRequest!.GetContentsOfType(SipLib.Body.ContentTypes.Sdp)!);
+            string? strSdp = InviteRequest?.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
+            if (strSdp != null)
+                sdp = Sdp.ParseSDP(InviteRequest!.GetContentsOfType(SipLib.Body.ContentTypes.Sdp)!);
         }
 
         if (sdp != null)
         {
             List<string> mediaList = new List<string>();
             foreach (MediaDescription md in sdp.Media)
-                mediaList.Add(Sdp.MediaTypeToDisplayString(md.MediaType));
+            {
+                if (md.Port != 0)
+                    mediaList.Add(Sdp.MediaTypeToDisplayString(md.MediaType));
+            }
 
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < mediaList.Count; i++)
@@ -846,7 +886,6 @@ public class Call
     // Event handler for the RttCharactersReceived event of the RttReceiver class.
     internal void OnRttCharactersReceived(string RxChars, string source)
     {
-        //RttCharactersReceived?.Invoke(CallID, source, DateTime.Now, RxChars);
         RttMessages.AddReceivedMessage(source, RxChars);
     }
 
@@ -860,7 +899,8 @@ public class Call
     }
 
     private bool m_FirstMsrpMessageSent = false;
-    private void OnMsrpMessageSent(string ContentType, byte[] Contents)
+
+    public void OnMsrpMessageSent(string ContentType, byte[] Contents)
     {
         if (m_FirstMsrpMessageSent == true)
             return;
@@ -938,6 +978,45 @@ public class Call
         return call;
     }
 
+    /// <summary>
+    /// Gets the RtpChannel for a specified media type
+    /// </summary>
+    /// <param name="mediaType">Media type to search for</param>
+    /// <returns>Returns the RtpChannel if found or null if there is no RtpChannel for the specified media type.</returns>
+    public RtpChannel? GetRtpChannelForMediaType(string mediaType)
+    {
+        foreach (RtpChannel rtpChannel in RtpChannels)
+        {
+            if (rtpChannel.MediaType == mediaType)
+                return rtpChannel;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the local port used by a RtpChannel for a specified media type. 
+    /// </summary>
+    /// <param name="mediaType">Media type to search for</param>
+    /// <returns>Returns the local port if the media type exists for the call or 0 if it does not</returns>
+    public int GetLocalRtpPortForMediaType(string mediaType)
+    {
+        RtpChannel? rtpChannel = GetRtpChannelForMediaType(mediaType);
+        if (rtpChannel != null)
+            return rtpChannel.LocalPort;
+        else
+            return 0;
+    }
+
+    /// <summary>
+    /// Gets the local MsrpUri if there is MSRP media for this call or null if there is no MSRP.
+    /// </summary>
+    /// <returns></returns>
+    public MsrpUri? GetLocalMsrpUri()
+    {
+        return MsrpConnection?.LocalMsrpUri;  
+    }
+
     public void HookMediaEvents()
     {
         foreach (RtpChannel rtpChannel in RtpChannels)
@@ -963,6 +1042,25 @@ public class Call
         {
             // Note: The MsrpMessageReceived event is hooked externally. See OnMsrpMessageReceived.
             MsrpConnection.MsrpMessageSent += OnMsrpMessageSent;
+        }
+    }
+
+    public void UnHookRtpEvents(RtpChannel rtpChannel)
+    {
+        switch (rtpChannel.MediaType)
+        {
+            case MediaTypes.Audio:
+                rtpChannel.RtpPacketReceived -= OnAudioPacketReceived;
+                rtpChannel.RtpPacketSent -= OnAudioPacketSent;
+                break;
+            case MediaTypes.Video:
+                rtpChannel.RtpPacketReceived -= OnVideoPacketReceived;
+                rtpChannel.RtpPacketSent -= OnVideoPacketSent;
+                break;
+            case MediaTypes.RTT:
+                rtpChannel.RtpPacketReceived -= OnRttPacketReceived;
+                rtpChannel.RtpPacketSent -= OnRttPacketSent;
+                break;
         }
     }
 

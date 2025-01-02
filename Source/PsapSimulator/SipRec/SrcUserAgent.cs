@@ -177,6 +177,14 @@ public class SrcUserAgent : QueuedActionWorkerTask
         }
     }
 
+    /// <summary>
+    /// Gets the status of the SIP Recording Server (SRS)
+    /// </summary>
+    public bool SrsResponding
+    {
+        get { return m_SrsResponding; }
+    }
+
     private void OnOptionsRequestComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
         IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
     {

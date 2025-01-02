@@ -38,6 +38,9 @@ public class SrcManager
 
         foreach (SipRecRecorderSettings settings in m_SipRecSettings.SipRecRecorders)
         {
+            if (settings.Enabled == false)
+                continue;   // Don't create a SrcUserAgent object if it is not enabled
+
             SrcUserAgent Ua;
             try
             {

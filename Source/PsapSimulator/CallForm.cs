@@ -76,9 +76,9 @@ public partial class CallForm : Form
         SetVideoPreviewSource();
 
         if (m_Call.VideoReceiver != null)
-        {
             m_Call.VideoReceiver.FrameReady += OnFrameReady;
-        }
+
+        m_Call.CallVideoReceiverChanged += OnCallVideoReceiverChanged;
 
         // Display the last received location information
         if (m_Call.Locations.Count > 0)
@@ -98,6 +98,14 @@ public partial class CallForm : Form
 
         DisplayComments();
         DisplayProviders();
+    }
+
+    private void OnCallVideoReceiverChanged(VideoReceiver? oldVideoReceiver, VideoReceiver newVideoReceiver)
+    {
+        if (oldVideoReceiver != null)
+            oldVideoReceiver.FrameReady -= OnFrameReady;
+
+        newVideoReceiver.FrameReady += OnFrameReady;
     }
 
     private void DisplayComments()
@@ -334,8 +342,14 @@ public partial class CallForm : Form
         if (callSummary.CallID != m_Call.CallID)
             return;
 
-        BeginInvoke(() => { CallStateLbl.Text = Call.CallStateToString(m_Call.CallState); });
-        BeginInvoke(() => SetVideoPreviewSource());
+        BeginInvoke(() => DoCallStateChanged(callSummary));
+    }
+
+    private void DoCallStateChanged(CallSummary callSummary)
+    {
+        CallStateLbl.Text = Call.CallStateToString(m_Call.CallState);
+        MediaLbl.Text = callSummary.CallMedia;
+        SetVideoPreviewSource();
     }
 
     private void OnCallEnded(string CallID)
@@ -410,9 +424,9 @@ public partial class CallForm : Form
         m_CallManager.FrameBitmapReady -= OnPreviewFrameBitmapReady;
 
         if (m_Call.VideoReceiver != null)
-        {
             m_Call.VideoReceiver.FrameReady -= OnFrameReady;
-        }
+
+        m_Call.CallVideoReceiverChanged -= OnCallVideoReceiverChanged;
 
         if (m_CurrentPreviewVideoCapture != null)
         {
@@ -468,7 +482,7 @@ public partial class CallForm : Form
 
     private void AnswerBtn_Click(object sender, EventArgs e)
     {
-        if (m_Call.CallState == CallStateEnum.AutoAnswered || m_Call.CallState == CallStateEnum.OnHold)
+        if (m_Call.CallState != CallStateEnum.OnLine)
         {
             m_CallManager.PickupCall(m_Call.CallID);
         }

@@ -167,10 +167,13 @@ public class CallManager
         m_I3LogEventClientMgr = new I3LogEventClientMgr();
         foreach (EventLoggerSettings loggerSettings in m_Settings.EventLogging.Loggers)
         {
-            I3LogEventClient client = new I3LogEventClient(loggerSettings.LoggerUri, loggerSettings.Name,
-                m_Certificate, loggerSettings.Enabled);
-            m_I3LogEventClientMgr.AddLoggingClient(client);
-            client.Start();
+            if (loggerSettings.Enabled == true)
+            {
+                I3LogEventClient client = new I3LogEventClient(loggerSettings.LoggerUri, loggerSettings.Name,
+                    m_Certificate, loggerSettings.Enabled);
+                m_I3LogEventClientMgr.AddLoggingClient(client);
+                client.Start();
+            }
         }
         m_I3LogEventClientMgr.LoggingServerError += OnLoggingServerError;
         m_I3LogEventClientMgr.LoggingServerStatusChanged += OnLoggingServerStatusChanged;
@@ -263,8 +266,8 @@ public class CallManager
         {
             CameraCapture = new WindowsCameraCapture(m_Settings.Devices.VideoDevice);
             CameraCapture.FrameBitmapReady += OnFrameBitmapReady;
-            ImageWidth = (int) m_Settings.Devices.VideoDevice.DeviceFormat.Width;
-            ImageHeight = (int) m_Settings.Devices.VideoDevice.DeviceFormat.Height;
+            ImageWidth = (int)m_Settings.Devices.VideoDevice.DeviceFormat.Width;
+            ImageHeight = (int)m_Settings.Devices.VideoDevice.DeviceFormat.Height;
 
             bool Success = await CameraCapture.StartCapture();
             if (Success == false)
@@ -285,7 +288,7 @@ public class CallManager
         m_SrcManager.Start();
 
         m_Started = true;
-        
+
     }
 
     private void OnLogInvalidSipMessage(byte[] msgBytes, IPEndPoint remoteEndPoint, SIPMessageTypesEnum messageType, SipTransport sipTransport)
@@ -304,9 +307,9 @@ public class CallManager
                     if (isValid == false)
                     {
                     }
-                }    
+                }
             }
-            catch (SIPValidationException Sve)
+            catch (SIPValidationException)
             {
 
             }
@@ -456,9 +459,9 @@ public class CallManager
     private void CallManagerTask(CancellationToken cancellationToken)
     {
         CancellationToken token = cancellationToken;
-        try
+        while (token.IsCancellationRequested == false)
         {
-            while (token.IsCancellationRequested == false)
+            try
             {
                 m_Semaphore.Wait(WaitIntervalMsec);
 
@@ -469,13 +472,13 @@ public class CallManager
                     if (action != null)
                         action();
                 }
+            }
+            catch (Exception ex)
+            {
+                SipLogger.LogError(ex, "Unexpected exception.");
+            }
 
-            } // end while
-        }
-        catch (Exception ex)
-        {
-            SipLogger.LogError(ex, "Unexpected exception.");
-        }
+        } // end while
     }
 
     private void DoTimedEvents()
@@ -592,12 +595,12 @@ public class CallManager
         if (call == null)
             return;     // Call already ended
 
-        if (call.CallState == CallStateEnum.OnLine || call.CallState == CallStateEnum.AutoAnswered || 
+        if (call.CallState == CallStateEnum.OnLine || call.CallState == CallStateEnum.AutoAnswered ||
             call.CallState == CallStateEnum.OnHold)
         {
             SIPRequest ByeRequest = SipUtils.BuildByeRequest(call.InviteRequest!, call.sipTransport!.SipChannel,
                 call.RemoteIpEndPoint!, call.IsIncoming, call.LastInviteSequenceNumber, call.OKResponse!);
-            
+
             // TODO: Get the correct SipTransport to used based on the SIP URI in the Contact header
             SipTransport transport = call.sipTransport; // For debug only
             transport.StartClientNonInviteTransaction(ByeRequest, call.RemoteIpEndPoint!, null!, 1000);
@@ -650,7 +653,7 @@ public class CallManager
             call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
             call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
             call.CurrentAudioSampleSource.Start();
-            call.AudioDestination.SetDestionationHandler(null);
+            call.AudioDestination.SetDestinationHandler(null);
         }
 
         if (call.VideoSender != null)
@@ -708,7 +711,10 @@ public class CallManager
                 call.serverInviteTransaction = null;
                 try
                 {
-                    StartCall(call);
+                    if (call.OfferlessInvite == false)
+                        StartCall(call);
+                    else
+                        return;
                 }
                 catch (Exception ex)
                 {
@@ -722,6 +728,9 @@ public class CallManager
 
     private void StartSipRecRecording(Call call)
     {
+        if (m_SrcManager == null)
+            return;
+
         SrcCallParameters parameters = new SrcCallParameters()
         {
             FromUri = call.InviteRequest!.Header.From!.FromURI!,
@@ -733,9 +742,6 @@ public class CallManager
             EmergencyCallIdentifier = call.EmergencyCallIdentifier != null ? call.EmergencyCallIdentifier : string.Empty,
             EmergencyIncidentIdentifier = call.EmergencyIncidentIdentifier != null ? call.EmergencyIncidentIdentifier : string.Empty
         };
-
-        if (m_SrcManager != null)
-            m_SrcManager.StartRecording(parameters);
     }
 
     private void StopSipRecRecording(string strCallId)
@@ -770,7 +776,7 @@ public class CallManager
                     if (call.CallState == CallStateEnum.AutoAnswered)
                         ringingCalls.Add(call);
                 }
-            
+
             }
 
             if (ringingCalls.Count == 0)
@@ -799,7 +805,7 @@ public class CallManager
     public void EndAllCalls()
     {
         EnqueueWorkItem(() =>
-        { 
+        {
             if (m_Calls.Count == 0)
             {
                 CallManagerError?.Invoke("No calls to end");
@@ -833,12 +839,8 @@ public class CallManager
                 call.AudioSampleSource.Start();
 
                 // Connect the audio destination handler
-                call.AudioDestination!.SetDestionationHandler(m_WaveAudio.AudioOutSamplesReady);
+                call.AudioDestination!.SetDestinationHandler(m_WaveAudio.AudioOutSamplesReady);
             }
-
-            // For debug only
-            Debug.WriteLine($"In SetCallOnLine(), ThreadID = {Thread.CurrentThread.ManagedThreadId}");
-            // TODO: handle video
         }
 
         CallHandlingSettings Chs = m_Settings.CallHandling;
@@ -908,7 +910,7 @@ public class CallManager
                 ProcessByeRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.ACK:
-                
+                ProcessAckRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.CANCEL:
                 ProcessCancelRequest(sipRequest, remoteEndPoint, sipTransport);
@@ -1120,7 +1122,7 @@ public class CallManager
             "Not Allowed", sipTransport.SipChannel, UserName);
         sipTransport.SendSipResponse(Response, remoteEndPoint);
     }
-    
+
     /// <summary>
     /// Gets the Call object for a specified call ID
     /// </summary>
@@ -1128,7 +1130,7 @@ public class CallManager
     /// <returns>Returns the Call object if it exists or null if it does not</returns>
     public Call? GetCall(string callID)
     {
-        if (string.IsNullOrEmpty(callID)) 
+        if (string.IsNullOrEmpty(callID))
             return null;
         else
             return m_Calls.GetValueOrDefault(callID);
@@ -1150,9 +1152,8 @@ public class CallManager
         Call? call = GetCall(sipRequest.Header.CallId);
 
         if (call != null)
-        {   // TODO: Its an existing call so handle the re-INVITE
-
-        }
+            // Its an existing call so handle the re-INVITE
+            ProcessReInvite(call, sipRequest, remoteEndPoint, sipTransport);
         else
         {   // Its a new call
             if (m_Calls.Count >= m_Settings.CallHandling.MaximumCalls)
@@ -1164,11 +1165,325 @@ public class CallManager
                 return;
             }
 
-            StartNewIncomingCall(sipRequest, remoteEndPoint, sipTransport);
+            CreateNewIncomingCall(sipRequest, remoteEndPoint, sipTransport);
         }
     }
 
-    private void StartNewIncomingCall(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
+    private void ProcessReInvite(Call call, SIPRequest invite, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
+    {
+        if (call.AnsweredSdp == null)
+        {
+
+            return;
+        }
+
+        // Make sure that the re-INVITE is in-dialog
+        if (SipUtils.IsInDialog(invite) == false || invite.Header.To!.ToTag != call.LocalTag ||
+            invite.Header.From!.FromTag != call.RemoteTag)
+        {
+            SIPResponse response = SipUtils.BuildResponse(invite, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
+                "Dialog Does Not Exist", sipTransport.SipChannel, UserName);
+            sipTransport.StartServerInviteTransaction(invite, remoteEndPoint.GetIPEndPoint(), null, response);
+            return;
+        }
+
+        string? strSdp = invite.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
+        if (string.IsNullOrEmpty(strSdp) == true)
+        {   // Error: a re-INVITE must have a SDP block in the body of the request
+            SIPResponse response = SipUtils.BuildResponse(invite, SIPResponseStatusCodesEnum.BadRequest, "Bad Request - No SDP Offered",
+                sipTransport.SipChannel, UserName);
+            sipTransport.StartServerInviteTransaction(invite, remoteEndPoint.GetIPEndPoint(), null, response);
+            SipLogger.LogError($"No SDP on re-INVITE from {remoteEndPoint.GetIPEndPoint()}");
+            return;
+        }
+
+        Sdp? OfferedSdp = null;
+        try
+        {
+            OfferedSdp = Sdp.ParseSDP(strSdp);
+        }
+        catch (Exception ex)
+        {
+            SipLogger.LogError(ex, $"Invalid SDP on re-INVITE from {remoteEndPoint.GetIPEndPoint()}");
+        }
+
+        if (OfferedSdp == null)
+        {
+            SIPResponse response = SipUtils.BuildResponse(invite, SIPResponseStatusCodesEnum.BadRequest, "Bad Request - Invalid SDP Offered",
+                sipTransport.SipChannel, UserName);
+            sipTransport.StartServerInviteTransaction(invite, remoteEndPoint.GetIPEndPoint(), null, response);
+            return;
+        }
+
+        if (OfferedSdp.Media.Count < call.AnsweredSdp.Media.Count)
+        {   // Error: On a re-INVITE, the offered media count must be greater than or equal than the media count
+            // of the existing call
+            SIPResponse response = SipUtils.BuildResponse(invite, SIPResponseStatusCodesEnum.BadRequest, "Bad Request - Media Count Mismatch",
+                sipTransport.SipChannel, UserName);
+            sipTransport.StartServerInviteTransaction(invite, remoteEndPoint.GetIPEndPoint(), null, response);
+            return;
+        }
+
+        int LocalAudioPort = call.GetLocalRtpPortForMediaType(MediaTypes.Audio);
+        int LocalVideoPort = call.GetLocalRtpPortForMediaType(MediaTypes.Video);
+        int LocalRttPort = call.GetLocalRtpPortForMediaType(MediaTypes.RTT);
+        MsrpUri? LocalMsrpUri = call.GetLocalMsrpUri();
+
+        // Always use a new MsrpUri with a new port number by setting the LocalMsrpUri to null because there
+        // is a timing issue with shutting an existing MsrpConnection and then creating and starting a new
+        // MsrpConnection that uses the same local IP endpoint.
+        Sdp AnswerSdp = Sdp.BuildReInviteAnswerSdp(OfferedSdp, call.sipTransport.SipChannel.SIPChannelEndPoint.Address!,
+            m_AnswerSettings, LocalAudioPort, LocalVideoPort, LocalRttPort, null);
+
+        SIPResponse OkResponse = SipUtils.BuildOkToInvite(invite, sipTransport.SipChannel, AnswerSdp.ToString(),
+            SipLib.Body.ContentTypes.Sdp);
+        OkResponse.Header.To!.ToTag = call.LocalTag;    // Fix the local tag
+        sipTransport.StartServerInviteTransaction(invite, remoteEndPoint.GetIPEndPoint(), null, OkResponse);
+
+        call.InviteRequest = invite;
+        call.OKResponse = OkResponse;
+        call.LastInviteSequenceNumber = invite.Header.CSeq;
+
+        foreach (MediaDescription AnswerMd in AnswerSdp.Media)
+        {
+            if (AnswerMd.Port == 0)
+                continue;       // The offered media was rejected.
+
+            MediaDescription? OfferedMd = OfferedSdp.GetMediaType(AnswerMd.MediaType);
+            if (OfferedMd == null)
+            {
+                SipLogger.LogError($"Could not find the offered MediaDescription for a re-INVITE for MediaType = {AnswerMd.MediaType}");
+                continue;
+            }
+
+            IPAddress? RemoteIpAddress = Sdp.GetMediaIPAddr(OfferedSdp, OfferedMd);
+            if (RemoteIpAddress == null)
+            {
+                SipLogger.LogError($"Could not get the RemoteIpAddress for a re-INVITE for MediaType = {AnswerMd.MediaType}");
+                continue;
+            }
+
+            if (AnswerMd.MediaType == MediaTypes.MSRP)
+            {
+                if (call.MsrpConnection != null)
+                {   // The call already has MSRP media, check to see if the remote endpoint or the scheme is being
+                    // changed.
+                    MsrpUri? RemoteMsrpUri = MsrpConnection.GetPathMsrpUri(OfferedMd);
+                    if (RemoteMsrpUri == null)
+                    {
+                        SipLogger.LogError($"Invalid remote MsrpUri on re-INVITE for Call-ID = {call.CallID} ");
+                        continue;
+                    }
+
+                    if (call.MsrpConnection!.RemoteMsrpUri!.uri == RemoteMsrpUri.uri && call.MsrpConnection!.RemoteMsrpUri.
+                        Transport == RemoteMsrpUri.Transport)
+                        continue;       // Nothing changed
+
+                    SetupMsrpConnectionForReInvite(call, OfferedMd, AnswerMd);
+                }
+                else
+                    // MSRP media is being added to the call
+                    SetupMsrpConnectionForReInvite(call, OfferedMd, AnswerMd);
+            }
+            else
+            {
+                RtpChannel? rtpChannel = call.GetRtpChannelForMediaType(AnswerMd.MediaType);
+                if (rtpChannel == null)
+                {   // This media type is being added to the call
+                    CreateNewRtpChannel(call, OfferedSdp, OfferedMd, AnswerSdp, AnswerMd, true);
+                }
+                else
+                {   // This media type already exists.
+                    if (rtpChannel.RemoteRtpEndPoint.Address.Equals(RemoteIpAddress) == false ||
+                        rtpChannel.RemoteRtpEndPoint.Port != OfferedMd.Port)
+                    {   // But the remote's IPEndPoint has changed.
+                        if (rtpChannel.IsSdesSrtp == true || rtpChannel.IsDtlsSrtp == true || OfferedMd.UsingEncryption == true)
+                        {   // And encryption is being used or offered. SDES-SRTP and DTLS-SRTP encryption are stateful so
+                            // it is necessary to create a new RtpChannel because if the remote IPEndPoint changes,
+                            // the encryption keys must be re-negotiated.
+                            CreateNewRtpChannel(call, OfferedSdp, OfferedMd, AnswerSdp, AnswerMd, false);
+                        }
+                        else
+                        {   // Encryption is not used, but the remote IPEndPoint has changed.
+                            rtpChannel.RemoteRtpEndPoint = new IPEndPoint(RemoteIpAddress, OfferedMd.Port);
+                            if (rtpChannel.RemoteRtcpEndPoint != null)
+                                rtpChannel.RemoteRtcpEndPoint = new IPEndPoint(RemoteIpAddress, OfferedMd.Port + 1);
+                        }
+                    }
+
+                    // Else, the IPEndPoint for the remote has not changed so nothing needs to be done
+                }
+            }
+        }
+    }
+
+    private void SetupMsrpConnectionForReInvite(Call call, MediaDescription OfferedMd, MediaDescription Answeredmd)
+    {
+        MsrpConnection? oldMsrpConnection = null;
+        if (call.MsrpConnection != null)
+        {   // The call already has MSRP media so replace the existing MsrpConnection object
+            oldMsrpConnection = call.MsrpConnection;
+            call.MsrpConnection.MsrpMessageReceived -= call.OnMsrpMessageReceived;
+            call.MsrpConnection.MsrpMessageSent -= call.OnMsrpMessageSent;
+            call.MsrpConnection.Shutdown();
+            call.MsrpConnection = null;
+        }
+
+        SetupCallMsrpConnection(call, OfferedMd, Answeredmd, true);
+        if (call.MsrpConnection != null)
+            call.MsrpConnection.MsrpMessageSent += call.OnMsrpMessageSent;
+    }
+
+    /// <summary>
+    /// This method is called when a new RtpChannel needs to be created when a re-INVITE occurs for the call.
+    /// </summary>
+    /// <param name="call"></param>
+    /// <param name="OfferedSdp"></param>
+    /// <param name="OfferedMd"></param>
+    /// <param name="AnsweredSdp"></param>
+    /// <param name="AnsweredMd"></param>
+    /// <param name="Add"></param>
+    private void CreateNewRtpChannel(Call call, Sdp OfferedSdp, MediaDescription OfferedMd, Sdp AnsweredSdp,
+        MediaDescription AnsweredMd, bool Add)
+    {
+        (RtpChannel? rtpChannel, string? Error) = RtpChannel.CreateFromSdp(true, OfferedSdp, OfferedMd, AnsweredSdp, 
+            AnsweredMd, true, null);
+        if (rtpChannel == null)
+        {
+            SipLogger.LogError($"Failed to create an RtpChannel for a re-INVITE. Call-ID = {call.CallID}, " +
+                $"MediaType = {OfferedMd.MediaType}, Error = {Error}");
+            return;
+        }
+
+        if (Add == true)
+        {
+            call.RtpChannels.Add(rtpChannel);
+        }
+        else
+        {   // Replace the existing RtpChannel. Note: It is not necessary to hook the RTP related events for
+            // for the call in this case because those events send a LogEvent when the first RTP packet is received
+            // or sent and this has already happend.
+            for (int i=0; i < call.RtpChannels.Count; i++)
+            {
+                if (call.RtpChannels[i].MediaType == AnsweredMd.MediaType)
+                {
+                    call.RtpChannels[i].Shutdown();
+                    call.UnHookRtpEvents(call.RtpChannels[i]);
+                    call.RtpChannels[i] = rtpChannel;
+                }
+            }
+        }
+
+        switch (AnsweredMd.MediaType)
+        {
+            case MediaTypes.Audio:
+                SetupAudioForCallReInvite(call, rtpChannel, AnsweredMd);
+                break;
+            case MediaTypes.Video:
+                SetupVideoForCallReInvite(call, rtpChannel, AnsweredMd);
+                break;
+            case MediaTypes.RTT:
+                SetupRttForCallReInvite(call, rtpChannel, AnsweredMd);
+                break;
+        }
+
+        rtpChannel.StartListening();
+    }
+    
+    private void SetupAudioForCallReInvite(Call call, RtpChannel rtpChannel, MediaDescription AudioAnswerMd)
+    {
+        // For a re-INVITE, the call must be in the AutoAnswered, OnHold or OnLine states and a
+        // CurrentAudioSampleSource must exist for the call.
+        if (call.CurrentAudioSampleSource != null)
+        {
+            if (call.AudioSampleSource != null)
+            {
+                call.AudioSampleSource.Stop();
+                call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource.SendAudioSamples;
+            }
+
+            SetCallAudioCodecSourceAndDestination(call, rtpChannel, AudioAnswerMd);
+            if (call.AudioSampleSource != null)
+                call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource.SendAudioSamples;
+
+            if (call.AudioDestination != null)
+            {
+                if (call.CallState == CallStateEnum.OnLine && m_WaveAudio != null)
+                    call.AudioDestination.SetDestinationHandler(m_WaveAudio.AudioOutSamplesReady);
+                else
+                    // For the AutoAnswered and OnHold states, received audio is not sent anywhere.
+                    call.AudioDestination.SetDestinationHandler(null);
+            }
+        }
+        else
+            // Unexpected error.
+            SipLogger.LogError($"CurrentAudioSampleSource is null during a re-INVITE for Call-ID = {call.CallID}");
+    }
+
+    private void SetupVideoForCallReInvite(Call call, RtpChannel rtpChannel, MediaDescription VideoAnswerMd)
+    {
+        VideoReceiver? oldVideoReceiver = null;
+        if (call.VideoReceiver != null && call.VideoSender != null)
+        {
+            if (call.CurrentVideoCapture != null)
+                call.CurrentVideoCapture.FrameReady -= call.VideoSender.SendVideoFrame;
+
+            oldVideoReceiver = call.VideoReceiver;
+            call.VideoReceiver.Shutdown();
+            call.VideoReceiver = null;
+            call.VideoSender.Shutdown();
+            call.VideoSender = null;
+        }
+
+        call.VideoReceiver = new VideoReceiver(VideoAnswerMd, rtpChannel);
+        call.VideoSender = new VideoSender(VideoAnswerMd, rtpChannel);
+        CallHandlingSettings Chs = m_Settings.CallHandling;
+
+        call.FireCallVideoReceiverChanged(oldVideoReceiver, call.VideoReceiver);
+
+        switch (call.CallState)
+        {
+            case CallStateEnum.AutoAnswered:
+                if (AutoAnswerCapture != null)
+                {
+                    call.CurrentVideoCapture = AutoAnswerCapture;
+                    AutoAnswerCapture.FrameReady += call.VideoSender.SendVideoFrame;
+                }
+                break;
+            case CallStateEnum.OnHold:
+                if (OnHoldCapture != null)
+                {
+                    call.CurrentVideoCapture = OnHoldCapture;
+                    OnHoldCapture.FrameReady += call.VideoSender.SendVideoFrame;
+                }
+                break;
+            case CallStateEnum.OnLine:
+                if (Chs.EnableTransmitVideo == true && CameraCapture != null)
+                {
+                    call.CurrentVideoCapture = CameraCapture;
+                    CameraCapture.FrameReady += call.VideoSender.SendVideoFrame;
+                }
+                else if (Chs.EnableTransmitVideo == false && CameraDisabledCapture != null)
+                {
+                    call.CurrentVideoCapture = CameraDisabledCapture;
+                    CameraDisabledCapture.FrameReady += call.VideoSender.SendVideoFrame;
+                }
+                break;
+        }
+    }
+
+    private void SetupRttForCallReInvite(Call call, RtpChannel rtpChannel, MediaDescription VideoAnswerMd)
+    {
+        if (call.RttReceiver != null)
+            call.RttReceiver.RttCharactersReceived -= call.OnRttCharactersReceived;
+
+        if (call.RttSender != null)
+            call.RttSender.Stop();
+
+        SetupRttSenderAndReceiver(call, rtpChannel, VideoAnswerMd);
+    }
+
+    private void CreateNewIncomingCall(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
         if (sipRequest.Header == null || sipRequest.Header.CallId == null)
             return;
@@ -1208,8 +1523,11 @@ public class CallManager
                 newCall.serverInviteTransaction = null;
                 newCall.OKResponse = OkResponse;
                 Sit.SendResponse(OkResponse);
-                StartCall(newCall);
-                AutoAnswer(newCall);
+                if (newCall.OfferlessInvite == false)
+                {
+                    StartCall(newCall);
+                    AutoAnswer(newCall);
+                }
             }
         }
         else
@@ -1238,26 +1556,12 @@ public class CallManager
             if (AnsweredMd == null)
                 break;
 
-            if (AnsweredMd.Port == 0)
-                continue;       // This media type was rejected so don't build an RtpChannel for it.
+            if (AnsweredMd.Port == 0 || OfferedMd.Port == 0)
+                continue;       // This media type was rejected so don't build a media channel for it.
 
             if (OfferedMd.MediaType == MediaTypes.MSRP)
-            {   // Media type is MSRP
-                (MsrpConnection? msrpConnection, string? msrpError) = MsrpConnection.CreateFromSdp(
-                    OfferedMd, AnsweredMd, call.IsIncoming, m_Certificate!);
-                if (msrpConnection != null)
-                {
-                    call.MsrpConnection = msrpConnection;
-                    // Hook the MsrpConnection's events
-                    msrpConnection.MsrpMessageReceived += call.OnMsrpMessageReceived;
-                    msrpConnection.Start();
-                }
-                else
-                {
-                    SipLogger.LogError($"Unable to create an MsrpConnection for CallID = {call.CallID}, " +
-                        $"Reason: {msrpError}");
-                }
-            }
+                // Media type is MSRP
+                SetupCallMsrpConnection(call, OfferedMd, AnsweredMd, call.IsIncoming);
             else
             {   // Media types that use RTP
                 (RtpChannel? rtpChannel, string? Error) = RtpChannel.CreateFromSdp(call.IsIncoming, call.OfferedSdp,
@@ -1271,34 +1575,16 @@ public class CallManager
 
                 call.RtpChannels.Add(rtpChannel);
 
-                // TODO: Hook the events and other things
-
+                // Setup the codecs, hook the events and other things
                 if (rtpChannel.MediaType == MediaTypes.Audio)
                 {
                     MediaDescription? audioMd = call.AnsweredSdp!.GetMediaType(MediaTypes.Audio);
                     if (audioMd != null)
-                    {
-                        IAudioEncoder? encoder = WindowsAudioUtils.GetAudioEncoder(audioMd);
-                        if (encoder != null)
-                        {
-                            call.AudioSampleSource = new AudioSource(audioMd, encoder, rtpChannel);
-                        }
-                        else
-                        {
-                            // TODO: handle this error
-                        }
-
-                        IAudioDecoder? decoder = WindowsAudioUtils.GetAudioDecoder(audioMd);
-                        if (decoder != null)
-                        {
-                            call.AudioDestination = new AudioDestination(audioMd, decoder, rtpChannel, null,
-                                m_WaveAudio!.SampleRate);
-                        }
-                        else
-                        {
-                            // TODO: handle this error
-                        }
-                    }
+                        SetCallAudioCodecSourceAndDestination(call, rtpChannel, audioMd);
+                    else
+                        // Unexpected error
+                        SipLogger.LogError($"Could not find the MediaDescription for {MediaTypes.Audio}, " +
+                            $"for Call-ID: {call.CallID}");
                 }
                 else if (rtpChannel.MediaType == MediaTypes.Video)
                 {
@@ -1310,33 +1596,7 @@ public class CallManager
                     }
                 }
                 else if (rtpChannel.MediaType == MediaTypes.RTT)
-                {
-                    RttParameters? rttParameters = RttParameters.FromMediaDescription(AnsweredMd);
-                    if (rttParameters == null)
-                    {
-                        // TODO: Handle this error
-                        continue;
-                    }
-
-                    call.RttSender = new RttSender(rttParameters, rtpChannel.Send);
-                    call.RttSender.Start();
-                    string? source;
-                    if (call.IsIncoming == true)
-                    {
-                        source = call.InviteRequest?.Header?.From?.FromURI?.User!;
-                        if (string.IsNullOrEmpty(source) == true)
-                            source = "Caller";
-                    }
-                    else
-                    {
-                        source = call.InviteRequest?.Header?.To?.ToURI?.User!;
-                        if (string.IsNullOrEmpty(source) == true)
-                            source = "Called Party";
-                    }
-
-                    call.RttReceiver = new RttReceiver(rttParameters, rtpChannel, source);
-                    call.RttReceiver.RttCharactersReceived += call.OnRttCharactersReceived;
-                }
+                    SetupRttSenderAndReceiver(call, rtpChannel, AnsweredMd);
 
                 rtpChannel.StartListening();
             }
@@ -1345,6 +1605,75 @@ public class CallManager
         call.HookMediaEvents();
         EnqueueWorkItem(() => SendCallStartLogEvent(call));
         StartSipRecRecording(call);
+    }
+
+    private void SetupCallMsrpConnection(Call call, MediaDescription OfferedMd, MediaDescription AnsweredMd,
+        bool IsIncoming)
+    {
+        (MsrpConnection? msrpConnection, string? msrpError) = MsrpConnection.CreateFromSdp(OfferedMd, AnsweredMd, 
+            IsIncoming, m_Certificate!);
+        if (msrpConnection != null)
+        {
+            call.MsrpConnection = msrpConnection;
+            // Hook the MsrpConnection's events
+            msrpConnection.MsrpMessageReceived += call.OnMsrpMessageReceived;
+            msrpConnection.Start();
+        }
+        else
+        {
+            SipLogger.LogError($"Unable to create an MsrpConnection for CallID = {call.CallID}, " +
+                $"Reason: {msrpError}");
+        }
+    }
+
+    private void SetupRttSenderAndReceiver(Call call, RtpChannel rtpChannel, MediaDescription AnsweredMd)
+    {
+        RttParameters? rttParameters = RttParameters.FromMediaDescription(AnsweredMd);
+        if (rttParameters == null)
+        {
+            SipLogger.LogError($"Failed to create a RttParameters from the answered MediaDescription for Call-ID = {call.CallID}");
+            return;
+        }
+
+        call.RttSender = new RttSender(rttParameters, rtpChannel.Send);
+        call.RttSender.Start();
+        string? source;
+        if (call.IsIncoming == true)
+        {
+            source = call.InviteRequest?.Header?.From?.FromURI?.User!;
+            if (string.IsNullOrEmpty(source) == true)
+                source = "Caller";
+        }
+        else
+        {
+            source = call.InviteRequest?.Header?.To?.ToURI?.User!;
+            if (string.IsNullOrEmpty(source) == true)
+                source = "Called Party";
+        }
+
+        call.RttReceiver = new RttReceiver(rttParameters, rtpChannel, source);
+        call.RttReceiver.RttCharactersReceived += call.OnRttCharactersReceived;
+
+    }
+
+    private void SetCallAudioCodecSourceAndDestination(Call call, RtpChannel rtpChannel, MediaDescription AudioAnswerMd)
+    {
+        IAudioEncoder? encoder = WindowsAudioUtils.GetAudioEncoder(AudioAnswerMd);
+        if (encoder != null)
+            call.AudioSampleSource = new AudioSource(AudioAnswerMd, encoder, rtpChannel);
+        else
+        {
+            // TODO: handle this error
+        }
+
+        IAudioDecoder? decoder = WindowsAudioUtils.GetAudioDecoder(AudioAnswerMd);
+        if (decoder != null)
+            call.AudioDestination = new AudioDestination(AudioAnswerMd, decoder, rtpChannel, null,
+                m_WaveAudio!.SampleRate);
+        else
+        {
+            // TODO: handle this error
+        }
     }
 
     private void AutoAnswer(Call call)
@@ -1470,8 +1799,10 @@ public class CallManager
             }
         }
         else
-            // No SDP provided in the INVITE request so this is an offer-less invite
+        {   // No SDP provided in the INVITE request so this is an offer-less invite
             AnswerSdp = BuildOfferlessAnswerSdp(call);
+            call.OfferlessInvite = true;
+        }
 
         string strAnswerSdp = AnswerSdp.ToString();
         SIPResponse OkResponse = SipUtils.BuildOkToInvite(call.InviteRequest!, call.sipTransport!.SipChannel,
@@ -1480,12 +1811,87 @@ public class CallManager
         return OkResponse;
     }
 
-    // TODO: Implement this function
     private Sdp BuildOfferlessAnswerSdp(Call call)
     {
         Sdp AnswerSdp = new Sdp(call.sipTransport!.SipChannel.SIPChannelEndPoint!.Address!, UserName);
+        if (m_AnswerSettings.EnableAudio == true)
+        {
+            MediaDescription audioMd = SdpUtils.CreateAudioMediaDescription(m_PortManager.NextAudioPort);
+            AnswerSdp.Media.Add(audioMd);
+        }
+
+        if (m_AnswerSettings.EnableVideo == true)
+        {
+            MediaDescription videoMd = SdpUtils.CreateVideoMediaDescription(m_PortManager.NextVideoPort);
+            AnswerSdp.Media.Add(videoMd);
+        }
+
+        if (m_AnswerSettings.EnableMsrp == true)
+        {
+            MediaDescription msrpMd = SdpUtils.CreateMsrpMediaDescription(call.sipTransport.SipChannel.SIPChannelEndPoint.
+                GetIPEndPoint().Address, m_PortManager.NextMsrpPort, false, SetupType.passive, m_Certificate, UserName);
+            AnswerSdp.Media.Add(msrpMd);
+        }
+        else
+        {
+            if (m_AnswerSettings.EnableRtt == true)
+            {
+                MediaDescription rttMediaDescription = SdpUtils.CreateRttMediaDescription(m_PortManager.NextRttPort); ;
+                AnswerSdp.Media.Add(rttMediaDescription);
+            }
+        }
 
         return AnswerSdp;
+    }
+
+    private void ProcessAckRequest(SIPRequest ackRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
+    {
+        Call? call = GetCall(ackRequest.Header.CallId);
+        if (call == null)
+        {   // This is not an ACK request for an 200 OK response
+            return;
+        }
+
+        if (call.OfferlessInvite == false)
+            return;
+
+        // The ACK response for an offerless INVITE request must contain an SDP block in the body of the request.
+        string? strAckSdp = ackRequest.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
+        if (string.IsNullOrEmpty(strAckSdp) == true)
+        {
+            SipLogger.LogError($"No SDP in the ACK response for an offerless INVITE for Call-ID = {call.CallID}");
+            return;
+        }
+
+        Sdp offeredSdp = Sdp.ParseSDP(strAckSdp);
+
+        if (call.OKResponse == null)
+        {
+            SipLogger.LogError($"No OKResponse for offerless INVITE Call-ID = {call.CallID}");
+            return;
+        }
+
+        string? strAnsweredSdp = call.OKResponse.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
+        if (string.IsNullOrEmpty(strAnsweredSdp) == true)
+        {
+            SipLogger.LogError($"No SDP in the OKResponse for an offerless INVITE Call-ID = {call.CallID}");
+            return;
+        }
+
+        Sdp answerSdp = Sdp.ParseSDP(strAnsweredSdp);
+        call.AnsweredSdp = answerSdp;
+        call.OfferedSdp = offeredSdp;
+        StartCall(call);
+        if (m_Settings.CallHandling.EnableAutoAnswer == true)
+        {
+            AutoAnswer(call);
+        }
+        else
+        {
+            SetCallOnLine(call);
+        }
+
+        CallStateChanged?.Invoke(GetCallSummary(call));
     }
 
     private void OnServerInviteTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
@@ -1536,10 +1942,8 @@ public class CallManager
 
         if (call != null)
         {
-            CallEnded?.Invoke(call!.CallID);
+            CallEnded?.Invoke(call.CallID);
             EndCall(call!);
         }
     }
-
-
 }
