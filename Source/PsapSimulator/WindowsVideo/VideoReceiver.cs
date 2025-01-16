@@ -30,6 +30,7 @@ public class VideoReceiver
     private AVCodecID m_CodecID = AVCodecID.AV_CODEC_ID_FIRST_UNKNOWN;
     private FFmpegVideoEncoder m_VideoEncoder;
     private RtpChannel m_RtpChannel;
+    private bool m_Shutdown = false;
 
     /// <summary>
     /// Constructor.
@@ -67,6 +68,9 @@ public class VideoReceiver
 
     private void OnRtpPacketReceived(RtpPacket packet)
     {
+        if (m_Shutdown == true)
+            return;
+
         if (m_VideoRtpReceiver != null)
         {
             byte[]? encodedFrame = m_VideoRtpReceiver.ProcessRtpPacket(packet);
@@ -100,11 +104,20 @@ public class VideoReceiver
     }
 
     /// <summary>
-    /// This method must be called after the RtpChannel has been shut down.
+    /// This method must be called before the RtpChannel has been shut down. After this method is called,
+    /// shutdown the RtpChannel, then call the Dispose() method.
     /// </summary>
     public void Shutdown()
     {
+        m_Shutdown = true;
         m_RtpChannel.RtpPacketReceived -= OnRtpPacketReceived;
+    }
+
+    /// <summary>
+    /// Releases resources held by the decoder.
+    /// </summary>
+    public void Dispose()
+    {
         m_VideoEncoder.Dispose();
     }
 }

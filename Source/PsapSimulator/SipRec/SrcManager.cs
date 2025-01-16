@@ -84,7 +84,7 @@ public class SrcManager
     /// <summary>
     /// Starts a recording session for each recording server for a new call.
     /// </summary>
-    /// <param name="srcCallParameters"></param>
+    /// <param name="srcCallParameters">Parameters for the call</param>
     public void StartRecording(SrcCallParameters srcCallParameters)
     {
         if (m_SipRecSettings.EnableSipRec == false)
@@ -94,6 +94,22 @@ public class SrcManager
         {
             if (Ua.Enabled == true)
                 Ua.StartRecording(srcCallParameters);
+        }
+    }
+
+    /// <summary>
+    /// Call this method when a call that is being recorded handles a re-INVITE.
+    /// </summary>
+    /// <param name="srcCallParameters">Parameters for the call</param>
+    public void HandleReInvite(SrcCallParameters srcCallParameters)
+    {
+        if (m_SipRecSettings.EnableSipRec == false)
+            return;
+
+        foreach (SrcUserAgent Ua in m_SrcUserAgents)
+        {
+            if (Ua.Enabled == true)
+                Ua.HandleReInvite(srcCallParameters);
         }
     }
 

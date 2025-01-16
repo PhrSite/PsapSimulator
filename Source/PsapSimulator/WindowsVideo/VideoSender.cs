@@ -11,6 +11,8 @@ using SipLib.Sdp;
 using SIPSorceryMedia.FFmpeg;
 using FFmpeg.AutoGen;
 using SipLib.Logging;
+using System.Runtime.InteropServices;
+using System.Runtime.ExceptionServices;
 
 /// <summary>
 /// Class for sending video to an endpoint using an RtpChannel.
@@ -25,6 +27,8 @@ public class VideoSender
     private const int MAX_ENCODING_ERRORS = 10;
 
     private VideoRtpSender? m_RtpSender = null;
+
+    private bool m_Shutdown = false;
 
     /// <summary>
     /// Constructor
@@ -61,9 +65,18 @@ public class VideoSender
     }
 
     /// <summary>
-    /// This method must be called after the RtpChannel has been shut down.
+    /// This method must be called before the RtpChannel has been shut down. After this method is called,
+    /// shutdown the RtpChannel, then call the Dispose() method.
     /// </summary>
     public void Shutdown()
+    {
+        m_Shutdown = true;
+    }
+
+    /// <summary>
+    /// Releases resources held by the encoder. 
+    /// </summary>
+    public void Dispose()
     {
         m_VideoEncoder.Dispose();
     }
@@ -82,6 +95,9 @@ public class VideoSender
         if (m_CodecID == AVCodecID.AV_CODEC_ID_FIRST_UNKNOWN)
             return;
 
+        if (m_Shutdown == true)
+            return;
+
         byte[]? EncodedBytes = null;
         try
         {
@@ -92,7 +108,7 @@ public class VideoSender
         }
         catch (Exception ex)
         {
-            m_EncodingErrors =+ 1;
+            m_EncodingErrors += 1;
             if (m_EncodingErrors < MAX_ENCODING_ERRORS)
                 SipLogger.LogError(ex, "Failed to encode a video frame");
         }

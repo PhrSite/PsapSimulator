@@ -234,9 +234,6 @@ public partial class Form1 : Form
 
     private void OnNewCall(CallSummary callSummary)
     {
-        // For debug only
-        Debug.WriteLine($"In OnNewCall(), ThreadID = {Thread.CurrentThread.ManagedThreadId}");
-
         BeginInvoke(() => { AddNewCall(callSummary); });
     }
 
@@ -249,10 +246,7 @@ public partial class Form1 : Form
 
     private void AddNewCall(CallSummary callSummary)
     {
-        // For debug only
-        Debug.WriteLine($"In AddNewCall(), ThreadID = {Thread.CurrentThread.ManagedThreadId}");
         ListViewItem Lvi = new ListViewItem(callSummary.From);
-
         Lvi.SubItems.Add(callSummary.StartTime.ToString("HH:mm:ss"));
         Lvi.SubItems.Add(Call.CallStateToString(callSummary.CallState));
         Lvi.SubItems.Add(callSummary.QueueURI);

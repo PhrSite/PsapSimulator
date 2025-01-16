@@ -312,6 +312,19 @@ public class Call
             CurrentAudioSampleSource = null;
         }
 
+        if (VideoSender != null)
+        {
+            if (CurrentVideoCapture != null)
+                CurrentVideoCapture.FrameReady -= VideoSender.SendVideoFrame;
+
+            VideoSender.Shutdown();
+        }
+
+        if (VideoReceiver != null)
+        {
+            VideoReceiver.Shutdown();
+        }
+
         foreach (RtpChannel rtpChannel in RtpChannels)
         {
             if (rtpChannel.MediaType == MediaTypes.RTT && RttReceiver != null)
@@ -336,15 +349,13 @@ public class Call
 
         if (VideoSender != null)
         {
-            if (CurrentVideoCapture != null)
-                CurrentVideoCapture.FrameReady -= VideoSender.SendVideoFrame;
-
-            VideoSender.Shutdown();
+            VideoSender.Dispose();
+            VideoSender = null;
         }
 
         if (VideoReceiver != null)
         {
-            VideoReceiver.Shutdown();
+            VideoReceiver.Dispose();
             VideoReceiver = null;
         }
     }
@@ -867,6 +878,16 @@ public class Call
             {
                 if (md.Port != 0)
                     mediaList.Add(Sdp.MediaTypeToDisplayString(md.MediaType));
+            }
+
+            // In case the media was offered but rejected
+            if (AnsweredSdp != null)
+            {
+                foreach (MediaDescription AnswerMd in AnsweredSdp.Media)
+                {
+                    if (AnswerMd.Port == 0)
+                        mediaList.Remove(Sdp.MediaTypeToDisplayString(AnswerMd.MediaType));
+                }
             }
 
             StringBuilder sb = new StringBuilder();

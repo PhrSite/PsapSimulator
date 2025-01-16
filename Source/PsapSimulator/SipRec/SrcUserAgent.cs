@@ -19,6 +19,7 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using PsapSimulator.CallManagement;
 using SipLib.Threading;
+using System.ComponentModel;
 
 namespace SipLib.SipRec;
 
@@ -319,6 +320,208 @@ public class SrcUserAgent : QueuedActionWorkerTask
         srcCall.SetupMediaChannels();
     }
 
+    /// <summary>
+    /// Call this method after the call being recorded has been re-invited. A re-INVITE can occur in order to
+    /// re-target media and/or to add new media to an existing call.
+    /// <para>
+    /// If the call being recorded is re-invited just to retarget existing media, then it is necessary to
+    /// hook the events of any RtpChannel and MsrpConnection objects of the call and it is not necessary to
+    /// send a re-INVITE to the SRS or to rebuild the SIPREC metadata.
+    /// </para>
+    /// <para>
+    /// If media is added to the call being recorded, then it is necessary to send a re-INVITE request to the
+    /// SRS with updated SIPREC metadata.
+    /// </para>
+    /// </summary>
+    /// <param name="newSrcCallParameters">Updated parameters for the SRC call</param>
+    public void HandleReInvite(SrcCallParameters newSrcCallParameters)
+    {
+        // Execute it on the task context for this object.
+        EnqueueWork(() => DoHandleReInvite(newSrcCallParameters));
+    }
+
+    private void DoHandleReInvite(SrcCallParameters newSrcCallParameters)
+    {
+        SrcCall? srcCall = GetCall(newSrcCallParameters.CallId);
+        if (srcCall == null)
+            return;
+
+        // Check for re-targeted media first.
+        SrcCallParameters origParams = srcCall.CallParameters;
+        if (newSrcCallParameters.CallRtpChannels.Count < origParams.CallRtpChannels.Count)
+        {
+            // TODO: handle this error
+            return;
+        }
+
+        if (newSrcCallParameters.AnsweredSdp.Media.Count < origParams.AnsweredSdp.Media.Count)
+        {
+            // TODO: handle this error
+            return;
+        }
+
+        int i;
+        for (i=0; i < origParams.CallRtpChannels.Count; i++)
+        {
+            if (origParams.CallRtpChannels[i] != newSrcCallParameters.CallRtpChannels[i])
+            {   // A new RtpChannel object was created as a result of the re-INVITE of the call that is
+                // being recorded, so it is necessary to un-hook the events of the original RtpChannel object
+                // and hook the events of the new RtpChannel object.
+                srcCall.ReHookRtpChannelEvents(origParams.CallRtpChannels[i], newSrcCallParameters.CallRtpChannels[i]);
+            }
+        }
+
+        if (origParams.CallMsrpConnection != null && newSrcCallParameters.CallMsrpConnection != null)
+        {   // The original call has MSRP and so does the re-invited call
+            if (origParams.CallMsrpConnection != newSrcCallParameters.CallMsrpConnection)
+            {   // And the MSRP media was re-targeted
+                srcCall.ReHookMsrpChannelEvents(origParams.CallMsrpConnection, newSrcCallParameters.CallMsrpConnection);
+            }
+        }
+
+        if (origParams.AnsweredSdp.Media.Count == newSrcCallParameters.AnsweredSdp.Media.Count)
+        {   // No media was added to the call as a result of the re-INVITE, so its not necessary to send a
+            // re-INVITE request to the SRS and the call's metadata does not need to be updated.
+            srcCall.CallParameters = newSrcCallParameters;
+            return;
+        }
+
+        // It is necessary to send a re-INVITE to the SRS to add new media to the call.
+        srcCall.ReInviteInProgress = true;
+        srcCall.NewMedia.Clear();
+        int delta = newSrcCallParameters.AnsweredSdp.Media.Count - origParams.AnsweredSdp.Media.Count;
+        int StartIndex = newSrcCallParameters.AnsweredSdp.Media.Count - delta;
+        for (i = StartIndex; i < newSrcCallParameters.AnsweredSdp.Media.Count; i++)
+        {
+            MediaDescription mediaDescription = newSrcCallParameters.AnsweredSdp.Media[i];
+            srcCall.NewMedia.Add(mediaDescription.MediaType);
+            if (mediaDescription.MediaType == MediaTypes.MSRP)
+            {
+                srcCall.OfferedSdp.Media.Add(BuildOfferMsrpMediaDescription(mediaDescription, true));
+                srcCall.OfferedSdp.Media.Add(BuildOfferMsrpMediaDescription(mediaDescription, false));
+            }
+            else
+            {   // The media type is audio, video or RTT
+                srcCall.OfferedSdp.Media.Add(BuildOfferRtpMediaDescription(mediaDescription, true));
+                srcCall.OfferedSdp.Media.Add(BuildOfferRtpMediaDescription(mediaDescription, false));
+            }
+        }
+
+        // Update the SIPREC metadata for new media streams that are being added to the call
+        //recording Recording = BuildMetaData(newSrcCallParameters, newSrcCallParameters.AnsweredSdp);
+        //srcCall.Recording = Recording;
+        foreach (string newMediaType in srcCall.NewMedia)
+        {
+            AddNewMediaStreamsToMetaData(srcCall.Recording, srcCall.CallParameters, newMediaType);
+        }
+
+        srcCall.CallParameters = newSrcCallParameters;
+
+        // Attach the SDP and the SIPREC metadata to the body of the INVITE request
+        SipBodyBuilder sipBodyBuilder = new SipBodyBuilder();
+        sipBodyBuilder.AddContent(Body.ContentTypes.Sdp, srcCall.OfferedSdp.ToString(), null, null);
+        sipBodyBuilder.AddContent(recording.ContentType, XmlHelper.SerializeToString(srcCall.Recording), null, null);
+        sipBodyBuilder.AttachMessageBody(srcCall.Invite);
+
+        srcCall.LastCSeq += 1;
+        srcCall.Invite.Header.CSeq = srcCall.LastCSeq;
+        srcCall.Invite.Header!.To!.ToTag = srcCall.OkResponse!.Header!.To!.ToTag;
+        srcCall.Invite.Header!.Vias!.TopViaHeader!.Branch = CallProperties.CreateBranchId();
+
+        srcCall.ClientInviteTransaction = m_SipTransport.StartClientInvite(srcCall.Invite, m_SrsRemoteEndPoint,
+            OnReInviteTransactionComplete, null);
+    }
+
+    private void OnReInviteTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
+        IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
+    {
+        EnqueueWork(() => DoReInviteTransactionComplete(sipRequest, sipResponse, remoteEndPoint, sipTransport, Transaction));
+    }
+
+    private void DoReInviteTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
+        IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
+    {
+        SrcCall? srcCall = GetCall(sipRequest.Header.CallId);
+        if (srcCall == null)
+        {   // Error: Call not found -- It may have already ended.
+            return;
+        }
+
+        if (srcCall.ReInviteInProgress == false)
+        {   // Unexpected
+            SipLogger.LogError($"Re-INVITE not in progress for Call-ID = {srcCall.CallParameters.CallId}");
+            return;
+        }
+
+        srcCall.ClientInviteTransaction = null;     // The client re-INVITE transaction is complete
+        srcCall.ReInviteInProgress = false;
+
+        if (sipResponse == null)
+        {   // The re-INVITE transaction failed
+            SipLogger.LogError($"Re-INVITE failed for SRS = {m_Settings.Name}, Call-ID = {srcCall.CallParameters.CallId}");
+            return;
+        }
+
+        if (sipResponse.Status != SIPResponseStatusCodesEnum.Ok)
+        {   // The SRS rejected the re-INVITE request
+            SipLogger.LogError($"The SRS '{m_Settings.Name}' rejected a re-INVITE for Call-ID = {srcCall.CallParameters.CallId} " +
+                $"with a response code of {sipResponse.StatusCode}");
+            return;
+        }
+
+        string? strAnsweredSdp = sipResponse.GetContentsOfType(Body.ContentTypes.Sdp);
+        if (strAnsweredSdp == null)
+        {   // Error: The SRS did not provide SDP data with the OK response
+            SipLogger.LogError($"The SRS '{m_Settings.Name}' did not provide SDP data for a re-INVITE for " +
+                $"Call-ID = {srcCall.CallParameters.CallId}");
+            return;
+        }
+
+        Sdp.Sdp AnsweredSdp = Sdp.Sdp.ParseSDP(strAnsweredSdp);
+        if (AnsweredSdp.Media.Count != srcCall.OfferedSdp.Media.Count)
+        {
+            SipLogger.LogError($"Media mismatch for re-INVITE to SRS '{m_Settings.Name}' for Call-ID = " +
+                $"{srcCall.CallParameters.CallId}");
+            return;
+        }
+
+        srcCall.AnsweredSdp = AnsweredSdp;
+
+        foreach (MediaDescription AnsweredMd in AnsweredSdp.Media)
+        {
+            if (AnsweredMd.Port == 0)
+                continue;       // This media port was rejected by the SRS
+
+            if (srcCall.NewMedia.Contains(AnsweredMd.MediaType) == true)
+            {   // This media type is being added to the call
+                if (string.IsNullOrEmpty(AnsweredMd.Label) == true)
+                {
+                    SipLogger.LogError($"No Label attribute in re-INVITE response from SRS '{m_Settings.Name}' " +
+                        $"for media type = {AnsweredMd.MediaType} for Call-ID = {srcCall.CallParameters.CallId}");
+                    continue;
+                }
+
+                // Get the offered MediaDescription matching this media type and this label
+                MediaDescription? OfferedMd = srcCall.OfferedSdp.GetMediaByTypeAndLabel(AnsweredMd.MediaType,
+                    AnsweredMd.Label);
+                if (OfferedMd == null)
+                {
+                    SipLogger.LogError($"Offered MediaDescription not found in re-INVITE response from SRS = " +
+                        $"'{m_Settings.Name}', MediaType = {AnsweredMd.MediaType}, Label = {AnsweredMd.Label}, " +
+                        $"Call-ID = {srcCall.CallParameters.CallId}");
+                    continue;
+                }
+
+                srcCall.SetupChannelForAddedMedia(OfferedMd, AnsweredMd);
+            }
+        }
+
+        foreach (string newMediaType in srcCall.NewMedia)
+        {
+            srcCall.HookEventsForNewMedia(newMediaType);
+        }
+    }
+
     private void SendRecCallStartLogEvent(SrcCall srcCall)
     {
         if (m_EnableLogging == false)
@@ -386,7 +589,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         }
 
         // Build the initial SIPREC metadata
-        Recording = BuildInitialMetaData(srcCallParameters, srcCallParameters.AnsweredSdp);
+        Recording = BuildMetaData(srcCallParameters, srcCallParameters.AnsweredSdp);
 
         // Attach the SDP and the SIPREC metadata to the body of the INVITE request
         SipBodyBuilder sipBodyBuilder = new SipBodyBuilder();
@@ -397,7 +600,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         return Invite;
     }
 
-    private recording BuildInitialMetaData(SrcCallParameters srcCallParameters, Sdp.Sdp answeredSdp)
+    private recording BuildMetaData(SrcCallParameters srcCallParameters, Sdp.Sdp answeredSdp)
     {
         DateTime Now = DateTime.Now;
 
@@ -449,15 +652,15 @@ public class SrcUserAgent : QueuedActionWorkerTask
         Recording.participantsessionassocs.Add(ToPsa);
 
         // Create the participant stream associations.
-        participantstreamassoc FromPartSteamAssoc = new participantstreamassoc();
-        FromPartSteamAssoc.associatetime = Now;
-        FromPartSteamAssoc.participant_id = FromParticipant.participant_id;
-        Recording.participantstreamassocs.Add(FromPartSteamAssoc);
+        participantstreamassoc FromParticipantSteamAssoc = new participantstreamassoc();
+        FromParticipantSteamAssoc.associatetime = Now;
+        FromParticipantSteamAssoc.participant_id = FromParticipant.participant_id;
+        Recording.participantstreamassocs.Add(FromParticipantSteamAssoc);
 
-        participantstreamassoc ToPartStreamAssoc = new participantstreamassoc();
-        ToPartStreamAssoc.associatetime = Now;
-        ToPartStreamAssoc.participant_id = ToParticipant.participant_id;
-        Recording.participantstreamassocs.Add(ToPartStreamAssoc);
+        participantstreamassoc ToParticipantStreamAssoc = new participantstreamassoc();
+        ToParticipantStreamAssoc.associatetime = Now;
+        ToParticipantStreamAssoc.participant_id = ToParticipant.participant_id;
+        Recording.participantstreamassocs.Add(ToParticipantStreamAssoc);
 
         // Create the streams and build the associations
 
@@ -470,25 +673,106 @@ public class SrcUserAgent : QueuedActionWorkerTask
             {
                 case MediaTypes.Audio:
                     BuildAndAssociateStreams(Recording, MediaLabel.ReceivedAudio, MediaLabel.SentAudio,
-                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                        Session, FromParticipantSteamAssoc, ToParticipantStreamAssoc);
                     break;
                 case MediaTypes.Video:
                     BuildAndAssociateStreams(Recording, MediaLabel.ReceivedVideo, MediaLabel.SentVideo,
-                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                        Session, FromParticipantSteamAssoc, ToParticipantStreamAssoc);
                     break;
                 case MediaTypes.RTT:
                     BuildAndAssociateStreams(Recording, MediaLabel.ReceivedRTT, MediaLabel.SentRTT,
-                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                        Session, FromParticipantSteamAssoc, ToParticipantStreamAssoc);
                     break;
                 case MediaTypes.MSRP:
                     BuildAndAssociateStreams(Recording, MediaLabel.ReceivedMsrp, MediaLabel.SentMsrp,
-                        Session, FromPartSteamAssoc, ToPartStreamAssoc);
+                        Session, FromParticipantSteamAssoc, ToParticipantStreamAssoc);
                     break;
             }
         }
 
         return Recording;
     }
+
+    private void AddNewMediaStreamsToMetaData(recording Recording, SrcCallParameters srcCallParameters,
+        string mediaType)
+    {
+        string FromAor = srcCallParameters.FromUri.ToString();
+        string ToAor = srcCallParameters.ToUri.ToString();
+        participantstreamassoc? FromPsa = GetParticipantStreamAssociation(Recording, GetParticipantFromAor(Recording, FromAor));
+        participantstreamassoc? ToPsa = GetParticipantStreamAssociation(Recording, GetParticipantFromAor(Recording, ToAor));
+        if (FromPsa == null)
+        {
+            SipLogger.LogError($"Could not find the participantstreamassociation for participant AOR = {FromPsa}");
+            return;
+        }
+
+        if (ToPsa == null)
+        {
+            SipLogger.LogError($"Could not find the participantstreamassociation for participant AOR = {ToPsa}");
+            return;
+        }
+
+        MediaLabel ReceivedLabel = MediaLabel.ReceivedAudio;
+        MediaLabel SentLabel = MediaLabel.SentAudio;
+        switch (mediaType)
+        {
+            case MediaTypes.Audio:
+                ReceivedLabel = MediaLabel.ReceivedAudio;
+                SentLabel = MediaLabel.SentAudio;
+                break;
+            case MediaTypes.Video:
+                ReceivedLabel = MediaLabel.ReceivedVideo;
+                SentLabel = MediaLabel.SentVideo;
+                break;
+            case MediaTypes.RTT:
+                ReceivedLabel= MediaLabel.ReceivedRTT;
+                SentLabel= MediaLabel.SentRTT;
+                break;
+            case MediaTypes.MSRP:
+                ReceivedLabel = MediaLabel.ReceivedMsrp;
+                SentLabel = MediaLabel.SentMsrp;
+                break;
+        }
+
+        BuildAndAssociateStreams(Recording, ReceivedLabel, SentLabel, Recording.sessions[0], FromPsa, ToPsa);
+    }
+
+
+    private participant? GetParticipantFromAor(recording Recording, string strAor)
+    {
+        participant? Participant = null;
+        foreach (participant part in Recording.participants)
+        {
+            foreach (nameID nid in part.nameIDs)
+            {
+                if (nid.aor == strAor)
+                {
+                    Participant = part;
+                    break;
+                }
+            }
+        }
+
+        return Participant;
+    }
+
+    private participantstreamassoc? GetParticipantStreamAssociation(recording Recording, participant? Participant)
+    {
+        if (Participant == null)
+            return null;
+
+        participantstreamassoc? Psa = null;
+        foreach (participantstreamassoc p in Recording.participantstreamassocs)
+        {
+            if (p.participant_id == Participant.participant_id)
+            {
+                Psa = p;
+                break;
+            }
+        }
+        return Psa;
+    }
+
 
     private void BuildAndAssociateStreams(recording Recording, MediaLabel ReceiveLabel,  MediaLabel SendLabel,
         session Session, participantstreamassoc FromPsa, participantstreamassoc ToPsa)

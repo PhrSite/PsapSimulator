@@ -12,6 +12,8 @@ using SipLib.Media;
 using System.Security.Cryptography.X509Certificates;
 using System.Net;
 using Ng911Lib.Utilities;
+using SipLib.Body;
+using SipLib.Channels;
 
 namespace SrsSimulator;
 
@@ -124,6 +126,117 @@ internal class SrsCall
             return m_OkResponse;
     }
 
+    public SIPResponse HandleReInviteRequest(SIPRequest sipRequest)
+    {
+        SIPResponse response;
+        if (SipUtils.IsInDialog(sipRequest) == false || m_OkResponse == null || sipRequest.Header.From!.FromTag !=
+            m_Invite.Header.From!.FromTag || sipRequest.Header.To!.ToTag != m_OkResponse.Header.To!.ToTag)
+        {
+            response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
+                "Dialog Does Not Exist", m_Transport.SipChannel, null);
+            return response;
+        }
+
+        string? strSdp = sipRequest.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
+        if (strSdp == null)
+        {   // Error: No SDP offered with the re-INVITE request
+            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, "No SDP",
+                m_Transport.SipChannel, null);
+        }
+
+        Sdp OfferedSdp = Sdp.ParseSDP(strSdp);
+
+        // Make sure every MediaDescription has a label attribute
+        foreach (MediaDescription md in OfferedSdp.Media)
+        {
+            if (string.IsNullOrEmpty(md.Label) == true)
+            {
+                return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, "Missing label attribute",
+                    m_Transport.SipChannel, null);
+            }
+        }
+
+        string? strError = ValidateMetaData(sipRequest);
+        if (strError != null)
+            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, strError, m_Transport.SipChannel, null);
+
+        if (OfferedSdp.Media.Count < m_OfferedSdp!.Media.Count)
+        {
+            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, "Invalid SDP for re-INVITE",
+                m_Transport.SipChannel, null);
+        }
+
+        if (OfferedSdp.Media.Count == m_OfferedSdp.Media.Count)
+        {   // No media is being added to the call. Update the CSeq number and respond with the same OK response
+            UpdateOkResponse(sipRequest, m_OkResponse);
+            m_Invite = sipRequest;
+            return m_OkResponse;
+        }
+
+        // Media is being added to the call
+        int StartIdx = m_OfferedSdp.Media.Count;
+        IPAddress localAddress = m_Transport.SipChannel.SIPChannelEndPoint!.GetIPEndPoint().Address;
+        for (int i = StartIdx; i < OfferedSdp.Media.Count; i++)
+        {
+            MediaDescription OfferedMd = OfferedSdp.Media[i];
+            MediaDescription AnswerMd;
+            string ParticipantName = GetParticipantNameFromLabel(OfferedMd.Label!);
+
+            switch (OfferedMd.MediaType)
+            {
+                case MediaTypes.Audio:
+                    AnswerMd = Sdp.BuildAudioAnswerMediaDescription(OfferedMd, m_AnswerSettings, 0);
+                    break;
+                case MediaTypes.Video:
+                    AnswerMd = Sdp.BuildVideoAnswerMediaDescription(OfferedMd, m_AnswerSettings, 0);
+                    break;
+                case MediaTypes.RTT:
+                    AnswerMd = Sdp.BuildRttAnswerMediaDescription(OfferedMd, m_AnswerSettings, 0);
+                    break;
+                case MediaTypes.MSRP:
+                    AnswerMd = Sdp.BuildMsrpAnswerMediaDescription(OfferedMd, localAddress, m_AnswerSettings, null);
+                    break;
+                default:    // Unknown media type, reject it
+                    AnswerMd = new MediaDescription(OfferedMd.MediaType, 0, OfferedMd.PayloadTypes);
+                    break;
+            }
+
+            AnswerMd.Label = OfferedMd.Label;
+            AnswerMd.MediaDirection = MediaDirectionEnum.recvonly;
+            m_AnsweredSdp!.Media.Add(AnswerMd);
+
+            if (OfferedMd.MediaType == MediaTypes.MSRP)
+                BuildMsrpChannelData(OfferedMd, AnswerMd, ParticipantName);
+            else
+                BuildRtpChannelData(OfferedMd, AnswerMd, ParticipantName);
+        }
+
+        m_Invite = sipRequest;
+        m_OkResponse = SipUtils.BuildOkToInvite(sipRequest, m_Transport.SipChannel, m_AnsweredSdp!.ToString(),
+            SipLib.Body.ContentTypes.Sdp);
+
+        return m_OkResponse;
+    }
+
+    public SIPResponse HandleUpdateRequest(SIPRequest sipRequest, SIPChannel sipChannel)
+    {
+        string? error = ValidateMetaData(sipRequest);
+        SIPResponse response;
+        if (error != null)
+            response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.BadRequest, error, sipChannel,
+                null);
+        else
+            response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.Ok, "OK", sipChannel, null);
+
+        return response;
+    }
+
+    private void UpdateOkResponse(SIPRequest ReInvite, SIPResponse OkResponse)
+    {
+        OkResponse.Header.CSeq = ReInvite.Header.CSeq;
+        OkResponse.Header.Vias.TopViaHeader!.Branch = ReInvite.Header.Vias.TopViaHeader!.Branch;
+    }
+
     public void EndCall()
     {
         foreach (RtpRecordingChannelData channelData in m_RtpRecordingChannels)
@@ -135,6 +248,32 @@ internal class SrsCall
         {
             msrpChannelData.StopRecording();
         }
+    }
+
+
+    // TODO: Use this function in ValidateMetaDataAndBuildRecordingChannels()
+    private string? ValidateMetaData(SIPRequest sipRequest)
+    {
+        string? strRecording = sipRequest.GetContentsOfType(recording.ContentType);
+        if (strRecording != null)
+        {
+            m_Recording = XmlHelper.DeserializeFromString<recording>(strRecording);
+            if (m_Recording == null)
+                return "Invalid SIPREC Metadata";
+
+            // For debug only
+            File.WriteAllText(Path.Combine(m_CallRecordingDirectory, "MetaData.xml"), strRecording);
+        }
+        else
+            return "No SIPREC Metadata";
+
+        if (m_Recording.participants == null || m_Recording.participants.Count < 2)
+            return "Incorrect number of metadata participants";
+
+        if (m_Recording.participantstreamassocs == null || m_Recording.participantstreamassocs.Count < 2)
+            return "Incorrect participantstreamassociations";
+
+        return null;
     }
 
     private string? ValidateMetaDataAndBuildRecordingChannels()
@@ -168,53 +307,62 @@ internal class SrsCall
             if (OfferedMd == null)
                 return "Offered media description not found";
 
+            if (AnsweredMd.Port == 0)
+                continue;   // This media type is being rejected because it is not supported
+
             ParticipantName = GetParticipantNameFromLabel(AnsweredMd.Label!);
             if (AnsweredMd.MediaType == MediaTypes.MSRP)
-            {
-                (MsrpConnection? msrpConnection, string? MsrpError) = MsrpConnection.CreateFromSdp(OfferedMd, 
-                    AnsweredMd, true, m_Certificate!);
-                if (msrpConnection == null)
-                {
-                    // TODO: Log this error
-                    continue;
-                }
-
-                MsrpChannelData msrpChannelData = new MsrpChannelData(ParticipantName, msrpConnection,
-                    m_CallRecordingDirectory);
-                m_MsrpRecordingChannels.Add(msrpChannelData);
-            }
+                BuildMsrpChannelData(OfferedMd, AnsweredMd, ParticipantName);
             else
-            {
-                (RtpChannel? rtpChannel, string? RtpError) = RtpChannel.CreateFromSdp(true, m_OfferedSdp!,
-                    OfferedMd, m_AnsweredSdp, AnsweredMd, false, null);
-                if (rtpChannel == null)
-                {
-                    // TODO: Log this error
-                    continue;
-                }
-
-                switch (AnsweredMd.MediaType)
-                {
-                    case MediaTypes.Audio:
-                        AudioChannelData audioChannelData = new AudioChannelData(ParticipantName, rtpChannel,
-                            m_CallRecordingDirectory, AnsweredMd);
-                        m_RtpRecordingChannels.Add(audioChannelData);
-                        break;
-                    case MediaTypes.RTT:
-                        RttChannelData rttChannelData = new RttChannelData(ParticipantName, rtpChannel,
-                            m_CallRecordingDirectory, AnsweredMd);
-                        m_RtpRecordingChannels.Add(rttChannelData);
-                        break;
-                    case MediaTypes.Video:
-                        VideoChannelData videoChannelData = new VideoChannelData(ParticipantName, rtpChannel,
-                            m_CallRecordingDirectory, AnsweredMd);
-                        m_RtpRecordingChannels.Add(videoChannelData);
-                        break;
-                }
-            }
+                BuildRtpChannelData(OfferedMd, AnsweredMd, ParticipantName);
         }
 
         return null;
+    }
+
+    private void BuildMsrpChannelData(MediaDescription OfferedMd, MediaDescription AnsweredMd, string ParticipantName)
+    {
+        (MsrpConnection? msrpConnection, string? MsrpError) = MsrpConnection.CreateFromSdp(OfferedMd,
+            AnsweredMd, true, m_Certificate!);
+        if (msrpConnection == null)
+        {
+            // TODO: Log this error
+            return;
+        }
+
+        MsrpChannelData msrpChannelData = new MsrpChannelData(ParticipantName, msrpConnection,
+            m_CallRecordingDirectory);
+        m_MsrpRecordingChannels.Add(msrpChannelData);
+    }
+
+    private void BuildRtpChannelData(MediaDescription OfferedMd, MediaDescription AnsweredMd, string ParticipantName)
+    {
+        (RtpChannel? rtpChannel, string? RtpError) = RtpChannel.CreateFromSdp(true, m_OfferedSdp!,
+            OfferedMd, m_AnsweredSdp!, AnsweredMd, false, null);
+        if (rtpChannel == null)
+        {
+            // TODO: Log this error
+            return;
+        }
+
+        switch (AnsweredMd.MediaType)
+        {
+            case MediaTypes.Audio:
+                AudioChannelData audioChannelData = new AudioChannelData(ParticipantName, rtpChannel,
+                    m_CallRecordingDirectory, AnsweredMd);
+                m_RtpRecordingChannels.Add(audioChannelData);
+                break;
+            case MediaTypes.RTT:
+                RttChannelData rttChannelData = new RttChannelData(ParticipantName, rtpChannel,
+                    m_CallRecordingDirectory, AnsweredMd);
+                m_RtpRecordingChannels.Add(rttChannelData);
+                break;
+            case MediaTypes.Video:
+                VideoChannelData videoChannelData = new VideoChannelData(ParticipantName, rtpChannel,
+                    m_CallRecordingDirectory, AnsweredMd);
+                m_RtpRecordingChannels.Add(videoChannelData);
+                break;
+        }
     }
 
     private MediaDescription? GetMediaDescriptionFromLabel(string? Label, Sdp sdp)
@@ -244,10 +392,13 @@ internal class SrsCall
         string? participantSendId = null;
         foreach (participantstreamassoc psa in m_Recording.participantstreamassocs)
         {
-            if (psa.send != null && psa.send.Count > 0 && psa.send[0] == streamID)
+            foreach (string str in psa.send)
             {
-                participantSendId = psa.participant_id;
-                break;
+                if (str == streamID)
+                {
+                    participantSendId = psa.participant_id;
+                    break;
+                }
             }
         }
 
@@ -268,8 +419,6 @@ internal class SrsCall
         else
             return strDefaultParticipantName;
     }
-
-
 
     private string? GetStreamIdFromLabel(string label)
     {

@@ -731,23 +731,38 @@ public class CallManager
         if (m_SrcManager == null)
             return;
 
+        SrcCallParameters parameters = BuildSrcCallParameters(call);
+        m_SrcManager.StartRecording(parameters);
+    }
+
+    private void HandleReInviteForSrcs(Call call)
+    {
+        if (m_SrcManager == null)
+            return;
+
+        SrcCallParameters parameters = BuildSrcCallParameters(call);
+        m_SrcManager.HandleReInvite(parameters);
+    }
+
+    private SrcCallParameters BuildSrcCallParameters(Call call)
+    {
+        List<RtpChannel> channels = new List<RtpChannel>();
+        foreach (RtpChannel rtpChannel in call.RtpChannels)
+            channels.Add(rtpChannel);
+
         SrcCallParameters parameters = new SrcCallParameters()
         {
             FromUri = call.InviteRequest!.Header.From!.FromURI!,
             ToUri = call.InviteRequest!.Header.To!.ToURI!,
             AnsweredSdp = call.AnsweredSdp!,
-            CallRtpChannels = call.RtpChannels,
+            CallRtpChannels = channels,
             CallMsrpConnection = call.MsrpConnection,
             CallId = call.CallID,
             EmergencyCallIdentifier = call.EmergencyCallIdentifier != null ? call.EmergencyCallIdentifier : string.Empty,
             EmergencyIncidentIdentifier = call.EmergencyIncidentIdentifier != null ? call.EmergencyIncidentIdentifier : string.Empty
         };
-    }
 
-    private void StopSipRecRecording(string strCallId)
-    {
-        if (m_SrcManager != null)
-            m_SrcManager.StopRecording(strCallId);
+        return parameters;
     }
 
     /// <summary>
@@ -1243,6 +1258,11 @@ public class CallManager
         call.InviteRequest = invite;
         call.OKResponse = OkResponse;
         call.LastInviteSequenceNumber = invite.Header.CSeq;
+        
+        call.OfferedSdp = OfferedSdp;
+        call.AnsweredSdp = AnswerSdp;
+
+        CallStateChanged?.Invoke(GetCallSummary(call));
 
         foreach (MediaDescription AnswerMd in AnswerSdp.Media)
         {
@@ -1314,7 +1334,10 @@ public class CallManager
                     // Else, the IPEndPoint for the remote has not changed so nothing needs to be done
                 }
             }
-        }
+        }  // end foreach
+
+        // Notify the SIPREC clients of the re-INVITE of the call
+        HandleReInviteForSrcs(call);
     }
 
     private void SetupMsrpConnectionForReInvite(Call call, MediaDescription OfferedMd, MediaDescription Answeredmd)
@@ -1748,7 +1771,10 @@ public class CallManager
                 manualResetEvent.Set();
             });
 
-        manualResetEvent.WaitOne();
+        bool Signaled = manualResetEvent.WaitOne(200);
+        if (Signaled == false)
+            SipLogger.LogDebug("ManualResetEvent timeout occured.");
+
         return callCounts;
     }
 

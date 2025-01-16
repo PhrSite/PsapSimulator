@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PsapSimulator": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

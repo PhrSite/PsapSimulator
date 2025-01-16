@@ -49,10 +49,10 @@ internal class SrsUa : QueuedActionWorkerTask
         m_RecordingsDirectory = recordingsDirectory;
 
         MediaPortSettings PortSettings = new MediaPortSettings();
-        PortSettings.AudioPorts = new PortRange() { StartPort = 7000, Count = 1000 };
-        PortSettings.VideoPorts = new PortRange() { StartPort = 8000, Count = 1000 };
-        PortSettings.RttPorts = new PortRange() { StartPort = 9000, Count = 1000 };
-        PortSettings.MsrpPorts = new PortRange() { StartPort = 7000, Count = 1000 };
+        PortSettings.AudioPorts = new PortRange() { StartPort = 10000, Count = 1000 };
+        PortSettings.VideoPorts = new PortRange() { StartPort = 11000, Count = 1000 };
+        PortSettings.RttPorts = new PortRange() { StartPort = 12000, Count = 1000 };
+        PortSettings.MsrpPorts = new PortRange() { StartPort = 12000, Count = 1000 };
         m_MediaPortManager = new MediaPortManager(PortSettings);
 
         m_SdpAnswerSettings = new SdpAnswerSettings(AudioCodecs, VideoCodecs, m_userName, RtpChannel.CertificateFingerprint!,
@@ -61,8 +61,8 @@ internal class SrsUa : QueuedActionWorkerTask
 
     private string GetCallRecordingDirectory(string callID)
     {
-        string Day = DateTime.Now.ToString("yyyy-MM-dd").Replace("-", "");
-        string DayDirectory = Path.Combine(m_RecordingsDirectory, Day);
+        DateTime Now = DateTime.Now;
+        string DayDirectory = Path.Combine(m_RecordingsDirectory, $"{Now:yyyy}\\{Now:MM}\\{Now:dd}");
         string CallRecordingDirectory = Path.Combine(DayDirectory, callID);
         if (Directory.Exists(CallRecordingDirectory) == false)
             Directory.CreateDirectory(CallRecordingDirectory);
@@ -154,9 +154,7 @@ internal class SrsUa : QueuedActionWorkerTask
         SrsCall? srsCall = GetCall(sipRequest.Header.CallId);
         if (srsCall != null)
         {
-            // TODO: Possible re-invite. Check that the dialog matches and then process the re-invite
-            // request if it does
-
+            ProcessReInviteRequest(srsCall, sipRequest, remoteEndPoint, sipTransportManager);
             return;
         }
 
@@ -171,17 +169,27 @@ internal class SrsUa : QueuedActionWorkerTask
         sipTransportManager.StartServerInviteTransaction(sipRequest, ipEndPoint, null, response);
     }
 
+    private void ProcessReInviteRequest(SrsCall srsCall, SIPRequest sipRequest, SIPEndPoint remoteEndPoint, 
+        SipTransport sipTransportManager)
+    {
+        SIPResponse response = srsCall.HandleReInviteRequest(sipRequest);
+        sipTransportManager.StartServerInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null,
+            response);
+    }
+
     private void ProcessUpdateRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
     {
         SrsCall? srsCall = GetCall(sipRequest.Header.CallId);
+        SIPResponse response;
         if (srsCall == null)
-        {   // The call does not exist
+            // The call does not exist, perhaps the call ended.
+            response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.NotFound, "Not Found", 
+                sipTransportManager.SipChannel, m_userName);
+        else
+            response = srsCall.HandleUpdateRequest(sipRequest, sipTransportManager.SipChannel);
 
-            return;
-        }
-
-
-
+        sipTransportManager.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null,
+            response);
     }
 
     private void ProcessCancelRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)

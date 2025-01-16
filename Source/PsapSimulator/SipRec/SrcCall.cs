@@ -13,6 +13,7 @@ using System.Security.Cryptography.X509Certificates;
 using I3V3.LoggingHelpers;
 using I3V3.LogEvents;
 using System.Net;
+using SipLib.Channels;
 
 namespace SipLib.SipRec;
 
@@ -58,6 +59,8 @@ internal class SrcCall
     /// </summary>
     private List<RtpChannel> m_Channels = new List<RtpChannel>();
 
+    // These are the RTP channel objects and the MSRP connection objects of the call to the SRS.
+    // The RtpChannel objects are contained in m_Channels.
     private RtpChannel? m_ReceivedAudioChannel = null;
     private RtpChannel? m_SentAudioChannel = null;
     private RtpChannel? m_ReceiveVideoChannel = null;
@@ -73,15 +76,8 @@ internal class SrcCall
     private I3LogEventClientMgr m_I3LogEventClientMgr;
     private bool m_EnableLogging;
 
-    /// <summary>
-    /// MsrpConnection for sending MSRP messages received from the remote endpoint to the SRS
-    /// </summary>
-    public MsrpConnection? ReceivedMsrpConnection = null;
-
-    /// <summary>
-    /// MsrpConnection for sending MSRP messages sent to the remote endpoint to the SRS
-    /// </summary>
-    public MsrpConnection? SentMsrpConnection = null;
+    internal bool ReInviteInProgress = false;
+    internal List<string> NewMedia = new List<string>();
 
     /// <summary>
     /// 
@@ -257,7 +253,161 @@ internal class SrcCall
             }
 
         } // end for i
+    }
 
+    public void SetupChannelForAddedMedia(MediaDescription offeredMediaDescription, MediaDescription answeredMediaDescription)
+    {
+        bool IsForReceive;
+        int iLabel;
+
+        iLabel = int.Parse(offeredMediaDescription.Label!);
+        // Odd media labels are for media that is received. Even media labels are for media that
+        // was sent. See the MediaLabel class.
+        IsForReceive = (iLabel % 2) != 0 ? true : false;
+        if (offeredMediaDescription.MediaType == MediaTypes.MSRP && CallParameters.CallMsrpConnection != null)
+        {
+            (MsrpConnection? connection, string? MsrpError) = MsrpConnection.CreateFromSdp(
+                offeredMediaDescription, answeredMediaDescription, false, m_Certificate);
+            if (connection != null)
+            {
+                if (IsForReceive == true)
+                    m_ReceivedMsrpConnection = connection;
+                else
+                    m_SentMsrpConnection = connection;
+
+                connection.Start();
+            }
+            else
+            {
+                // TODO: handle this error
+            }
+        }
+        else
+        {   // Media that is handled by RTP
+            (RtpChannel? srcRtpChannel, string? Error) = RtpChannel.CreateFromSdp(false, OfferedSdp, offeredMediaDescription,
+                AnsweredSdp!, answeredMediaDescription, false, m_UaName);
+            if (srcRtpChannel != null)
+            {
+                if (IsForReceive == true)
+                {
+                    switch (offeredMediaDescription.MediaType)
+                    {
+                        case MediaTypes.Audio:
+                            m_ReceivedAudioChannel = srcRtpChannel;
+                            break;
+                        case MediaTypes.Video:
+                            m_ReceiveVideoChannel = srcRtpChannel;
+                            break;
+                        case MediaTypes.RTT:
+                            m_ReceiveRttChannel = srcRtpChannel;
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (offeredMediaDescription.MediaType)
+                    {
+                        case MediaTypes.Audio:
+                            m_SentAudioChannel = srcRtpChannel;
+                            break;
+                        case MediaTypes.Video:
+                            m_SentVideoChannel = srcRtpChannel;
+                            break;
+                        case MediaTypes.RTT:
+                            m_SentRttChannel = srcRtpChannel;
+                            break;
+                    }
+                }
+
+                m_Channels.Add(srcRtpChannel);
+                srcRtpChannel.StartListening();
+            }
+            else
+            {
+                // TODO: handle this error
+            }
+        }
+    }
+
+    internal void HookEventsForNewMedia(string mediaType)
+    { 
+        if (mediaType == MediaTypes.MSRP)
+        {
+            if (CallParameters.CallMsrpConnection != null)
+            {
+                CallParameters.CallMsrpConnection.MsrpMessageReceived += OnMsrpMessageReceived;
+                CallParameters.CallMsrpConnection.MsrpMessageSent += OnMsrpMessageSent;
+            }
+        }
+        else
+        {
+            RtpChannel? rtpChannel = GetNewRtpChannel(mediaType);
+            if (rtpChannel != null)
+            {
+                switch (rtpChannel.MediaType)
+                {
+                    case MediaTypes.Audio:
+                        rtpChannel.RtpPacketReceived += OnReceivedAudio;
+                        rtpChannel.RtpPacketSent += OnSentAudio;
+                        break;
+                    case MediaTypes.Video:
+                        rtpChannel.RtpPacketReceived += OnReceivedVideo;
+                        rtpChannel.RtpPacketSent += OnSentVideo;
+                        break;
+                    case MediaTypes.RTT:
+                        rtpChannel.RtpPacketReceived += OnReceivedRtt;
+                        rtpChannel.RtpPacketSent += OnSentRtt;
+                        break;
+                }
+            }
+        }
+    }
+
+    private RtpChannel? GetNewRtpChannel(string mediaType)
+    {
+        RtpChannel? rtpChannel = null;
+        foreach (RtpChannel channel in CallParameters.CallRtpChannels)
+        {
+            if (channel.MediaType == mediaType)
+            {
+                rtpChannel = channel;
+                break;
+            }
+        }
+        return rtpChannel;
+    }
+
+    internal void ReHookRtpChannelEvents(RtpChannel origChannel, RtpChannel newChannel)
+    {
+        switch (origChannel.MediaType)
+        {
+            case MediaTypes.Audio:
+                origChannel.RtpPacketReceived -= OnReceivedAudio;
+                origChannel.RtpPacketSent -= OnSentAudio;
+                newChannel.RtpPacketReceived += OnReceivedVideo;
+                newChannel.RtpPacketSent += OnSentAudio;
+                break;
+            case MediaTypes.Video:
+                origChannel.RtpPacketReceived -= OnReceivedVideo;
+                origChannel.RtpPacketSent -= OnSentVideo;
+                newChannel.RtpPacketReceived += OnReceivedVideo;
+                newChannel.RtpPacketSent += OnSentVideo;
+                break;
+            case MediaTypes.RTT:
+                origChannel.RtpPacketReceived -= OnReceivedRtt;
+                origChannel.RtpPacketSent -= OnSentRtt;
+                newChannel.RtpPacketReceived += OnReceivedRtt;
+                newChannel.RtpPacketSent += OnSentRtt;
+                break;
+        }
+    }
+
+    internal void ReHookMsrpChannelEvents(MsrpConnection origConnection, MsrpConnection newConnection)
+    {
+        origConnection.MsrpMessageReceived -= OnMsrpMessageReceived;
+        origConnection.MsrpMessageSent -= OnMsrpMessageSent;
+        newConnection.MsrpMessageReceived += OnMsrpMessageReceived;
+        newConnection.MsrpMessageSent += OnMsrpMessageSent;
     }
 
     /// <summary>
