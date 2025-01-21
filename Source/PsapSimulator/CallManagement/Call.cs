@@ -32,14 +32,21 @@ using I3V3.LogEvents;
 using SipLib.Logging;
 using SipLib.Subscriptions;
 using I3V3.LoggingHelpers;
+using ConferenceEvent;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
 
 /// <summary>
-/// Delegate type NewLocation event of the Call class.
+/// Delegate type for the NewLocation event of the Call class.
 /// </summary>
 /// <param name="newPresence">Contains the new location data</param>
 public delegate void NewLocationDelegate(Presence newPresence);
+
+/// <summary>
+/// Delegate type for the NewOnferenceInfo event of the Call class.
+/// </summary>
+/// <param name="conferenceType"></param>
+public delegate void NewConferenceInfoDelegate(conferencetype conferenceType);
 
 /// <summary>
 /// Delegate type for the CallVideoReceiverChanged event of the Call class.
@@ -208,6 +215,11 @@ public class Call
     public event NewLocationDelegate? NewLocation = null;
 
     /// <summary>
+    /// This event is fired when new information about the conference members is available.
+    /// </summary>
+    public event NewConferenceInfoDelegate? NewConferenceInfo = null;
+
+    /// <summary>
     /// This event is fired if the VideoReceiver object of this call is changed due to a re-INVITE condition.
     /// </summary>
     public event CallVideoReceiverChangedDelegate? CallVideoReceiverChanged = null;
@@ -249,10 +261,14 @@ public class Call
 
     /// <summary>
     /// Contains the state and other data for the call's subscription to the presence event package.
+    /// RFC 3856 describes the presence event package
     /// </summary>
     public SubscriberData? PresenceSubscriber { get; set; } = null;
 
-
+    /// <summary>
+    /// Contains the state and other data for the call's subscription to the conference event package.
+    /// RFC 4575 describes the conference event package.
+    /// </summary>
     public SubscriberData? ConferenceSubscriber { get; set; } = null;
 
     private X509Certificate2 m_Certificate;
@@ -260,6 +276,11 @@ public class Call
     private I3LogEventClientMgr m_I3LogEventClientMgr;
     private IdentitySettings m_IdentitySettings;
     private EventLoggingSettings m_EventLoggingSettings;
+
+    /// <summary>
+    /// Gets or sets the conference information
+    /// </summary>
+    public conferencetype? ConferenceInfo { get; set; } = null;
 
     private Call(SipTransport transport, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
         IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
@@ -298,7 +319,6 @@ public class Call
             if (MsrpConnection != null)
                 SendMsrpMediaEndEvents();
         }
-
  
         if (AudioSampleSource != null)
         {
@@ -633,6 +653,57 @@ public class Call
         });
     }
 
+    /// <summary>
+    /// Starts a subscription to the conference event package described in RFC 4575.
+    /// The CallManager class will call this method if it has determined that the sender of the call is
+    /// a conference aware user agent. The CallManager class will handle the NOTIFY requests and manage
+    /// the subscription.
+    /// </summary>
+    public void StartConferenceSubscription()
+    {
+        SIPURI contactUri = InviteRequest!.Header.Contact![0].ContactURI!;
+        IPEndPoint remoteEndPoint = contactUri.ToSIPEndPoint()!.GetIPEndPoint();
+        SIPURI requestUri = InviteRequest!.Header.From!.FromURI!;
+        SIPRequest subscribe = SIPRequest.CreateBasicRequest(SIPMethodsEnum.SUBSCRIBE, requestUri,
+            requestUri, null, sipTransport.SipChannel.SIPChannelContactURI, null);
+        subscribe.Header.CallId = InviteRequest!.Header.CallId;
+        subscribe.Header.Event = SubscriptionEvents.Conference;
+        subscribe.Header.Expires = 3600;
+        ConferenceSubscriber = new SubscriberData(subscribe, SubscriptionEvents.Conference, remoteEndPoint);
+        ClientNonInviteTransaction Cnit = sipTransport.StartClientNonInviteTransaction(subscribe,
+            remoteEndPoint, OnConferenceSubscribeTransactionComplete, 500);
+
+    }
+
+    /// <summary>
+    /// Processes a NOTIFY request for the conference event package
+    /// </summary>
+    /// <param name="notifyRequest"></param>
+    internal void ProcessConferenceNotify(SIPRequest notifyRequest)
+    {
+        string? strConferenceType = notifyRequest.GetContentsOfType(SipLib.Body.ContentTypes.ConferenceEvent);
+        if (strConferenceType != null)
+        {
+            conferencetype ct = XmlHelper.DeserializeFromString<conferencetype>(strConferenceType);
+            if (ct != null)
+            {
+                ConferenceInfo = ct;
+                NewConferenceInfo?.Invoke(ct);
+            }
+            else
+                SipLogger.LogError($"Failed to deserialize a conferencetype object from {notifyRequest.Header.From!.FromURI!} +" +
+                    $"for Call-ID = {CallID}");
+        }
+
+        // Handle subscription termination.
+        string? strSubscriptionState = notifyRequest.Header.SubscriptionState;
+        if (strSubscriptionState != null && strSubscriptionState.IndexOf("terminated") >= 0)
+        {   // The subscription has been terminated
+            ConferenceSubscriber = null;
+        }
+
+    }
+
     private void StartPresenceSubscription(SIPURI geolocationSipUri)
     {
         if (geolocationSipUri.ToSIPEndPoint() is null)
@@ -649,6 +720,24 @@ public class Call
         PresenceSubscriber = new SubscriberData(subscribe, SubscriptionEvents.Presence, remoteEndpoint);
         ClientNonInviteTransaction Cnit = sipTransport.StartClientNonInviteTransaction(subscribe,
             remoteEndpoint, OnPresenceSubscribeTransactionComplete, 500);
+    }
+
+    private void OnConferenceSubscribeTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
+        IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
+    {
+        if (ConferenceSubscriber == null)
+            return;
+
+        if (sipResponse == null || sipResponse.Status != SIPResponseStatusCodesEnum.Ok)
+        {   // The SUBSCRIBE request failed.
+            ConferenceSubscriber = null;
+            SipLogger.LogError($"Conference event SUBSCRIBE to: {remoteEndPoint}, reason = {Transaction.TerminationReason}");
+            return;
+        }
+
+        ConferenceSubscriber.SubscribeRequest.Header.To!.ToTag = sipResponse.Header.To!.ToTag;
+        if (sipResponse.Header.Expires != 0)
+            ConferenceSubscriber.ExpiresSeconds = sipResponse.Header.Expires;
     }
 
     private void OnPresenceSubscribeTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
@@ -673,7 +762,7 @@ public class Call
     /// Processes a NOTIFY request for the presence event subscription
     /// </summary>
     /// <param name="notifyRequest"></param>
-    public void ProcessPresenceNotify(SIPRequest notifyRequest)
+    internal void ProcessPresenceNotify(SIPRequest notifyRequest)
     {
         string? strPresence = notifyRequest.GetContentsOfType(SipLib.Body.ContentTypes.Pidf);
         if (strPresence != null)
@@ -681,6 +770,9 @@ public class Call
             Presence? presence = XmlHelper.DeserializeFromString<Presence>(strPresence);
             if (presence != null)
                 AddNewLocation(presence);
+            else
+                SipLogger.LogError($"Failed to deserialize a presence object from {notifyRequest.Header.From!.FromURI!} +" +
+                    $"for Call-ID = {CallID}");
         }
 
         // Handle subscription termination.

@@ -4,14 +4,14 @@
 
 using System.Net;
 
+namespace SipLib.SipRec;
 using SipLib.Core;
 using SipLib.Rtp;
 using SipLib.Msrp;
-
-namespace SipLib.SipRec;
+using SipLib.Sdp;
 
 /// <summary>
-/// Parameters that the SrcUserAgent will need to set up a SIPREC call to an SRS.
+/// Parameters that the SrcUserAgent will need to set up a SIPREC call to a SIP Recording Server (SRS).
 /// </summary>
 public class SrcCallParameters
 {
@@ -28,7 +28,7 @@ public class SrcCallParameters
     /// <summary>
     /// SDP that was used to answer the original call.
     /// </summary>
-    public Sdp.Sdp AnsweredSdp = new Sdp.Sdp(IPAddress.Loopback, "");
+    public Sdp AnsweredSdp = new Sdp(IPAddress.Loopback, "");
     /// <summary>
     /// List of RtpChannel objects that are handling the audio, RTT and video media for the original call.
     /// </summary>

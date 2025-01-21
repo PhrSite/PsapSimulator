@@ -8,7 +8,8 @@ using PsapSimulator.WindowsVideo;
 using Pidf;
 using AdditionalData;
 using System.Text;
-using System.Configuration;
+using ConferenceEvent;
+using SipLib.Core;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -72,6 +73,7 @@ public partial class CallForm : Form
         m_CallManager.CallStateChanged += OnCallStateChanged;
         m_CallManager.CallEnded += OnCallEnded;
         m_Call.NewLocation += OnNewLocation;
+        m_Call.NewConferenceInfo += OnNewConferenceInfo;
 
         SetVideoPreviewSource();
 
@@ -96,8 +98,152 @@ public partial class CallForm : Form
         if (m_Call.DeviceInfo != null)
             DisplayDeviceInfo(m_Call.DeviceInfo);
 
+        if (m_Call.ConferenceInfo != null)
+            DisplayConferenceInfo(m_Call.ConferenceInfo);
+
         DisplayComments();
         DisplayProviders();
+    }
+
+    /// <summary>
+    /// Event handler for the NewConferenceInfo event of the Call class
+    /// </summary>
+    /// <param name="conferenceType"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    private void OnNewConferenceInfo(conferencetype conferenceType)
+    {
+        BeginInvoke(() => DisplayConferenceInfo(conferenceType));
+    }
+
+    private void DisplayConferenceInfo(conferencetype conferenceType)
+    {
+        ConfListView.Items.Clear();
+        foreach (usertype userType in conferenceType.users.user)
+        {
+            ListViewItem Lvi = new ListViewItem(GetCallUserName(userType.entity));
+            Lvi.Tag = userType;
+
+            if (userType.endpoint.Count > 0)
+            {
+                // Multiple user endpoints are possible but not likely so just use the first endpoint for now.
+                endpointtype Ept = userType.endpoint[0];
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < Ept.media.Count; i++)
+                {
+                    if (i >= 1)
+                        sb.Append(", ");
+
+                    sb.Append(MediaTypeToDisplayString(Ept.media[i].type));
+                }
+
+                Lvi.SubItems.Add(sb.ToString());
+                if (Ept.statusSpecified == true)
+                    Lvi.SubItems.Add(EndpointStatusTypeToString(Ept.status));
+                else
+                    Lvi.SubItems.Add("Unknown");
+            }
+            else
+            {   // No endpoints for this user
+                Lvi.SubItems.Add("Unknown");
+                Lvi.SubItems.Add("Unknown");
+            }
+
+            if (userType.roles.entry.Count > 0)
+            {
+                StringBuilder rolesSb = new StringBuilder();
+                for (int i=0; i < userType.roles.entry.Count; i++)
+                {
+                    if (i >= 1)
+                        rolesSb.Append(", ");
+
+                    Lvi.SubItems.Add(userType.roles.entry[i]);
+                }
+            }
+            else
+                Lvi.SubItems.Add("Unknown");
+
+            ConfListView.Items.Add(Lvi);
+        }
+    }
+
+    private string MediaTypeToDisplayString(string mediaType)
+    {
+        string strMedia = "Unknown";
+        switch (mediaType)
+        {
+            case "audio":
+                strMedia = "Audio";
+                break;
+            case "video":
+                strMedia = "Video";
+                break;
+            case "message":
+                strMedia = "MSRP";
+                break;
+            case "text":
+                strMedia = "RTT";
+                break;
+        }
+
+        return strMedia;
+    }
+
+    private string EndpointStatusTypeToString(endpointstatustype status)
+    {
+        string strStatus = "Unknown";
+        switch (status)
+        {
+            case endpointstatustype.pending:
+                strStatus = "Pending";
+                break;
+            case endpointstatustype.dialingout:
+                strStatus = "Dialing Out";
+                break;
+            case endpointstatustype.dialingin:
+                strStatus = "Dialing In";
+                break;
+            case endpointstatustype.alerting:
+                strStatus = "Alerting";
+                break;
+            case endpointstatustype.onhold:
+                strStatus = "On-Hold";
+                break;
+            case endpointstatustype.connected:
+                strStatus = "Connected";
+                break;
+            case endpointstatustype.mutedviafocus:
+                strStatus = "Muted Via Focus";
+                break;
+            case endpointstatustype.disconnecting:
+                strStatus = "Disconnecting";
+                break;
+            case endpointstatustype.disconnected:
+                strStatus = "Disconnected";
+                break;
+        }
+
+        return strStatus;
+    }
+
+    private string GetCallUserName(string entity)
+    {
+        string strName = "Unknown";
+        if (string.IsNullOrEmpty(entity) == true)
+            return strName;
+
+        if (SIPURI.TryParse(entity, out SIPURI? sipUri) == true)
+        {
+            if (sipUri is not null)
+            {
+                if (sipUri.User != null)
+                    strName = sipUri.User;
+                else
+                    strName = sipUri.ToParameterlessString();
+            }
+        }
+
+
+        return strName;
     }
 
     private void OnCallVideoReceiverChanged(VideoReceiver? oldVideoReceiver, VideoReceiver newVideoReceiver)
@@ -420,6 +566,7 @@ public partial class CallForm : Form
         m_CallManager.CallStateChanged -= OnCallStateChanged;
         m_CallManager.CallEnded -= OnCallEnded;
         m_Call.NewLocation -= OnNewLocation;
+        m_Call.NewConferenceInfo -= OnNewConferenceInfo;
 
         m_CallManager.FrameBitmapReady -= OnPreviewFrameBitmapReady;
 

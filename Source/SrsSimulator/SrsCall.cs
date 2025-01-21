@@ -251,17 +251,22 @@ internal class SrsCall
     }
 
 
-    // TODO: Use this function in ValidateMetaDataAndBuildRecordingChannels()
-    private string? ValidateMetaData(SIPRequest sipRequest)
+    /// <summary>
+    /// Validates the SIPREC meta attatched to a request. If it is a valid XML document, then it save it
+    /// to a file called MetaData.xml in the directory for the recording.
+    /// </summary>
+    /// <param name="request">SIPRequest object that the metadata XML document should be attached to. This
+    /// can be an INVITE or an UPDATE request.</param>
+    /// <returns>Returns null if the metadata is valid or a string describing the error if it is not valid.</returns>
+    private string? ValidateMetaData(SIPRequest request)
     {
-        string? strRecording = sipRequest.GetContentsOfType(recording.ContentType);
+        string? strRecording = request.GetContentsOfType(recording.ContentType);
         if (strRecording != null)
         {
             m_Recording = XmlHelper.DeserializeFromString<recording>(strRecording);
             if (m_Recording == null)
                 return "Invalid SIPREC Metadata";
 
-            // For debug only
             File.WriteAllText(Path.Combine(m_CallRecordingDirectory, "MetaData.xml"), strRecording);
         }
         else
@@ -278,24 +283,9 @@ internal class SrsCall
 
     private string? ValidateMetaDataAndBuildRecordingChannels()
     {
-        string? strRecording = m_Invite.GetContentsOfType(recording.ContentType);
-        if (strRecording != null)
-        {
-            m_Recording = XmlHelper.DeserializeFromString<recording>(strRecording);
-            if (m_Recording == null)
-                return "Invalid SIPREC Metadata";
-
-            // For debug only
-            File.WriteAllText(Path.Combine(m_CallRecordingDirectory, "MetaData.xml"), strRecording);
-        }
-        else
-            return "No SIPREC Metadata";
-
-        if (m_Recording.participants == null || m_Recording.participants.Count != 2)
-            return "Incorrect number of metadata participants";
-
-        if (m_Recording.participantstreamassocs == null || m_Recording.participantstreamassocs.Count != 2)
-            return "Incorrect participantstreamassociations";
+        string? metaDataError = ValidateMetaData(m_Invite);
+        if (metaDataError != null)
+            return metaDataError;
 
         if (m_AnsweredSdp == null)
             return "No answered SDP";   // This error is not really possible
@@ -381,7 +371,7 @@ internal class SrsCall
 
     private string GetParticipantNameFromLabel(string label)
     {
-        string strDefaultParticipantName = $"Participant{label}";
+        string strDefaultParticipantName = $"Stream{label}";
         if (m_Recording == null)
             return strDefaultParticipantName;
 

@@ -1105,9 +1105,7 @@ public class CallManager
             if (Event == SubscriptionEvents.Presence)
                 call.ProcessPresenceNotify(sipRequest);
             else if (Event == SubscriptionEvents.Conference)
-            {
-                // TODO: handle the conference event package.
-            }
+                call.ProcessConferenceNotify(sipRequest);
         }
         else
         {
@@ -1554,11 +1552,11 @@ public class CallManager
             }
         }
         else
-        {
             newCall.CallState = CallStateEnum.Ringing;
-        }
 
         EnqueueWorkItem(() =>  newCall.GetLocationAndAdditionalData());
+
+
 
         // TODO: EIDO stuff
 
@@ -1628,6 +1626,10 @@ public class CallManager
         call.HookMediaEvents();
         EnqueueWorkItem(() => SendCallStartLogEvent(call));
         StartSipRecRecording(call);
+
+        // Check to see if the call was sent by a conference-aware user agent.
+        if (call.InviteRequest!.Header.Contact![0].ContactParameters.Has("isfocus") == true)
+            EnqueueWorkItem(() => call.StartConferenceSubscription());
     }
 
     private void SetupCallMsrpConnection(Call call, MediaDescription OfferedMd, MediaDescription AnsweredMd,

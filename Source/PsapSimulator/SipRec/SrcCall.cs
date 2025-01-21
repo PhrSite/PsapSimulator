@@ -13,15 +13,18 @@ using System.Security.Cryptography.X509Certificates;
 using I3V3.LoggingHelpers;
 using I3V3.LogEvents;
 using System.Net;
-using SipLib.Channels;
+using SipLib.Logging;
 
 namespace SipLib.SipRec;
 
 /// <summary>
-/// Class for a SIPREC Recording Client (SRC) call.
+/// Class for a SIP Recording Client (SRC) call.
 /// </summary>
 internal class SrcCall
 {
+    /// <summary>
+    /// Contains information about the call being recorded.
+    /// </summary>
     public SrcCallParameters CallParameters;
 
     /// <summary>
@@ -80,7 +83,9 @@ internal class SrcCall
     internal List<string> NewMedia = new List<string>();
 
     /// <summary>
-    /// 
+    /// This field is set when the SrcUserAgent starts a client INVITE transaction by sending an INVITE request
+    /// to the SRS. It is set to null when the transaction is completed. This is used by the SrcUserAgent to
+    /// cancel the INVITE request if the original call ends before the SRS responds to the INVITE request.
     /// </summary>
     public ClientInviteTransaction? ClientInviteTransaction = null;
 
@@ -131,7 +136,7 @@ internal class SrcCall
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if OfferedSdp or the AnsweredSdp properties
     /// are not set yet.</exception>
-    public void SetupMediaChannels()
+    internal void SetupMediaChannels()
     {
         if (OfferedSdp == null)
             throw new InvalidOperationException("The OfferedSdp must be set before calling this method");
@@ -194,9 +199,8 @@ internal class SrcCall
                     connection.Start();
                 }
                 else
-                {
-                    // TODO: handle this error
-                }
+                    SipLogger.LogError($"SRC failed to create an MsrpConnection for label = {iLabel} for " +
+                        $"Call-ID = {CallParameters.CallId}, reason = {MsrpError}");
             }
             else
             {   // Media that is handled by RTP
@@ -242,27 +246,31 @@ internal class SrcCall
                         srcRtpChannel.StartListening();
                     }
                     else
-                    {
-                        // TODO: handle this error
-                    }
+                        SipLogger.LogError($"SRC failed to create a RtpChannel for media type = " +
+                            $"{offeredMediaDescription.MediaType} for Call-ID = {CallParameters.CallId}, " +
+                            $"reason = {Error}");
                 }
                 else
-                {
-                    // TODO: Handle this error
-                }
+                    SipLogger.LogError($"Could not find the original RtpChannel for media type = " +
+                        $"{offeredMediaDescription.MediaType} and Call-ID = {CallParameters.CallId}");
             }
-
         } // end for i
     }
 
-    public void SetupChannelForAddedMedia(MediaDescription offeredMediaDescription, MediaDescription answeredMediaDescription)
+    /// <summary>
+    /// Sets up a RtpChannel or a MsrpConnection for new media that is being added to the call being recorded.
+    /// The SrcUserAgent calls this method the original call has received a re-INVITE request to add new media.
+    /// </summary>
+    /// <param name="offeredMediaDescription"></param>
+    /// <param name="answeredMediaDescription"></param>
+    internal void SetupChannelForAddedMedia(MediaDescription offeredMediaDescription, MediaDescription answeredMediaDescription)
     {
         bool IsForReceive;
         int iLabel;
 
         iLabel = int.Parse(offeredMediaDescription.Label!);
         // Odd media labels are for media that is received. Even media labels are for media that
-        // was sent. See the MediaLabel class.
+        // was sent. See the MediaLabel enum.
         IsForReceive = (iLabel % 2) != 0 ? true : false;
         if (offeredMediaDescription.MediaType == MediaTypes.MSRP && CallParameters.CallMsrpConnection != null)
         {
@@ -278,9 +286,8 @@ internal class SrcCall
                 connection.Start();
             }
             else
-            {
-                // TODO: handle this error
-            }
+                SipLogger.LogError($"Failed to create a MsrpConnection when MSRP is being added to the SIPREC " +
+                    $"call. Call-ID = {CallParameters.CallId}, reason = {MsrpError}");
         }
         else
         {   // Media that is handled by RTP
@@ -323,12 +330,16 @@ internal class SrcCall
                 srcRtpChannel.StartListening();
             }
             else
-            {
-                // TODO: handle this error
-            }
+                SipLogger.LogError($"Failed to create a RtpChannel when MediaType = {offeredMediaDescription.MediaType} " +
+                    $"is added to Call-ID = {CallParameters.CallId}, reason = {Error}");
         }
     }
 
+    /// <summary>
+    /// Called by the SrcUserAgent to hook the events of the original call's RtpChannel or MsrpConnection when
+    /// new media is added to the original call.
+    /// </summary>
+    /// <param name="mediaType"></param>
     internal void HookEventsForNewMedia(string mediaType)
     { 
         if (mediaType == MediaTypes.MSRP)
@@ -341,7 +352,7 @@ internal class SrcCall
         }
         else
         {
-            RtpChannel? rtpChannel = GetNewRtpChannel(mediaType);
+            RtpChannel? rtpChannel = GetNewMediaRtpChannel(mediaType);
             if (rtpChannel != null)
             {
                 switch (rtpChannel.MediaType)
@@ -363,7 +374,7 @@ internal class SrcCall
         }
     }
 
-    private RtpChannel? GetNewRtpChannel(string mediaType)
+    private RtpChannel? GetNewMediaRtpChannel(string mediaType)
     {
         RtpChannel? rtpChannel = null;
         foreach (RtpChannel channel in CallParameters.CallRtpChannels)
@@ -377,6 +388,13 @@ internal class SrcCall
         return rtpChannel;
     }
 
+    /// <summary>
+    /// The SrcUserAgent calls this method when it detects that a new RtpChannel object has been created for
+    /// the origial call that is being recorded due to a re-INVITE on the original call that changes the
+    /// characteristics (such as encryption) of the original call's RtpChannel.
+    /// </summary>
+    /// <param name="origChannel"></param>
+    /// <param name="newChannel"></param>
     internal void ReHookRtpChannelEvents(RtpChannel origChannel, RtpChannel newChannel)
     {
         switch (origChannel.MediaType)
@@ -402,6 +420,13 @@ internal class SrcCall
         }
     }
 
+    /// <summary>
+    /// The SrcUserAgent calls this method when it detects that a new MsrpConnection object has been created for
+    /// the origial call that is being recorded due to a re-INVITE on the original call that changes the
+    /// characteristics (such as encryption or destination endpoint) of the original call's MsrpConnection.
+    /// </summary>
+    /// <param name="origConnection"></param>
+    /// <param name="newConnection"></param>
     internal void ReHookMsrpChannelEvents(MsrpConnection origConnection, MsrpConnection newConnection)
     {
         origConnection.MsrpMessageReceived -= OnMsrpMessageReceived;
@@ -411,11 +436,9 @@ internal class SrcCall
     }
 
     /// <summary>
-    /// Call this method to shutdown all of the media channels to the SRS when the call has ended or
-    /// when the media of the call being recorded has changed in a significant way and there is a
-    /// need to re-invite the SRS to the call.
+    /// The SrcUserAgent calls this method to shutdown all of the media channels to the SRS when the call has ended.
     /// </summary>
-    public void ShutdownMediaConnections()
+    internal void ShutdownMediaConnections()
     {
         // Unhook the events of the original call's RTP channels.
         foreach (RtpChannel rtpChannel in CallParameters.CallRtpChannels)

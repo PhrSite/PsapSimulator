@@ -2,6 +2,9 @@
 //  File:   SrcUserAgent.cs                                         14 Oct 24 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
+
+namespace SipLib.SipRec;
+
 using Ng911Lib.Utilities;
 using SipLib.Body;
 using SipLib.Channels;
@@ -14,18 +17,14 @@ using SipLib.Rtp;
 using SipLib.Sdp;
 using SipLib.Transactions;
 using SipRecMetaData;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using PsapSimulator.CallManagement;
 using SipLib.Threading;
-using System.ComponentModel;
-
-namespace SipLib.SipRec;
+using System.Windows.Forms.Design;
 
 /// <summary>
 /// SIP Recording Client (SRC) User Agent class. This class handles all calls being recorded by a SIP Recording
-/// Server (SRS) using a single, permanent connection to the SRS. It also logs I3V3 events.
+/// Server (SRS) using a single, permanent connection to the SRS. It also logs NG9-1-1 I3V3 events.
 /// <para>
 /// To use this class, construct an instance of it, hook the events and then call the Start() method.
 /// </para>
@@ -149,8 +148,8 @@ public class SrcUserAgent : QueuedActionWorkerTask
 
         m_IsShutdown = true;
 
-        // TODO: Terminate any calls that are currently active
-
+        // Terminate any calls that are currently active
+        await TerminatAllCallsAsync();
 
         // Unhook the event handlers
         m_SipTransport.SipRequestReceived -= OnSipRequestReceived;
@@ -162,8 +161,45 @@ public class SrcUserAgent : QueuedActionWorkerTask
         await base.Shutdown();
     }
 
+    private async Task TerminatAllCallsAsync()
+    {
+        SemaphoreSlim semaphore = new SemaphoreSlim(0, 1);
+        EnqueueWork(() => 
+        {
+            foreach (SrcCall srcCall in m_Calls.Values)
+            {
+                if (srcCall.ClientInviteTransaction != null)
+                {   // An OK response or other final response has not been received yet
+                    srcCall.ClientInviteTransaction.CancelInvite();
+                    // Wait synchronously
+                    SipTransactionBase trans = srcCall.ClientInviteTransaction.WaitForCompletionAsync().Result;
+                }
+
+                else
+                {
+                    SIPRequest ByeRequest = SipUtils.BuildByeRequest(srcCall.Invite, m_SipChannel, m_SrsRemoteEndPoint,
+                        false, srcCall.LastCSeq, srcCall.OkResponse!);
+                        
+                    ClientNonInviteTransaction Cnit = m_SipTransport.StartClientNonInviteTransaction(ByeRequest, 
+                        m_SrsRemoteEndPoint, null, 1000);
+                    // Wait synchronously
+                    SipTransactionBase Stb = Cnit.WaitForCompletionAsync().Result;
+                    srcCall.ShutdownMediaConnections();
+                    SendRecCallEndLogEvent(srcCall);
+                }
+            }
+
+            semaphore.Release();
+        });
+
+        await semaphore.WaitAsync();
+    }
+
     protected override void DoTimedEvents()
     {
+        if (m_IsShutdown == true)
+            return;
+
         DateTime Now = DateTime.Now;
         if (m_Settings.EnableOptions == true && m_Settings.Enabled == true)
         {
@@ -243,7 +279,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
 
     private void DoStartRecording(SrcCallParameters srcCallParameters)
     {
-        SIPRequest Invite = BuildInitialInviteRequest(srcCallParameters, out Sdp.Sdp offerSdp,
+        SIPRequest Invite = BuildInitialInviteRequest(srcCallParameters, out Sdp offerSdp,
             out recording Recording);
         SrcCall srcCall = new SrcCall(srcCallParameters, Invite, offerSdp, Recording, UaName, m_Certificate,
             m_I3LogEventClientMgr, m_EnableLogging, m_ElementID, m_AgencyID, m_AgentID, m_SrsRemoteEndPoint);
@@ -257,8 +293,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
     {
         EnqueueWork(() => {
-            DoInviteTransactionComplete(sipRequest, sipResponse, remoteEndPoint, sipTransport, 
-                Transaction);
+            DoInviteTransactionComplete(sipRequest, sipResponse, remoteEndPoint, sipTransport, Transaction);
         });
     }   
 
@@ -268,8 +303,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         SrcCall? srcCall = GetCall(sipRequest.Header.CallId);
         if (srcCall == null)
         {   // Error: Call not found
-
-            // TODO: log the error
+            SipLogger.LogError($"SIPREC call to SRS at {remoteEndPoint} not found");
             return;
         }
 
@@ -277,18 +311,16 @@ public class SrcUserAgent : QueuedActionWorkerTask
 
         if (sipResponse == null)
         {   // The SRS did not respond to the INVITE request
-
-            // TODO: log the error
-
+            SipLogger.LogError($"INVITE to SRS at {remoteEndPoint} for Call_ID = {sipRequest.Header.CallId} " +
+                "timed out");
             m_Calls.Remove(sipRequest.Header.CallId);
             return;
         }
 
         if (sipResponse.Status != SIPResponseStatusCodesEnum.Ok)
         {   // The SRS rejected the SIPREC call
-
-            // TODO: log the error
-
+            SipLogger.LogError($"The SRS at {remoteEndPoint} rejected Call-ID = {sipRequest.Header.CallId} " +
+                $"with a status of {sipResponse.StatusCode}");
             m_Calls.Remove(sipRequest.Header.CallId);
             return;
         }
@@ -296,19 +328,18 @@ public class SrcUserAgent : QueuedActionWorkerTask
         string? strAnsweredSdp = sipResponse.GetContentsOfType(Body.ContentTypes.Sdp);
         if (strAnsweredSdp == null)
         {   // Error: No answered SDP in the 200 OK response
-
-            // TODO: Log the error
-
-            m_Calls.Remove(sipRequest.Header.CallId);
+            SipLogger.LogError($"The SRS at {remoteEndPoint} did not answer Call-ID = {sipRequest.Header.CallId} " +
+                "with SDP");
+            // Terminate the call
+            DoStopRecording(sipRequest.Header.CallId);
             return;
         }
 
-        Sdp.Sdp AnsweredSdp = Sdp.Sdp.ParseSDP(strAnsweredSdp);
+        Sdp AnsweredSdp = Sdp.ParseSDP(strAnsweredSdp);
         if (AnsweredSdp.Media.Count != srcCall.OfferedSdp.Media.Count)
         {
-            // TODO: Log the error
-
-            m_Calls.Remove(sipRequest.Header.CallId);
+            SipLogger.LogError($"The SRS at {remoteEndPoint} send invalid SDP for Call-ID = {sipRequest.Header.CallId}");
+            DoStopRecording(sipRequest.Header.CallId);
             return;
         }
 
@@ -344,19 +375,24 @@ public class SrcUserAgent : QueuedActionWorkerTask
     {
         SrcCall? srcCall = GetCall(newSrcCallParameters.CallId);
         if (srcCall == null)
+            // The call to the SRS may have already ended because of a BYE request from the SRS or due to
+            // forced termination by this SrcUserAgent due to an error.
             return;
 
         // Check for re-targeted media first.
         SrcCallParameters origParams = srcCall.CallParameters;
         if (newSrcCallParameters.CallRtpChannels.Count < origParams.CallRtpChannels.Count)
-        {
-            // TODO: handle this error
+        {   // The number or RtpChannels for the re-INVITE should never be less than the number from the
+            // original INVITE or the last re-INVITE request.
+            SipLogger.LogError($"Invalid number of RtpChannels for re-INVITE for Call-ID = {newSrcCallParameters.CallId}");
             return;
         }
 
         if (newSrcCallParameters.AnsweredSdp.Media.Count < origParams.AnsweredSdp.Media.Count)
-        {
-            // TODO: handle this error
+        {   // The number of MediaDescription blocks for the re-INVITE should never be less than the number
+            // from the original INVITE or the last re-INVITE request.
+            SipLogger.LogError($"Invalid number of MediaDescription blocks for re-INVITE for Call-ID = " +
+                $"{newSrcCallParameters.CallId}");
             return;
         }
 
@@ -408,8 +444,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         }
 
         // Update the SIPREC metadata for new media streams that are being added to the call
-        //recording Recording = BuildMetaData(newSrcCallParameters, newSrcCallParameters.AnsweredSdp);
-        //srcCall.Recording = Recording;
+        // recording Recording = BuildMetaData(newSrcCallParameters, newSrcCallParameters.AnsweredSdp);
         foreach (string newMediaType in srcCall.NewMedia)
         {
             AddNewMediaStreamsToMetaData(srcCall.Recording, srcCall.CallParameters, newMediaType);
@@ -477,7 +512,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
             return;
         }
 
-        Sdp.Sdp AnsweredSdp = Sdp.Sdp.ParseSDP(strAnsweredSdp);
+        Sdp AnsweredSdp = Sdp.ParseSDP(strAnsweredSdp);
         if (AnsweredSdp.Media.Count != srcCall.OfferedSdp.Media.Count)
         {
             SipLogger.LogError($"Media mismatch for re-INVITE to SRS '{m_Settings.Name}' for Call-ID = " +
@@ -544,7 +579,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         logEvent.ipAddressPort = m_SrsRemoteEndPoint.ToString();
     }
 
-    private SIPRequest BuildInitialInviteRequest(SrcCallParameters srcCallParameters, out Sdp.Sdp offerSdp,
+    private SIPRequest BuildInitialInviteRequest(SrcCallParameters srcCallParameters, out Sdp offerSdp,
         out recording Recording)
     {
         SIPRequest Invite = SIPRequest.CreateBasicRequest(SIPMethodsEnum.INVITE, m_SrsUri, m_SrsUri,
@@ -569,7 +604,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
                 "emergency-IncidentId");
 
         // Build the SDP to offer to the SRS
-        offerSdp = new Sdp.Sdp(m_LocalEndPoint.Address, UaName);
+        offerSdp = new Sdp(m_LocalEndPoint.Address, UaName);
         foreach (MediaDescription mediaDescription in srcCallParameters.AnsweredSdp.Media)
         {
             if (mediaDescription.Port == 0)
@@ -600,7 +635,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
         return Invite;
     }
 
-    private recording BuildMetaData(SrcCallParameters srcCallParameters, Sdp.Sdp answeredSdp)
+    private recording BuildMetaData(SrcCallParameters srcCallParameters, Sdp answeredSdp)
     {
         DateTime Now = DateTime.Now;
 
@@ -663,7 +698,6 @@ public class SrcUserAgent : QueuedActionWorkerTask
         Recording.participantstreamassocs.Add(ToParticipantStreamAssoc);
 
         // Create the streams and build the associations
-
         foreach (MediaDescription mediaDescription in answeredSdp.Media)
         {
             if (mediaDescription.Port == 0)
@@ -854,10 +888,7 @@ public class SrcUserAgent : QueuedActionWorkerTask
     {
         SrcCall? srcCall = GetCall(strCallId);
         if (srcCall == null)
-        {
-            // TODO: Call not found -- log the error
-            return;
-        }
+            return;     // SRS call may have already ended.
 
         if (srcCall.ClientInviteTransaction != null)
         {   // An OK response has not been received yet
@@ -934,14 +965,59 @@ public class SrcUserAgent : QueuedActionWorkerTask
         m_I3LogEventClientMgr.SendLogEvent(Csm);
     }
 
+    // A SIP request message was received from the SRS
     private void OnSipRequestReceived(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
     {
-
+        EnqueueWork(() => HandleSipRequest(sipRequest, remoteEndPoint, sipTransportManager));
     }
 
+    private void HandleSipRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
+    {
+        if (sipRequest.Method == SIPMethodsEnum.BYE)
+            HandleByeRequest(sipRequest, remoteEndPoint, sipTransportManager);
+        else if (sipRequest.Method == SIPMethodsEnum.ACK)
+        {   // Not necessary to do anything for this case
+        }
+        else
+        {
+            SIPResponse response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.MethodNotAllowed,
+                "Method Not Allowed", sipTransportManager.SipChannel, UaName);
+            if (sipRequest.Method == SIPMethodsEnum.INVITE)
+                sipTransportManager.StartServerInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(),
+                    null, response);
+            else
+                sipTransportManager.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(),
+                    null, response);
+        }
+    }
+    
+    // Handles a BYE request from the SRS. A SRS may terminate a recording call if it is being shut down
+    // in an orderly manner.
+    private void HandleByeRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
+    {
+        SrcCall? srcCall = GetCall(sipRequest.Header.CallId);
+        if (srcCall == null)
+        {   // The call may have ended already
+            SIPResponse notFound = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
+                "Dialog Not Found", sipTransportManager.SipChannel, UaName);
+            sipTransportManager.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null,
+                notFound);
+            return;
+        }
+
+        SIPResponse okResponse = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.Ok, "OK",
+            sipTransportManager.SipChannel, UaName);
+        sipTransportManager.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(),
+            null, okResponse);
+
+        srcCall.ShutdownMediaConnections();
+        m_Calls.Remove(sipRequest.Header.CallId);
+        EnqueueWork(() => SendRecCallEndLogEvent(srcCall));
+    }
+
+    // No action required because all responses from an SRS are handled in transactions
     private void OnSipResponseReceived(SIPResponse sipResponse, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
     {
-
     }
 
 }

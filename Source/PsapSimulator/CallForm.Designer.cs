@@ -38,6 +38,7 @@
             panel1 = new Panel();
             CallInfoTabCtrl = new TabControl();
             LocationTab = new TabPage();
+            LocTimeLbl = new Label();
             ProvidedByLbl = new Label();
             label27 = new Label();
             CountyLbl = new Label();
@@ -127,7 +128,6 @@
             label3 = new Label();
             FromLbl = new Label();
             label1 = new Label();
-            LocTimeLbl = new Label();
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             panel1.SuspendLayout();
@@ -297,6 +297,15 @@
             LocationTab.TabIndex = 0;
             LocationTab.Text = "Location";
             LocationTab.UseVisualStyleBackColor = true;
+            // 
+            // LocTimeLbl
+            // 
+            LocTimeLbl.AutoSize = true;
+            LocTimeLbl.Location = new Point(493, 60);
+            LocTimeLbl.Name = "LocTimeLbl";
+            LocTimeLbl.Size = new Size(122, 31);
+            LocTimeLbl.TabIndex = 23;
+            LocTimeLbl.Text = "HH:MM:SS";
             // 
             // ProvidedByLbl
             // 
@@ -1023,9 +1032,9 @@
             label4.AutoSize = true;
             label4.Location = new Point(25, 149);
             label4.Name = "label4";
-            label4.Size = new Size(232, 31);
+            label4.Size = new Size(178, 31);
             label4.TabIndex = 7;
-            label4.Text = "Conference Members";
+            label4.Text = "Call Participants";
             // 
             // ConfListView
             // 
@@ -1042,23 +1051,23 @@
             // 
             // UriHeader
             // 
-            UriHeader.Text = "Agency";
-            UriHeader.Width = 300;
+            UriHeader.Text = "Participant";
+            UriHeader.Width = 400;
             // 
             // MediaHeader
             // 
             MediaHeader.Text = "Media";
-            MediaHeader.Width = 200;
+            MediaHeader.Width = 300;
             // 
             // StatusHeader
             // 
             StatusHeader.Text = "Status";
-            StatusHeader.Width = 150;
+            StatusHeader.Width = 200;
             // 
             // RolesHeader
             // 
             RolesHeader.Text = "Roles";
-            RolesHeader.Width = 200;
+            RolesHeader.Width = 260;
             // 
             // MediaLbl
             // 
@@ -1093,15 +1102,6 @@
             label1.Size = new Size(66, 31);
             label1.TabIndex = 0;
             label1.Text = "From";
-            // 
-            // LocTimeLbl
-            // 
-            LocTimeLbl.AutoSize = true;
-            LocTimeLbl.Location = new Point(493, 60);
-            LocTimeLbl.Name = "LocTimeLbl";
-            LocTimeLbl.Size = new Size(122, 31);
-            LocTimeLbl.TabIndex = 23;
-            LocTimeLbl.Text = "HH:MM:SS";
             // 
             // CallForm
             // 
