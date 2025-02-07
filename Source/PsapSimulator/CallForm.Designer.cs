@@ -257,10 +257,10 @@
             CallInfoTabCtrl.Controls.Add(ServiceTab);
             CallInfoTabCtrl.Controls.Add(ProvidersTab);
             CallInfoTabCtrl.Controls.Add(AACN);
-            CallInfoTabCtrl.Location = new Point(1247, 508);
+            CallInfoTabCtrl.Location = new Point(21, 481);
             CallInfoTabCtrl.Name = "CallInfoTabCtrl";
             CallInfoTabCtrl.SelectedIndex = 0;
-            CallInfoTabCtrl.Size = new Size(640, 406);
+            CallInfoTabCtrl.Size = new Size(649, 430);
             CallInfoTabCtrl.TabIndex = 24;
             // 
             // LocationTab
@@ -293,7 +293,7 @@
             LocationTab.Location = new Point(4, 40);
             LocationTab.Name = "LocationTab";
             LocationTab.Padding = new Padding(3);
-            LocationTab.Size = new Size(632, 362);
+            LocationTab.Size = new Size(641, 386);
             LocationTab.TabIndex = 0;
             LocationTab.Text = "Location";
             LocationTab.UseVisualStyleBackColor = true;
@@ -527,7 +527,7 @@
             SubscriberTab.Location = new Point(4, 29);
             SubscriberTab.Name = "SubscriberTab";
             SubscriberTab.Padding = new Padding(3);
-            SubscriberTab.Size = new Size(632, 373);
+            SubscriberTab.Size = new Size(641, 397);
             SubscriberTab.TabIndex = 1;
             SubscriberTab.Text = "Subscriber";
             SubscriberTab.UseVisualStyleBackColor = true;
@@ -690,7 +690,7 @@
             CommentsTab.Controls.Add(CommentsTb);
             CommentsTab.Location = new Point(4, 29);
             CommentsTab.Name = "CommentsTab";
-            CommentsTab.Size = new Size(632, 373);
+            CommentsTab.Size = new Size(641, 397);
             CommentsTab.TabIndex = 2;
             CommentsTab.Text = "Comments";
             CommentsTab.UseVisualStyleBackColor = true;
@@ -722,7 +722,7 @@
             ServiceTab.Controls.Add(label8);
             ServiceTab.Location = new Point(4, 29);
             ServiceTab.Name = "ServiceTab";
-            ServiceTab.Size = new Size(632, 373);
+            ServiceTab.Size = new Size(641, 397);
             ServiceTab.TabIndex = 3;
             ServiceTab.Text = "Service";
             ServiceTab.UseVisualStyleBackColor = true;
@@ -834,7 +834,7 @@
             ProvidersTab.Controls.Add(ProvidersTb);
             ProvidersTab.Location = new Point(4, 29);
             ProvidersTab.Name = "ProvidersTab";
-            ProvidersTab.Size = new Size(632, 373);
+            ProvidersTab.Size = new Size(641, 397);
             ProvidersTab.TabIndex = 5;
             ProvidersTab.Text = "Providers";
             ProvidersTab.UseVisualStyleBackColor = true;
@@ -854,7 +854,7 @@
             // 
             AACN.Location = new Point(4, 29);
             AACN.Name = "AACN";
-            AACN.Size = new Size(632, 373);
+            AACN.Size = new Size(641, 397);
             AACN.TabIndex = 4;
             AACN.Text = "AACN";
             AACN.UseVisualStyleBackColor = true;
@@ -900,7 +900,7 @@
             // 
             // SendBtn
             // 
-            SendBtn.Location = new Point(690, 499);
+            SendBtn.Location = new Point(1350, 502);
             SendBtn.Name = "SendBtn";
             SendBtn.Size = new Size(94, 40);
             SendBtn.TabIndex = 19;
@@ -911,7 +911,7 @@
             // PrivateMsgCheck
             // 
             PrivateMsgCheck.AutoSize = true;
-            PrivateMsgCheck.Location = new Point(453, 499);
+            PrivateMsgCheck.Location = new Point(1141, 501);
             PrivateMsgCheck.Name = "PrivateMsgCheck";
             PrivateMsgCheck.Size = new Size(203, 35);
             PrivateMsgCheck.TabIndex = 18;
@@ -921,7 +921,7 @@
             // UseCpimCheck
             // 
             UseCpimCheck.AutoSize = true;
-            UseCpimCheck.Location = new Point(279, 499);
+            UseCpimCheck.Location = new Point(967, 501);
             UseCpimCheck.Name = "UseCpimCheck";
             UseCpimCheck.Size = new Size(134, 35);
             UseCpimCheck.TabIndex = 17;
@@ -930,16 +930,16 @@
             // 
             // NewMessageTb
             // 
-            NewMessageTb.Location = new Point(188, 876);
+            NewMessageTb.Location = new Point(877, 880);
             NewMessageTb.Name = "NewMessageTb";
-            NewMessageTb.Size = new Size(1053, 38);
+            NewMessageTb.Size = new Size(1010, 38);
             NewMessageTb.TabIndex = 16;
             NewMessageTb.KeyPress += NewMessageTb_KeyPress;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(25, 876);
+            label6.Location = new Point(708, 880);
             label6.Name = "label6";
             label6.Size = new Size(157, 31);
             label6.TabIndex = 15;
@@ -949,7 +949,7 @@
             // 
             TextTypeLbl.AutoSize = true;
             TextTypeLbl.BorderStyle = BorderStyle.Fixed3D;
-            TextTypeLbl.Location = new Point(143, 500);
+            TextTypeLbl.Location = new Point(831, 502);
             TextTypeLbl.Name = "TextTypeLbl";
             TextTypeLbl.Size = new Size(71, 33);
             TextTypeLbl.TabIndex = 14;
@@ -958,7 +958,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(25, 500);
+            label5.Location = new Point(713, 502);
             label5.Name = "label5";
             label5.Size = new Size(109, 31);
             label5.TabIndex = 13;
@@ -969,9 +969,9 @@
             TextListView.Columns.AddRange(new ColumnHeader[] { FromHeader, MessageHeader, TimeHeader });
             TextListView.GridLines = true;
             TextListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            TextListView.Location = new Point(25, 545);
+            TextListView.Location = new Point(713, 545);
             TextListView.Name = "TextListView";
-            TextListView.Size = new Size(1216, 325);
+            TextListView.Size = new Size(1174, 325);
             TextListView.TabIndex = 12;
             TextListView.UseCompatibleStateImageBehavior = false;
             TextListView.View = View.Details;
@@ -1002,35 +1002,38 @@
             // 
             // DropLastBtn
             // 
-            DropLastBtn.Location = new Point(223, 415);
+            DropLastBtn.Location = new Point(377, 415);
             DropLastBtn.Name = "DropLastBtn";
             DropLastBtn.Size = new Size(157, 43);
             DropLastBtn.TabIndex = 10;
             DropLastBtn.Text = "Drop Last";
             DropLastBtn.UseVisualStyleBackColor = true;
+            DropLastBtn.Click += DropLastBtn_Click;
             // 
             // DropBtn
             // 
-            DropBtn.Location = new Point(123, 415);
+            DropBtn.Location = new Point(277, 415);
             DropBtn.Name = "DropBtn";
             DropBtn.Size = new Size(94, 43);
             DropBtn.TabIndex = 9;
             DropBtn.Text = "Drop";
             DropBtn.UseVisualStyleBackColor = true;
+            DropBtn.Click += DropBtn_Click;
             // 
             // ReferBtn
             // 
             ReferBtn.Location = new Point(23, 415);
             ReferBtn.Name = "ReferBtn";
-            ReferBtn.Size = new Size(94, 43);
+            ReferBtn.Size = new Size(248, 43);
             ReferBtn.TabIndex = 8;
-            ReferBtn.Text = "Refer";
+            ReferBtn.Text = "Conference/Transfer";
             ReferBtn.UseVisualStyleBackColor = true;
+            ReferBtn.Click += ReferBtn_Click;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(25, 149);
+            label4.Location = new Point(21, 160);
             label4.Name = "label4";
             label4.Size = new Size(178, 31);
             label4.TabIndex = 7;

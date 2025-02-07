@@ -30,6 +30,7 @@
         {
             tabControl1 = new TabControl();
             NetworkPage = new TabPage();
+            MutualAuthCheck = new CheckBox();
             EnableTlsCb = new CheckBox();
             EnableTcpCb = new CheckBox();
             EnableUdpCb = new CheckBox();
@@ -130,7 +131,7 @@
             SipRecBtn = new Button();
             SaveBtn = new Button();
             CancelBtn = new Button();
-            MutualAuthCheck = new CheckBox();
+            ConfSettingsBtn = new Button();
             tabControl1.SuspendLayout();
             NetworkPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PortsGridView).BeginInit();
@@ -185,6 +186,16 @@
             NetworkPage.TabIndex = 0;
             NetworkPage.Text = " Network ";
             NetworkPage.UseVisualStyleBackColor = true;
+            // 
+            // MutualAuthCheck
+            // 
+            MutualAuthCheck.AutoSize = true;
+            MutualAuthCheck.Location = new Point(311, 523);
+            MutualAuthCheck.Name = "MutualAuthCheck";
+            MutualAuthCheck.Size = new Size(388, 35);
+            MutualAuthCheck.TabIndex = 12;
+            MutualAuthCheck.Text = "Use Mutual SIP TLS Authentication";
+            MutualAuthCheck.UseVisualStyleBackColor = true;
             // 
             // EnableTlsCb
             // 
@@ -533,6 +544,7 @@
             // 
             // CallHandlingPage
             // 
+            CallHandlingPage.Controls.Add(ConfSettingsBtn);
             CallHandlingPage.Controls.Add(NonInteractiveCallsTb);
             CallHandlingPage.Controls.Add(MaxCallsTb);
             CallHandlingPage.Controls.Add(groupBox4);
@@ -540,9 +552,9 @@
             CallHandlingPage.Controls.Add(EnableAutoAnswerCb);
             CallHandlingPage.Controls.Add(label11);
             CallHandlingPage.Controls.Add(label10);
-            CallHandlingPage.Location = new Point(4, 29);
+            CallHandlingPage.Location = new Point(4, 40);
             CallHandlingPage.Name = "CallHandlingPage";
-            CallHandlingPage.Size = new Size(839, 591);
+            CallHandlingPage.Size = new Size(839, 580);
             CallHandlingPage.TabIndex = 2;
             CallHandlingPage.Text = " Call Handling ";
             CallHandlingPage.UseVisualStyleBackColor = true;
@@ -1174,15 +1186,15 @@
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
             // 
-            // MutualAuthCheck
+            // ConfSettingsBtn
             // 
-            MutualAuthCheck.AutoSize = true;
-            MutualAuthCheck.Location = new Point(311, 523);
-            MutualAuthCheck.Name = "MutualAuthCheck";
-            MutualAuthCheck.Size = new Size(388, 35);
-            MutualAuthCheck.TabIndex = 12;
-            MutualAuthCheck.Text = "Use Mutual SIP TLS Authentication";
-            MutualAuthCheck.UseVisualStyleBackColor = true;
+            ConfSettingsBtn.Location = new Point(26, 386);
+            ConfSettingsBtn.Name = "ConfSettingsBtn";
+            ConfSettingsBtn.Size = new Size(331, 39);
+            ConfSettingsBtn.TabIndex = 9;
+            ConfSettingsBtn.Text = "Conference/Transfer Settings";
+            ConfSettingsBtn.UseVisualStyleBackColor = true;
+            ConfSettingsBtn.Click += ConfSettingsBtn_Click;
             // 
             // SettingsForm
             // 
@@ -1343,5 +1355,6 @@
         private Label EventLoggingLbl;
         private Label SipRecLbl;
         private CheckBox MutualAuthCheck;
+        private Button ConfSettingsBtn;
     }
 }

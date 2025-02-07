@@ -25,6 +25,7 @@
   
   <ItemGroup>
     <PackageReference Include="AmrWbCppLib" Version="0.0.1" />
+    <PackageReference Include="EidoLib" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
@@ -35,6 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Ng911CadIfLib">
+      <HintPath>..\..\..\Ng911CadIfLib\ClassLibrary\bin\Debug\net7.0\Ng911CadIfLib.dll</HintPath>
+    </Reference>
     <Reference Include="Ng911Lib">
       <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net7.0\Ng911Lib.dll</HintPath>
     </Reference>
@@ -120,4 +124,7 @@
     <Folder Include="Recordings\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>  
 </Project>

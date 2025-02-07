@@ -33,6 +33,7 @@ using SipLib.Logging;
 using SipLib.Subscriptions;
 using I3V3.LoggingHelpers;
 using ConferenceEvent;
+using System.Security.Permissions;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
 
@@ -55,6 +56,20 @@ public delegate void NewConferenceInfoDelegate(conferencetype conferenceType);
 /// event of this object.</param>
 /// <param name="newVideoReceiver">The event handler must hook the FrameReady event of this object.</param>
 public delegate void CallVideoReceiverChangedDelegate(VideoReceiver? oldVideoReceiver, VideoReceiver newVideoReceiver);
+
+/// <summary>
+/// Delegate type for the ReferResponseStatus event of the Call class.
+/// </summary>
+/// <param name="responseEnum">Response status code that was received in response to the REFER request.</param>
+/// <param name="reason">Reason text of the response.</param>
+public delegate void ReferResponseStatusDelegate(SIPResponseStatusCodesEnum responseEnum, string reason);
+
+/// <summary>
+/// Delegate type for the ReferNotifyStatus event of the Call class.
+/// </summary>
+/// <param name="responseEnum">Status code from the SIPFRAG in the NOTIFY request's body.</param>
+/// <param name="reason">Reason text from the SIPFRAG.</param>
+public delegate void ReferNotifyStatusDelegate(SIPResponseStatusCodesEnum responseEnum, string reason);
 
 /// <summary>
 /// Class for maintaining information about a call
@@ -131,6 +146,11 @@ public class Call
     public DateTime CallStartTime = DateTime.Now;
 
     /// <summary>
+    /// Call answered time.
+    /// </summary>
+    public DateTime CallAnsweredTime = DateTime.MinValue;
+
+    /// <summary>
     /// Call state for the call
     /// </summary>
     public CallStateEnum CallState { get; internal set; } = CallStateEnum.Idle;
@@ -192,6 +212,9 @@ public class Call
 
     internal IVideoCapture? CurrentVideoCapture = null;
 
+    /// <summary>
+    /// For processing video that is being received by the caller.
+    /// </summary>
     public VideoReceiver? VideoReceiver = null;
 
     internal DateTime LastAutoAnsweredTextSentTime = DateTime.MinValue;
@@ -215,6 +238,11 @@ public class Call
     public event NewLocationDelegate? NewLocation = null;
 
     /// <summary>
+    /// Fired when new Additional Data has become available for the call.
+    /// </summary>
+    public event Action? AdditionalDataAvailable = null;
+
+    /// <summary>
     /// This event is fired when new information about the conference members is available.
     /// </summary>
     public event NewConferenceInfoDelegate? NewConferenceInfo = null;
@@ -224,6 +252,34 @@ public class Call
     /// </summary>
     public event CallVideoReceiverChangedDelegate? CallVideoReceiverChanged = null;
     
+    /// <summary>
+    /// This event is fired when a response is received for a REFER request to add a member to a conference
+    /// </summary>
+    public event ReferResponseStatusDelegate? ReferResponseStatus = null;
+
+    /// <summary>
+    /// This event is fired when a NOTIFY request for a REFER is received when adding a member to a conference
+    /// </summary>
+    public event ReferNotifyStatusDelegate? ReferNotifyStatus = null;
+
+    internal void FireReferResponseStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
+    {
+        ReferResponseStatus?.Invoke(responseEnum, reason);
+    }
+
+    internal void FireReferNotifyStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
+    {
+        ReferNotifyStatus?.Invoke(responseEnum, reason);
+    }
+
+    /// <summary>
+    /// Fires the AdditionalDataAvailable event.
+    /// </summary>
+    internal void FireAdditionalDataAvailable()
+    {
+        AdditionalDataAvailable?.Invoke();
+    }
+
     /// <summary>
     /// Fires the CallVideoReceiverChanged event.
     /// </summary>
@@ -281,6 +337,15 @@ public class Call
     /// Gets or sets the conference information
     /// </summary>
     public conferencetype? ConferenceInfo { get; set; } = null;
+
+    // Will be set to true if at least one other party was successfully added to the call.
+    internal bool IsConferenced { get; set; } = false;
+
+    /// <summary>
+    /// Request URI for the EIDO for this call that was passed to this application in a Call-Info header from a conferenc
+    /// aware user agent.
+    /// </summary>
+    internal string EidoRequestUri { get; set; } = string.Empty;
 
     private Call(SipTransport transport, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
         IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
@@ -661,11 +726,11 @@ public class Call
     /// </summary>
     public void StartConferenceSubscription()
     {
-        SIPURI contactUri = InviteRequest!.Header.Contact![0].ContactURI!;
+        SIPURI contactUri = InviteRequest!.Header.Contact![0].ContactURI!.CopyOf();
+        contactUri.Parameters.RemoveAll();
         IPEndPoint remoteEndPoint = contactUri.ToSIPEndPoint()!.GetIPEndPoint();
-        SIPURI requestUri = InviteRequest!.Header.From!.FromURI!;
-        SIPRequest subscribe = SIPRequest.CreateBasicRequest(SIPMethodsEnum.SUBSCRIBE, requestUri,
-            requestUri, null, sipTransport.SipChannel.SIPChannelContactURI, null);
+        SIPRequest subscribe = SIPRequest.CreateBasicRequest(SIPMethodsEnum.SUBSCRIBE, contactUri,
+            contactUri, null, sipTransport.SipChannel.SIPChannelContactURI, null);
         subscribe.Header.CallId = InviteRequest!.Header.CallId;
         subscribe.Header.Event = SubscriptionEvents.Conference;
         subscribe.Header.Expires = 3600;
@@ -859,8 +924,7 @@ public class Call
                     null, null, true);
                 if (results.StatusCode == HttpStatusCode.OK)
                 {
-                    if (results.Body != null && results.ContentType != null && results.ContentType ==
-                        strContentType)
+                    if (results.Body != null && results.ContentType != null && results.ContentType == strContentType)
                     {
                         object Obj = XmlHelper.DeserializeFromString(results.Body, AddDataType);
                         if (Obj != null)
@@ -904,11 +968,29 @@ public class Call
         return HasRtt;
     }
 
-    public void AddNewLocation(Presence presence)
+    /// <summary>
+    /// Adds a new location to the list of locations for the call
+    /// </summary>
+    /// <param name="presence"></param>
+    internal void AddNewLocation(Presence presence)
     {
         Locations.Add(presence);
         LastLocationReceivedTime = DateTime.Now;
         NewLocation?.Invoke(presence);  // Notify anyone that is listening.
+    }
+
+    /// <summary>
+    /// Sets the list of locations for the call and fires the NewLocation event for the last location (i.e. the most recent one).
+    /// This method is called when one or more locations are received in an EIDO for the call.
+    /// </summary>
+    /// <param name="locations"></param>
+    internal void SetLocations(ThreadSafeGenericList<Presence> locations)
+    {
+        Locations = locations;
+        LastLocationReceivedTime = DateTime.Now;
+        Presence[] presArray = locations.ToArray();
+        if (presArray.Length > 0)
+            NewLocation?.Invoke(presArray[presArray.Length - 1]);
     }
 
     /// <summary>
@@ -1002,6 +1084,10 @@ public class Call
         RttMessages.AddReceivedMessage(source, RxChars);
     }
 
+    /// <summary>
+    /// Sends one or more text characters to the caller if the call has RTT medial
+    /// </summary>
+    /// <param name="TxChars"></param>
     public void SendRttMessage(string TxChars)
     {
         if (RttSender != null)
@@ -1013,6 +1099,12 @@ public class Call
 
     private bool m_FirstMsrpMessageSent = false;
 
+    /// <summary>
+    /// Event handler for the MsrpMessageSend event of the MsrpConnection for the call. This event is fired when the 
+    /// MsrpConnection object for the call sends an MSRP message. This event handler is used only for NG9-1-1 event logging.
+    /// </summary>
+    /// <param name="ContentType">Content-Type header of the MSRP message that was sent.</param>
+    /// <param name="Contents">Binary contents of the MSRP message that was sent.</param>
     public void OnMsrpMessageSent(string ContentType, byte[] Contents)
     {
         if (m_FirstMsrpMessageSent == true)
@@ -1023,6 +1115,12 @@ public class Call
     }
 
     private bool m_FirstMsrpMessageReceived = false;
+    /// <summary>
+    /// Event handler for MsrpMessageReceived event of the MsrpConnection object for this call.
+    /// </summary>
+    /// <param name="ContentType">Content-Type header of the MSRP message that was received.</param>
+    /// <param name="Contents">Binary contents of the MSRP message that was received</param>
+    /// <param name="from">Identifies the source of the MSRP message. Not used here.</param>
     public void OnMsrpMessageReceived(string ContentType, byte[] Contents, string from)
     {
         if (m_FirstMsrpMessageReceived == false)
@@ -1053,9 +1151,9 @@ public class Call
     }
 
     /// <summary>
-    /// 
+    /// Sends a text message as text/plain to the remote endpoint.
     /// </summary>
-    /// <param name="message"></param>
+    /// <param name="message">Text message to send.</param>
     public void SendTextPlainMsrp(string message)
     {
         if (MsrpConnection == null)
@@ -1068,11 +1166,11 @@ public class Call
     /// <summary>
     /// Creates a new incoming call
     /// </summary>
-    /// <param name="invite"></param>
-    /// <param name="transaction"></param>
-    /// <param name="transport"></param>
-    /// <param name="initialState"></param>
-    /// <param name="certificate"></param>
+    /// <param name="invite">INVITE request that was received</param>
+    /// <param name="transaction">SIP transaction that was created for the INVITE for the call</param>
+    /// <param name="transport">SIP transport that the call came in on.</param>
+    /// <param name="initialState">Initial call state.</param>
+    /// <param name="certificate">X.509 certificate to use for MSRP processing</param>
     /// <returns></returns>
     public static Call CreateIncomingCall(SIPRequest invite, ServerInviteTransaction transaction,
         SipTransport transport, CallStateEnum initialState, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
@@ -1112,7 +1210,7 @@ public class Call
     /// </summary>
     /// <param name="mediaType">Media type to search for</param>
     /// <returns>Returns the local port if the media type exists for the call or 0 if it does not</returns>
-    public int GetLocalRtpPortForMediaType(string mediaType)
+    internal int GetLocalRtpPortForMediaType(string mediaType)
     {
         RtpChannel? rtpChannel = GetRtpChannelForMediaType(mediaType);
         if (rtpChannel != null)
@@ -1125,12 +1223,12 @@ public class Call
     /// Gets the local MsrpUri if there is MSRP media for this call or null if there is no MSRP.
     /// </summary>
     /// <returns></returns>
-    public MsrpUri? GetLocalMsrpUri()
+    internal MsrpUri? GetLocalMsrpUri()
     {
         return MsrpConnection?.LocalMsrpUri;  
     }
 
-    public void HookMediaEvents()
+    internal void HookMediaEvents()
     {
         foreach (RtpChannel rtpChannel in RtpChannels)
         {
@@ -1158,7 +1256,7 @@ public class Call
         }
     }
 
-    public void UnHookRtpEvents(RtpChannel rtpChannel)
+    internal void UnHookRtpEvents(RtpChannel rtpChannel)
     {
         switch (rtpChannel.MediaType)
         {

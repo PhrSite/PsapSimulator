@@ -10,6 +10,7 @@ using Serilog.Extensions.Logging;
 using SipLib.Logging;
 
 using PsapSimulator.Settings;
+using System.Text.RegularExpressions;
 
 internal static class Program
 {

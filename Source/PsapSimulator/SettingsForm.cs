@@ -792,4 +792,10 @@ public partial class SettingsForm : Form
                 checkedItem.Checked = false;
         }
     }
+
+    private void ConfSettingsBtn_Click(object sender, EventArgs e)
+    {
+        TransferSettingsForm Tsf = new TransferSettingsForm();
+        Tsf.ShowDialog();
+    }
 }

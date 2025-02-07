@@ -10,6 +10,8 @@ using AdditionalData;
 using System.Text;
 using ConferenceEvent;
 using SipLib.Core;
+using System.Diagnostics;
+using Ng911Lib.Utilities;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -74,6 +76,9 @@ public partial class CallForm : Form
         m_CallManager.CallEnded += OnCallEnded;
         m_Call.NewLocation += OnNewLocation;
         m_Call.NewConferenceInfo += OnNewConferenceInfo;
+        m_Call.AdditionalDataAvailable += OnAdditionalDataAvailable;
+        m_Call.ReferResponseStatus += OnReferResponseStatus;
+        m_Call.ReferNotifyStatus += OnReferNotifyStatus;
 
         SetVideoPreviewSource();
 
@@ -89,6 +94,34 @@ public partial class CallForm : Form
             DisplayLocation(LastPresence);
         }
 
+        DisplayAdditionalData();
+
+        if (m_Call.ConferenceInfo != null)
+            DisplayConferenceInfo(m_Call.ConferenceInfo);
+    }
+
+    private void OnReferNotifyStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
+    {
+        int StatusCode = (int) responseEnum;
+        // For debug only
+        Debug.WriteLine($"NOTIFY: Status Code = {StatusCode}, Reason = {reason}");
+    }
+
+    private void OnReferResponseStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
+    {
+        int StatusCode = (int) responseEnum;
+        if (StatusCode >= 400)
+        {   // The REFER request to the conference-aware user agent was rejected.
+            BeginInvoke(() => 
+            {
+                MessageBox.Show($"The conference/tranfer request was rejected.\nStatus Code = {StatusCode}, " +
+                    $"Reason = {reason}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            });
+        }
+    }
+
+    private void DisplayAdditionalData()
+    {
         if (m_Call.ServiceInfo != null)
             DisplayServiceInfo(m_Call.ServiceInfo);
 
@@ -98,11 +131,13 @@ public partial class CallForm : Form
         if (m_Call.DeviceInfo != null)
             DisplayDeviceInfo(m_Call.DeviceInfo);
 
-        if (m_Call.ConferenceInfo != null)
-            DisplayConferenceInfo(m_Call.ConferenceInfo);
-
         DisplayComments();
         DisplayProviders();
+    }
+
+    private void OnAdditionalDataAvailable()
+    {
+        BeginInvoke(() => DisplayAdditionalData());
     }
 
     /// <summary>
@@ -151,7 +186,7 @@ public partial class CallForm : Form
             if (userType.roles.entry.Count > 0)
             {
                 StringBuilder rolesSb = new StringBuilder();
-                for (int i=0; i < userType.roles.entry.Count; i++)
+                for (int i = 0; i < userType.roles.entry.Count; i++)
                 {
                     if (i >= 1)
                         rolesSb.Append(", ");
@@ -567,6 +602,9 @@ public partial class CallForm : Form
         m_CallManager.CallEnded -= OnCallEnded;
         m_Call.NewLocation -= OnNewLocation;
         m_Call.NewConferenceInfo -= OnNewConferenceInfo;
+        m_Call.AdditionalDataAvailable -= OnAdditionalDataAvailable;
+        m_Call.ReferResponseStatus -= OnReferResponseStatus;
+        m_Call.ReferNotifyStatus -= OnReferNotifyStatus;
 
         m_CallManager.FrameBitmapReady -= OnPreviewFrameBitmapReady;
 
@@ -602,7 +640,10 @@ public partial class CallForm : Form
         string strMessage = new string(NewMessageTb.Text);
         NewMessageTb.Text = string.Empty;
         if (m_Call.MsrpConnection != null)
+        {
+            // TODO: Implement sending CPIM messages
             m_Call.SendTextPlainMsrp(strMessage);
+        }
         else
             m_Call.SendRttMessage(strMessage);
     }
@@ -659,7 +700,83 @@ public partial class CallForm : Form
 
         bool LocByRefAvailable = m_Call.RefreshLocationByReference();
         if (LocByRefAvailable == false)
-            MessageBox.Show("Location refresh is not available", "Informaton", MessageBoxButtons.OK,
+            MessageBox.Show("Location refresh is not available", "Information", MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
+    }
+
+    // Conference/Transfer button click event handler
+    private void ReferBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.CallState != CallStateEnum.OnLine)
+        {
+            MessageBox.Show("Cannot conference or transfer the call because it is not on-line.\nPlease answer " +
+                "the call and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        SelectTransferTargetForm form = new SelectTransferTargetForm();
+        DialogResult Dr = form.ShowDialog();
+        if (Dr == DialogResult.OK)
+        {
+            if (form.SelectedTransferTarget != null)
+                m_CallManager.StartTransfer(m_Call, form.SelectedTransferTarget);
+            else
+                MessageBox.Show("No Transfer Target selected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void DropBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.CallState != CallStateEnum.OnLine)
+        {
+            MessageBox.Show("Cannot conference or transfer the call because it is not on-line.\nPlease answer " +
+                "the call and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        ListViewItem? Lvi = GetCheckedListViewItem();
+        if (Lvi == null)
+            return;     // Error message already displayed
+
+        usertype user = (usertype) Lvi.Tag!;
+        string strEntity = user.entity;
+        SIPURI? transferTargetUri = null;
+        if (SIPURI.TryParse(strEntity, out transferTargetUri) == true)
+            m_CallManager.StartDropTransferTarget(m_Call, transferTargetUri!.ToParameterlessString());
+        else
+        {
+            // TODO: Handle this error.
+        }
+    }
+
+    private ListViewItem? GetCheckedListViewItem()
+    {
+        if (ConfListView.CheckedIndices.Count == 0)
+        {
+            MessageBox.Show("Please select a conference member from the list first.", "Error", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return null;
+        }
+
+        if (ConfListView.CheckedIndices.Count > 1)
+        {
+            MessageBox.Show("Please select a single conference member from the list first.", "Error", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return null;
+        }
+
+        return ConfListView.Items[ConfListView.CheckedIndices[0]];
+    }
+
+    private void DropLastBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.CallState != CallStateEnum.OnLine)
+        {
+            MessageBox.Show("Cannot conference or transfer the call because it is not on-line.\nPlease answer " +
+                "the call and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        m_CallManager.StartDropLast(m_Call);
     }
 }

@@ -55,7 +55,7 @@ public class AppSettings
     {
     }
 
-    private const string AppName = "PsapSimulator";
+    public const string AppName = "PsapSimulator";
     private const string SettingsFileName = $"{AppName}.json";
 
     /// <summary>

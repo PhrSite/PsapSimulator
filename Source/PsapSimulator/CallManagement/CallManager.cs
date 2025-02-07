@@ -31,12 +31,17 @@ using HttpUtils;
 using SIPSorceryMedia.FFmpeg;
 using I3V3.LoggingHelpers;
 using I3V3.LogEvents;
+using Ng911CadIfLib;
 
 using PsapSimulator.WindowsVideo;
 using System.Net.Security;
 using SipLib.Subscriptions;
 using SipLib.SipRec;
 using System.Text;
+using Eido;
+using System;
+using System.Collections.Generic;
+using SipLib.Collections;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -51,21 +56,31 @@ public class CallManager
     private ConcurrentDictionary<string, Call> m_Calls = new ConcurrentDictionary<string, Call>();
 
     private CancellationTokenSource m_CancellationTokenSource = new CancellationTokenSource();
-
     private ConcurrentQueue<Action> m_WorkQueue = new ConcurrentQueue<Action>();
-
     private MediaPortManager m_PortManager;
-
     private string m_Fingerprint;
-
     private SdpAnswerSettings m_AnswerSettings;
-
     private WindowsAudioIo? m_WaveAudio = null;
 
+    /// <summary>
+    /// This event is fired if an error is detected as the result of a request from the user that the user needs to
+    /// be made aware of.
+    /// </summary>
     public event CallManagerErrorDelegate? CallManagerError;
 
+    /// <summary>
+    /// Provides a static image to display to the caller periodically if the camera is disabled.
+    /// </summary>
     public StaticImageCapture? CameraDisabledCapture = null;
+
+    /// <summary>
+    /// Provides a static image to display to the caller periodically if the call has been auto-answered.
+    /// </summary>
     public StaticImageCapture? AutoAnswerCapture = null;
+
+    /// <summary>
+    /// Provides a static image to display to the caller periodically if the call is on hold.
+    /// </summary>
     public StaticImageCapture? OnHoldCapture = null;
 
     private static List<string> m_SupportedVideoCodecs = new List<string>()
@@ -79,16 +94,17 @@ public class CallManager
     };
 
     private AudioSampleData m_AutoAnswerAudioSampleData;
-
     private AudioSampleData m_OnHoldAudioSampleData;
-
     private Call? m_OnLineCall = null;
 
+    /// <summary>
+    /// Provides the video to send to the call when the call is on-line.
+    /// </summary>
     public WindowsCameraCapture? CameraCapture = null;
 
     private SrcManager? m_SrcManager = null;
-
     private I3LogEventClientMgr m_I3LogEventClientMgr;
+    private Ng911CadIfServer? m_Ng911CadIfServer = null;
 
     /// <summary>
     /// Constructor
@@ -109,7 +125,6 @@ public class CallManager
             throw;
         }
 
-        //UserName = m_Settings.Identity.ElementID;
         m_PortManager = new MediaPortManager(m_Settings.NetworkSettings.MediaPorts);
         m_Fingerprint = RtpChannel.CertificateFingerprint!;
 
@@ -144,10 +159,17 @@ public class CallManager
     /// </summary>
     public event CallStateDelegate? CallStateChanged = null;
 
+    /// <summary>
+    /// Event that is fired when a new video frame bitmap is ready.
+    /// </summary>
     public event FrameBitmapReadyDelegate? FrameBitmapReady = null;
 
     private bool m_Started = false;
 
+    /// <summary>
+    /// Starts the CallManager. Call this method and await it after calling the constructor and hooking the events
+    /// </summary>
+    /// <returns></returns>
     public async Task Start()
     {
         if (m_Started == true)
@@ -287,6 +309,8 @@ public class CallManager
 
         m_SrcManager.Start();
 
+        StartNg911CadIfServer();
+
         m_Started = true;
 
     }
@@ -360,6 +384,9 @@ public class CallManager
         //    FrameBitmapReady?.Invoke(m_CameraDisabledBitmap);
     }
 
+    /// <summary>
+    /// Returns true if transmit video is enabled in the configuration settings or false if it is not.
+    /// </summary>
     public bool TransmitVideoEnabled
     {
         get
@@ -377,6 +404,8 @@ public class CallManager
     {
         if (m_Started == false)
             return;
+
+        await ShutdownNg911CadIfServer();
 
         m_CancellationTokenSource.Cancel();
 
@@ -683,6 +712,11 @@ public class CallManager
         }
     }
 
+    /// <summary>
+    /// Picks up (puts on-line) the call. If there is currently a call on-line then this method puts that call on-hold before 
+    /// picking up the specified call.
+    /// </summary>
+    /// <param name="callID">Call-ID of the call to pick up.</param>
     public void PickupCall(string callID)
     {
         EnqueueWorkItem(() => { DoPickupCall(callID); });
@@ -881,6 +915,7 @@ public class CallManager
 
         m_OnLineCall = call;
         call.CallState = CallStateEnum.OnLine;
+        call.CallAnsweredTime = DateTime.Now;
         CallStateChanged?.Invoke(GetCallSummary(call));
     }
 
@@ -1107,9 +1142,9 @@ public class CallManager
             else if (Event == SubscriptionEvents.Conference)
                 call.ProcessConferenceNotify(sipRequest);
         }
-        else
+        else if (Event == "refer")
         {
-
+            ProcessReferNotifyRequest(sipRequest, remoteEndPoint, sipTransport);
         }
 
     }
@@ -1541,6 +1576,7 @@ public class CallManager
             if (OkResponse != null)
             {
                 newCall.CallState = CallStateEnum.AutoAnswered;
+                newCall.CallAnsweredTime = DateTime.Now;
                 newCall.serverInviteTransaction = null;
                 newCall.OKResponse = OkResponse;
                 Sit.SendResponse(OkResponse);
@@ -1556,18 +1592,171 @@ public class CallManager
 
         EnqueueWorkItem(() =>  newCall.GetLocationAndAdditionalData());
 
-
-
-        // TODO: EIDO stuff
+        // Check to see if this is a call that is being transfered. If there is, then there may be a EIDO for the call.
+        SIPCallInfoHeader? callInfo = SipUtils.GetCallInfoHeaderForPurpose(sipRequest.Header, PurposeTypes.Eido);
+        if (callInfo != null && callInfo.CallInfoField.URI is not null)
+        {
+            newCall.EidoRequestUri = callInfo.CallInfoField.URI.ToParameterlessString();
+            _ = GetEidoByReference(newCall.EidoRequestUri, newCall.CallID);
+        }
 
         NewCall?.Invoke(GetCallSummary(newCall));
     }
 
+    private async Task GetEidoByReference(string eidoRequestUri, string callID)
+    {
+        AsyncHttpRequestor Ahr = new AsyncHttpRequestor(m_Certificate, 2000, $"{Ng911Lib.Utilities.ContentTypes.Eido}, " +
+            "application/json");
+        HttpResults httpResults = await Ahr.DoRequestAsync(HttpMethodEnum.GET, eidoRequestUri, null, null, true);
+
+        if (httpResults.Excpt != null)
+        {   // An exception occured.
+            SipLogger.LogError($"Exception occured while getting the EIDO from {eidoRequestUri}, for Call-ID = {callID}, " +
+                $"message = {httpResults.Excpt.Message}");
+            Ahr.Dispose();
+            return;
+        }
+
+        if (httpResults.StatusCode != HttpStatusCode.OK)
+        {
+            SipLogger.LogError($"Failed to get the EIDO from {eidoRequestUri}, response = {httpResults.StatusCode}, " +
+                $"for Call-ID = {callID}");
+            Ahr.Dispose();
+            return;
+        }
+
+        if (string.IsNullOrEmpty(httpResults.Body) == true)
+        {
+            SipLogger.LogError($"No EIDO response body from {eidoRequestUri}, for Call-ID = {callID}");
+            Ahr.Dispose();
+            return;
+        }
+
+        EidoType eido = EidoHelper.FromString(httpResults.Body);
+        if (eido == null)
+        {
+            SipLogger.LogError($"Failed to deserialize an EIDO from {eidoRequestUri}, for Call-ID = {callID}");
+            Ahr.Dispose();
+            return;
+        }
+
+        Ahr.Dispose();
+        EnqueueWorkItem(() => HandleCallEidoReceived(eido, callID, eidoRequestUri));
+    }
+
+    private void HandleCallEidoReceived(EidoType eido, string callID, string eidoRequestUri)
+    {
+        Call? call = GetCall(callID);
+        if (call == null)
+            return;         // The call has already ended so no need to process the EIDO
+
+        SendEidoLogEvent(eido, eidoRequestUri, call);
+
+        // Get the location information from the EIDO
+        ThreadSafeGenericList<Presence> locations = new ThreadSafeGenericList<Presence>();
+        if (eido.locationComponent != null)
+        {
+            foreach (LocationInformationType Lit in eido.locationComponent)
+            {
+                if (string.IsNullOrEmpty(Lit.locationByValue) == false)
+                {
+                    Presence presence = XmlHelper.DeserializeFromString<Presence>(Lit.locationByValue);
+                    if (presence != null)
+                        locations.Add(presence);
+                    else
+                        SipLogger.LogError($"Failed to deserialize a Presence object from the EIDO for Call-ID = {callID}");
+                }
+            }
+        }
+
+        if (locations.Count > 0)
+            call.SetLocations(locations);
+
+        // Process the Additional Data by-value in the EIDO
+        bool EidoHasAdditionalData = false;
+        if (eido.additionalDataComponent != null)
+        {
+            foreach (AdditionalDataType Adt in eido.additionalDataComponent)
+            {
+                if (string.IsNullOrEmpty(Adt.urlPurpose) == true || string.IsNullOrEmpty(Adt.additionalDataByValue) == true)
+                    continue;
+
+                EidoHasAdditionalData = true;
+                switch (Adt.urlPurpose)
+                {
+                    case PurposeTypes.ServiceInfo:
+                        call.ServiceInfo = XmlHelper.DeserializeFromString<ServiceInfoType>(Adt.additionalDataByValue);
+                        if (call.ServiceInfo == null)
+                            SipLogger.LogError($"Invalid ServiceInfoType in EIDO for Call-ID = {callID}");
+                        break;
+                    case PurposeTypes.SubscriberInfo:
+                        call.SubscriberInfo = XmlHelper.DeserializeFromString<SubscriberInfoType>(Adt.additionalDataByValue);
+                        if (call.SubscriberInfo == null)
+                            SipLogger.LogError($"Invalid SubscriberInfoType in EIDO for Call-ID = {callID}");
+                        break;
+                    case PurposeTypes.DeviceInfo:
+                        call.DeviceInfo = XmlHelper.DeserializeFromString<DeviceInfoType>(Adt.additionalDataByValue);
+                        if (call.DeviceInfo == null)
+                            SipLogger.LogError($"Invalid DeviceInfoType in EIDO for Call-ID = {callID}");
+                        break;
+                    case PurposeTypes.ProviderInfo:
+                        ProviderInfoType providerInfo = XmlHelper.DeserializeFromString<ProviderInfoType>(Adt.additionalDataByValue);
+                        if (providerInfo == null)
+                            SipLogger.LogError($"Invalid ProviderInfoType in EIDO for Call-ID = {callID}");
+                        else if (string.IsNullOrEmpty(providerInfo.ProviderID) == true)
+                            SipLogger.LogError($"ProviderID not specified for ProviderInfoType in EIDO for Call-ID = {callID}");
+                        else
+                            call.Providers.TryAdd(providerInfo.ProviderID, providerInfo);
+                        break;
+                    case PurposeTypes.Comment:
+                        CommentType comment = XmlHelper.DeserializeFromString<CommentType>(Adt.additionalDataByValue);
+                        if (comment == null)
+                            SipLogger.LogError($"Invalid CommentType in EIDO for Call-ID = {callID}");
+                        else
+                            call.Comments.Add(comment);
+                        break;
+                } // end switch
+            } // end foreach
+
+            if (EidoHasAdditionalData == true)
+                call.FireAdditionalDataAvailable();
+        }
+    }
+
+    private void SendEidoLogEvent(EidoType eido, string strRemoteUrl, Call call)
+    {
+        SIPURI? sipUri = null;
+        string strEndpoint;
+        if (SIPURI.TryParse(strRemoteUrl, out sipUri) == true && sipUri is not null)
+            strEndpoint = sipUri.ToSIPEndPoint()!.GetIPEndPoint().ToString();
+        else
+            strEndpoint = strRemoteUrl;
+
+        EidoLogEvent Ele = new EidoLogEvent();
+        Ele.timestamp = TimeUtils.GetCurrentNenaTimestamp();
+        Ele.elementId = m_Settings.Identity.ElementID;
+        Ele.agencyId = m_Settings.Identity.AgencyID;
+        Ele.agencyAgentId = m_Settings.Identity.AgentID;
+        Ele.agencyPositionId = null;    // Not used by this application
+        Ele.ipAddressPort = strRemoteUrl;
+        Ele.callId = call.EmergencyCallIdentifier;
+        Ele.incidentId = call.EmergencyIncidentIdentifier;
+        Ele.body = EidoHelper.ToJsonString(eido);
+        Ele.direction = "incoming";
+        m_I3LogEventClientMgr.SendLogEvent(Ele);
+    }
+
     private void StartCall(Call call)
     {
-        if (call.OfferedSdp == null || call.AnsweredSdp == null)
+        if (call.OfferedSdp == null)
         {
-            // TODO: Notify of this error
+            SipLogger.LogError($"No Offered SDP for Call-ID = {call.CallID}");
+            return;
+        }
+
+        if (call.AnsweredSdp == null)
+        {
+            SipLogger.LogError($"No Answered SDP for Call-ID = {call.CallID}");
             return;
         }
 
@@ -1688,7 +1877,8 @@ public class CallManager
             call.AudioSampleSource = new AudioSource(AudioAnswerMd, encoder, rtpChannel);
         else
         {
-            // TODO: handle this error
+            SipLogger.LogError($"Failed to get the audio encoder for Call-ID = {call.CallID}");
+            return;
         }
 
         IAudioDecoder? decoder = WindowsAudioUtils.GetAudioDecoder(AudioAnswerMd);
@@ -1696,9 +1886,7 @@ public class CallManager
             call.AudioDestination = new AudioDestination(AudioAnswerMd, decoder, rtpChannel, null,
                 m_WaveAudio!.SampleRate);
         else
-        {
-            // TODO: handle this error
-        }
+            SipLogger.LogError($"Failed to get the audio decoder for Call-ID = {call.CallID}");
     }
 
     private void AutoAnswer(Call call)
@@ -1720,10 +1908,6 @@ public class CallManager
                     call.CurrentVideoCapture = AutoAnswerCapture;
                     AutoAnswerCapture.FrameReady += call.VideoSender.SendVideoFrame;
                 }
-            }
-            else if (rtpChannel.MediaType == MediaTypes.RTT)
-            {
-                // TODO: ?
             }
         }
 
@@ -1789,10 +1973,7 @@ public class CallManager
         summary.CallState = call.CallState;
 
         summary.QueueURI = call.InviteRequest.GetQueueUri(); ;
-
-        // TODO: Implement this
-        summary.Conferenced = false;
-
+        summary.Conferenced = call.IsConferenced;
         summary.CallMedia = call.GetMediaTypeDisplayList();
 
         return summary;
@@ -1974,4 +2155,459 @@ public class CallManager
             EndCall(call!);
         }
     }
+    
+    /// <summary>
+    /// Starts a transfer/conference operation by adding a new transfer target to the call.
+    /// </summary>
+    /// <param name="call">Call to add the transfer target to.</param>
+    /// <param name="target">Transfer target to add.</param>
+    public void StartTransfer(Call call, TransferTarget target)
+    {
+        EnqueueWorkItem(() => DoStartTransfer(call, target));
+    }
+
+    private void DoStartTransfer(Call call, TransferTarget target)
+    {
+        // Make sure the call still exists
+        Call? call1 = GetCall(call.CallID);
+        if (call1 == null)
+            return;
+
+        int LastCseqNum = call.LastInviteSequenceNumber;
+        SIPRequest refer = SipUtils.BuildInDialogRequest(SIPMethodsEnum.REFER, call.sipTransport.SipChannel, true,
+            call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, ref LastCseqNum);
+        string strEidoUri = $"<https://{GetEidoIpAddress()}:{EidoPort}{HttpEidoPath}/{call.CallID}>;purpose={PurposeTypes.Eido}";
+        refer.Header.ReferTo = $"<{target.SipUri}?Call-Info={SIPEscape.EscapeSpecialCharacters(strEidoUri)}>";
+        IPEndPoint remoteEndpoint = call.InviteRequest!.Header.Contact![0]!.ContactURI!.ToSIPEndPoint()!.GetIPEndPoint();
+        call.LastInviteSequenceNumber = LastCseqNum;
+        call.sipTransport.StartClientNonInviteTransaction(refer, remoteEndpoint, OnReferTransactionComplete, 10000);
+    }
+
+    /// <summary>
+    /// Sends a REFER request to the conference aware user agent to tell it to drop a specified transfer target/conference 
+    /// member from the conference.
+    /// </summary>
+    /// <param name="call">Call to drop the conference member from.</param>
+    /// <param name="strTransferTargetUri">String containing the SIP URI of the conference member.</param>
+    public void StartDropTransferTarget(Call call, string strTransferTargetUri)
+    {
+        EnqueueWorkItem(() => DoStartDropTransferTarget(call, strTransferTargetUri));
+    }
+
+    private void DoStartDropTransferTarget(Call call, string strTransferTargetUri)
+    {
+        int LastCseqNum = call.LastInviteSequenceNumber;
+        SIPRequest refer = SipUtils.BuildInDialogRequest(SIPMethodsEnum.REFER, call.sipTransport.SipChannel, true,
+            call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, ref LastCseqNum);
+        refer.Header.ReferTo = strTransferTargetUri + ";method=BYE";
+        IPEndPoint remoteEndpoint = call.InviteRequest!.Header.Contact![0]!.ContactURI!.ToSIPEndPoint()!.GetIPEndPoint();
+        call.LastInviteSequenceNumber = LastCseqNum;
+        call.sipTransport.StartClientNonInviteTransaction(refer, remoteEndpoint, OnReferTransactionComplete, 10000);
+    }
+
+    /// <summary>
+    /// Sends a REFER to the conference aware user agent to tell it to remove the last added conference member.
+    /// </summary>
+    /// <param name="call">Specifies the call to remove the last added conference member from.</param>
+    public void StartDropLast(Call call)
+    {
+        EnqueueWorkItem(() => DoStartDropLast(call));
+    }
+
+    private void DoStartDropLast(Call call)
+    {
+        // Make sure the call still exists
+        Call? call1 = GetCall(call.CallID);
+        if (call1 == null)
+            return;
+
+        // For debug only
+        int LastCseqNum = call.LastInviteSequenceNumber;
+        SIPRequest refer = SipUtils.BuildInDialogRequest(SIPMethodsEnum.REFER, call.sipTransport.SipChannel, true,
+            call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, ref LastCseqNum);
+
+        SIPURI contactUri = call.InviteRequest!.Header.Contact![0]!.ContactURI!;
+        SIPURI RefToUri = contactUri.CopyOf();
+        RefToUri.Parameters.RemoveAll();
+        RefToUri.User = "0000000000";       // This code means to drop the last added conference member
+        refer.Header.ReferTo = RefToUri.ToParameterlessString() + ";method=BYE";
+
+        IPEndPoint remoteEndpoint = contactUri!.ToSIPEndPoint()!.GetIPEndPoint();
+        call.LastInviteSequenceNumber = LastCseqNum;
+        call.sipTransport.StartClientNonInviteTransaction(refer, remoteEndpoint, OnReferTransactionComplete, 10000);
+    }
+
+    private string GetEidoIpAddress()
+    {
+        NetworkSettings Ns = m_Settings.NetworkSettings;
+        if (Ns.EnableIPv4 == true)
+            return Ns.IPv4Address!;
+        else if (Ns.EnableIPv6 == true)
+            return Ns.IPv6Address!;
+        else
+            return "127.0.0.1";
+        
+    }
+
+    private void OnReferTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
+        IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
+    {
+        EnqueueWorkItem(() => HandleReferTransactionComplete(sipRequest, sipResponse));
+    }
+
+    private void HandleReferTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse)
+    {
+        Call? call = GetCall(sipRequest.Header.CallId);
+        if (call == null)
+            return;     // The call has ended
+
+        SIPResponseStatusCodesEnum status;
+        string reason;
+        if (sipResponse == null)
+        {
+            status = SIPResponseStatusCodesEnum.InternalServerError;
+            reason = "No Response";
+        }
+        else
+        {
+            status = sipResponse.Status;
+            reason = string.IsNullOrEmpty(sipResponse.ReasonPhrase) == true ? "Unknown" : sipResponse.ReasonPhrase;
+        }
+
+        call.FireReferResponseStatus(status, reason);
+    }
+
+    private void ProcessReferNotifyRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
+    {
+        SIPResponse OkResponse = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.Ok, "OK", sipTransport.SipChannel,
+            UserName);
+        sipTransport.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null, OkResponse);
+
+        Call? call = GetCall(sipRequest.Header.CallId);
+        if (call == null)
+            return;     // The call may have ended
+
+        string? sipfrag = sipRequest.GetContentsOfType(SipLib.Body.ContentTypes.SipFrag);
+        if (string.IsNullOrEmpty(sipfrag) == false)
+        {
+            // Get the 3-digit response from the SIPFRAG body. The SIPFRAG body looks line this:
+            // SIP/2.0 100 Trying or SIP/2.0 200 OK.
+            SIPFrag sipFrag = SIPFrag.ParseSIPFrag(sipfrag);
+            if (sipFrag.Status == SIPResponseStatusCodesEnum.None)
+            {   // Invalid SIPFRAG body
+                SipLogger.LogError($"Invalid SIPFRAG NOTIFY body received for Call-ID = {sipRequest.Header.CallId}");
+                return;
+            }
+
+            if (sipFrag.Status == SIPResponseStatusCodesEnum.Ok)
+            {
+                call.IsConferenced = true;
+                CallStateChanged?.Invoke(GetCallSummary(call));
+            }
+
+            call.FireReferNotifyStatus(sipFrag.Status, sipFrag.ReasonPhrase);
+        }
+    }
+
+    private const int EidoPort = 16000;
+    private const string HttpEidoPath = "/incidents/eido";
+    private const string WsEidoPath = "/IncidentData/ent";
+
+    private void StartNg911CadIfServer()
+    {
+        IdentitySettings Is = m_Settings.Identity;
+        CadIfLoggingSettings Cls = new CadIfLoggingSettings()
+        {
+            AgencyAgentId = Is.AgentID,
+            AgencyId = Is.AgencyID,
+            AgencyPositionId = null,
+            ElementId = Is.ElementID
+        };
+
+        IPEndPoint ServerEndPoint = new IPEndPoint(IPAddress.Parse(GetEidoIpAddress()), EidoPort);
+        m_Ng911CadIfServer = new Ng911CadIfServer(m_Certificate, ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
+            Cls, EidoMutualAuthenticationCallback, EidoRetrievalCallback);
+        // Hook the events
+        m_Ng911CadIfServer.NewSubscription += OnNewEidoSubscription;
+        m_Ng911CadIfServer.SubscriptionEnded += OnEidoSubscriptionEnded;
+        m_Ng911CadIfServer.Start();
+    }
+
+    private async Task ShutdownNg911CadIfServer()
+    {
+        if (m_Ng911CadIfServer != null)
+        {
+            m_Ng911CadIfServer.NewSubscription -= OnNewEidoSubscription;
+            m_Ng911CadIfServer.SubscriptionEnded -= OnEidoSubscriptionEnded;
+            await m_Ng911CadIfServer.ShutdownAsync();
+            m_Ng911CadIfServer = null;
+        }
+    }
+
+    private void OnEidoSubscriptionEnded(string strSubscriptionId, string strIdType, string strId, IPEndPoint RemIpe, string strReason)
+    {
+        
+    }
+
+    // Event handler for the NewEidoSubscription event of the Ng911CadIfServer class.
+    private void OnNewEidoSubscription(string strSubscriptionId, string strIdType, string strId, IPEndPoint RemIpe)
+    {
+        EnqueueWorkItem(() => { HandleNewEidoSubscription(strSubscriptionId, strIdType, strId, RemIpe); });
+    }
+
+    private void HandleNewEidoSubscription(string strSubscriptionId, string strIdType, string strId, IPEndPoint RemIpe)
+    {
+        if (m_Ng911CadIfServer == null)
+            return;
+
+        List<EidoType> eidoList = new List<EidoType>();
+        foreach (Call call in m_Calls.Values.ToArray())
+            eidoList.Add(BuildCallEido(call));
+
+        if (eidoList.Count > 0)
+            m_Ng911CadIfServer.SendEidosToSubscriber(strSubscriptionId, eidoList);
+    }
+
+    private bool EidoMutualAuthenticationCallback(X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
+    {
+        return true;
+    }
+
+    /// <summary>
+    /// Called by the Ng911CadIfServer object when a PSAP requests an EIDO for a call. 
+    /// </summary>
+    /// <param name="EidoReferenceId">Reference ID for the call to get the EIDO for. In this application we are using the
+    /// original SIP Call-ID for the call.</param>
+    /// <param name="ClientCert"></param>
+    /// <param name="remoteEndpoint"></param>
+    /// <param name="ResponseCode"></param>
+    /// <returns></returns>
+    private EidoType EidoRetrievalCallback(string EidoReferenceId, X509Certificate2 ClientCert, IPEndPoint remoteEndpoint, out int ResponseCode)
+    {
+        Call? call = GetCall(EidoReferenceId);
+        if (call == null)
+        {   // The call has ended.
+            ResponseCode = 404;
+            return null!;
+        }
+
+        ManualResetEvent Event = new ManualResetEvent(false);
+        EidoType? eido = null;
+        EnqueueWorkItem(() => 
+        {
+            eido = BuildCallEido(call);
+            Event.Set();
+        });
+
+        bool Success = Event.WaitOne(2000);
+        if (Success == false)
+            SipLogger.LogError($"BuildCallEido() timed out for Call-ID = {call.CallID} for a request from " +
+                $"{remoteEndpoint}");
+
+        if (eido != null)
+        {
+            ResponseCode = 200;
+            return eido!;
+        }
+        else
+        {
+            ResponseCode = 404;
+            return null!;
+        }    
+    }
+
+    /// <summary>
+    /// Builds a complete EIDO based on the current information about a call.
+    /// </summary>
+    /// <param name="call"></param>
+    /// <returns></returns>
+    private EidoType BuildCallEido(Call call)
+    {
+        EidoType eido = new EidoType();
+        eido.Id = call.EmergencyIncidentIdentifier;
+
+        eido.issuingElementIdentification = m_Settings.Identity.ElementID;
+
+        eido.agencyComponent = new List<AgencyType>();
+        AgencyType agency = new AgencyType();
+        agency.Id = m_Settings.Identity.AgencyID;
+        agency.agencyRoleDescriptionRegistryText = ["CallReceiving"];
+        agency.incidentOwningAgencyIndicator = true;
+        agency.agencyType = ["psap"];
+        eido.agencyComponent.Add(agency);
+
+        eido.agentComponent = new List<AgentType>();
+        AgentType agent = new AgentType();
+        agent.agentRoleRegistryText = ["Call Taking"];
+        agent.agencyReference = new ReferenceType();
+        agent.agencyReference.Ref = agency.Id;
+        eido.agentComponent.Add(agent);
+
+        eido.updatedByAgencyReference = new ReferenceType();
+        eido.updatedByAgencyReference.Ref = agency.Id;
+        eido.updatedByAgentReference = new ReferenceType();
+        eido.updatedByAgentReference.Ref = agent.Id;
+
+        eido.issuingElementIdentification = agency.Id;
+
+        eido.personComponent = new List<PersonInformationType>();
+        PersonInformationType person = new Eido.PersonInformationType();
+        person.personIncidentRoleRegistryText = ["Caller"];
+        person.callIdentifier = [call.EmergencyCallIdentifier];
+        person.additionalDataReference = new List<ReferenceType>();
+        person.locationReference = new List<ReferenceType>();
+        eido.personComponent.Add(person);
+
+        CallInformationType callInfo = new CallInformationType();
+        eido.callComponent = [callInfo];
+        callInfo.Id = call.EmergencyCallIdentifier;
+        callInfo.standardPrimaryCallType = "emergency";
+        callInfo.direction = "incoming";
+        callInfo.callStartTimestamp = TimeUtils.DateTimeToNenaTimeStamp(call.CallStartTime);
+        if (call.CallAnsweredTime != DateTime.MinValue)
+            callInfo.answerDate = TimeUtils.DateTimeToNenaTimeStamp(call.CallAnsweredTime);
+        callInfo.callStateRegistryText = CallStateToStateRegistryText(call.CallState);
+        // Link the call to the person compoonent
+        callInfo.personReference = new List<ReferenceType>();
+        ReferenceType personReference = new ReferenceType();
+        personReference.Ref = person.Id;
+        callInfo.personReference.Add(personReference);
+        // Link the call to the agent object
+        callInfo.agentReference = new List<ReferenceType>();
+        ReferenceType CitRt = new ReferenceType();
+        CitRt.Ref = agent.Id;
+        callInfo.agentReference.Add(CitRt);
+
+        CallbackType callBack = new CallbackType();
+        eido.callbackComponent = [callBack];
+        callBack.callBackInformationUri = new List<string>();
+        callBack.callBackInformationUri = [SipUtils.GetPaiOrFromUri(call.InviteRequest!.Header).ToParameterlessString()];
+        callBack.deviceContactHeader = call.InviteRequest!.Header.Contact![0].ToString();
+
+        // Link the callback object to the call object
+        callInfo.callBackReference = new ReferenceType();
+        callInfo.callBackReference.Ref = callBack.Id;
+        // Link the callback object to the person object
+        person.callBackReference = new ReferenceType();
+        person.callBackReference.Ref = callBack.Id;
+
+        IncidentInformationType incidentInformation = new IncidentInformationType();
+        incidentInformation.incidentTypeCommonRegistryText = "MAYDAY";
+        incidentInformation.incidentStatusCommonRegistryText = ["Active"];
+        incidentInformation.agentReference = new List<ReferenceType>();
+        ReferenceType IitArt = new ReferenceType();
+        IitArt.Ref = agent.Id;
+        incidentInformation.agentReference.Add(IitArt);
+        incidentInformation.personReference = new List<ReferenceType>();
+        ReferenceType IitPrt = new ReferenceType();
+        IitPrt.Ref = person.Id;
+        incidentInformation.personReference.Add(IitPrt);
+        eido.incidentComponent = incidentInformation;
+
+        Presence[] locations = call.Locations.ToArray();
+        if (locations.Length > 0)
+        {
+            eido.locationComponent = new List<LocationInformationType>();
+            callInfo.locationReference = new List<ReferenceType>();
+            incidentInformation.locationReference = new List<ReferenceType>();
+            for (int i = 0; i < locations.Length; i++)
+            {
+                LocationInformationType locationInformation = new LocationInformationType();
+                locationInformation.locationByValue = XmlHelper.SerializeToString(locations[i]);
+                // Assume that the first location received is for routing to the PSAP and subsequent locations represent
+                // the location of the caller.
+                if (i == 0)
+                    locationInformation.locationTypeDescriptionRegistryText = "RoutingLocation";
+                else
+                    locationInformation.locationTypeDescriptionRegistryText = "Caller";
+                eido.locationComponent.Add(locationInformation);
+
+                // Link the call to the location
+                ReferenceType LocRt = new ReferenceType();
+                LocRt.Ref = locationInformation.Id;
+                callInfo.locationReference.Add(LocRt);
+                // Link the incident to this location
+                ReferenceType IitRt = new ReferenceType();
+                IitRt.Ref = locationInformation.Id;
+                incidentInformation.locationReference.Add(IitRt);
+                // Link the person to this location
+                ReferenceType locReference = new ReferenceType();
+                locReference.Ref = locationInformation.Id;
+                person.locationReference.Add(locReference);
+            }
+        }
+
+        // Additional Data
+        eido.additionalDataComponent = new List<AdditionalDataType>();
+        callInfo.additionalDataReference = new List<ReferenceType>();
+
+        if (call.ServiceInfo != null)
+            AddAdditionalDataToEido(eido, call.ServiceInfo, PurposeTypes.ServiceInfo, callInfo);
+
+        if (call.SubscriberInfo != null)
+            AddAdditionalDataToEido(eido, call.SubscriberInfo, PurposeTypes.SubscriberInfo, callInfo);
+
+        if (call.Providers.Count > 0)
+        {
+            ProviderInfoType[] providers = call.Providers.Values.ToArray();
+            foreach (ProviderInfoType provider in providers)
+                AddAdditionalDataToEido(eido, provider, PurposeTypes.ProviderInfo, callInfo);
+        }
+
+        if (call.DeviceInfo != null)
+            AddAdditionalDataToEido(eido, call.DeviceInfo, PurposeTypes.DeviceInfo, callInfo);
+
+        if (call.Comments.Count > 0)
+        {
+            CommentType[] comments = call.Comments.ToArray();
+            foreach (CommentType comment in comments)
+                AddAdditionalDataToEido(eido, comment, PurposeTypes.Comment, callInfo);
+        }
+
+        return eido;
+    }
+
+    private void AddAdditionalDataToEido(EidoType eido, object AddDataObj, string purpose, CallInformationType callInfo)
+    {
+        AdditionalDataType additionalDataType = new AdditionalDataType();
+        additionalDataType.additionalDataByValue = XmlHelper.SerializeToString(AddDataObj);
+        additionalDataType.urlPurpose = purpose;
+        ReferenceType Reference = new ReferenceType();
+        Reference.Ref = additionalDataType.Id;
+        callInfo.additionalDataReference.Add(Reference);
+        eido.additionalDataComponent.Add(additionalDataType);
+    }
+
+    // See Section 10.24 of NENA-STA-010.3b
+    private string CallStateToStateRegistryText(CallStateEnum callState)
+    {
+        string stateRegistryText = "callBegin";
+        switch (callState)
+        {
+            case CallStateEnum.Idle:
+                stateRegistryText = "callBegin";
+                break;
+            case CallStateEnum.Trying:
+                stateRegistryText = "callAlerting";
+                break;
+            case CallStateEnum.Ringing:
+                stateRegistryText = "callAlerting";
+                break;
+            case CallStateEnum.AutoAnswered:
+                stateRegistryText = "callAnswered";
+                break;
+            case CallStateEnum.OnHold:
+                stateRegistryText = "callHold";
+                break;
+            case CallStateEnum.OnLine:
+                stateRegistryText = "callAnswered";
+                break;
+            case CallStateEnum.Ended:
+                stateRegistryText = "callEnd";
+                break;
+        }
+
+        return stateRegistryText;
+    }
 }
+

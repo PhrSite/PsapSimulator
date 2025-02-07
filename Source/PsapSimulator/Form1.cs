@@ -250,7 +250,7 @@ public partial class Form1 : Form
         Lvi.SubItems.Add(callSummary.StartTime.ToString("HH:mm:ss"));
         Lvi.SubItems.Add(Call.CallStateToString(callSummary.CallState));
         Lvi.SubItems.Add(callSummary.QueueURI);
-        Lvi.SubItems.Add(callSummary.Conferenced.ToString());
+        Lvi.SubItems.Add(callSummary.Conferenced == true ? "Yes" : "No");
         Lvi.SubItems.Add(callSummary.CallMedia);
         Lvi.Tag = callSummary.CallID;
         CallListView.Items.Add(Lvi);
@@ -270,7 +270,7 @@ public partial class Form1 : Form
             return;     // Error: call not found
 
         Lvi.SubItems[CallStateIndex].Text = callSummary.CallState.ToString();
-        Lvi.SubItems[ConferencedIndex].Text = callSummary.Conferenced.ToString();
+        Lvi.SubItems[ConferencedIndex].Text = callSummary.Conferenced == true ? "Yes" : "No";
         Lvi.SubItems[CallMediaIndex].Text = callSummary.CallMedia;
 
         UpdateCallCounts();
