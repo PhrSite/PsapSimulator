@@ -5,7 +5,7 @@
 namespace PsapSimulator;
 using PsapSimulator.Settings;
 using SipLib.Core;
-using SipLib.SipRec;
+using SipRecClient;
 
 /// <summary>
 /// SIPREC settings form

@@ -14,7 +14,7 @@ using SipLib.Rtp;
 using SipLib.Sdp;
 using SipLib.Transactions;
 using SipLib.Collections;
-using SipLib.SipRec;
+using SipRecClient;
 using Pidf;
 
 using System.Net;
@@ -33,15 +33,25 @@ using SipLib.Logging;
 using SipLib.Subscriptions;
 using I3V3.LoggingHelpers;
 using ConferenceEvent;
-using System.Security.Permissions;
+using Eido;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
 
 /// <summary>
 /// Delegate type for the NewLocation event of the Call class.
 /// </summary>
+/// <param name="call">Call that the new location information was received from</param>
 /// <param name="newPresence">Contains the new location data</param>
-public delegate void NewLocationDelegate(Presence newPresence);
+public delegate void NewLocationDelegate(Call call, Presence newPresence);
+
+/// <summary>
+/// Delegate type for the CallAdditionalDataAvailable event of the Call class.
+/// </summary>
+/// <param name="call">Call that the Additional Data pertains to.</param>
+/// <param name="strPurpose">String that identifies the the purpose of the Additional Data block. For example:
+/// EmergencyCallData.ServiceInfo</param>
+/// <param name="xmlData">String containing the XML data for the Additional Data block.</param>
+internal delegate void CallAdditionalDataAvailableDelegate(Call call, string strPurpose, string xmlData);
 
 /// <summary>
 /// Delegate type for the NewOnferenceInfo event of the Call class.
@@ -97,15 +107,17 @@ public class Call
         {   
             m_OKResponse = value;
             if (IsIncoming == true)
+            {
+                LocalContactHeader = m_OKResponse?.Header.Contact?[0];
                 LocalTag = m_OKResponse?.Header.To?.ToTag;
+            }
             else
+            {
+                RemoteContactHeader = m_OKResponse!.Header.Contact![0];
                 LocalTag = m_OKResponse?.Header.From?.FromTag;
+            }
         }
     }
-
-    internal string? RemoteTag = string.Empty;
-
-    internal string? LocalTag = string.Empty;
 
     internal bool OfferlessInvite { get; set; } = false;
 
@@ -233,7 +245,7 @@ public class Call
     public DateTime LastLocationReceivedTime = DateTime.MinValue;
 
     /// <summary>
-    /// This event is fired when new location for the call is received.
+    /// This event is fired when new location for the call is received by-reference.
     /// </summary>
     public event NewLocationDelegate? NewLocation = null;
 
@@ -241,6 +253,11 @@ public class Call
     /// Fired when new Additional Data has become available for the call.
     /// </summary>
     public event Action? AdditionalDataAvailable = null;
+
+    /// <summary>
+    /// This event is fired when a single block of Additional Data for the call is received by-reference
+    /// </summary>
+    internal event CallAdditionalDataAvailableDelegate? CallAdditionalDataAvailable = null;
 
     /// <summary>
     /// This event is fired when new information about the conference members is available.
@@ -342,10 +359,29 @@ public class Call
     internal bool IsConferenced { get; set; } = false;
 
     /// <summary>
-    /// Request URI for the EIDO for this call that was passed to this application in a Call-Info header from a conferenc
+    /// Request URI for the EIDO for this call that was passed to this application in a Call-Info header from a conference
     /// aware user agent.
     /// </summary>
     internal string EidoRequestUri { get; set; } = string.Empty;
+
+    internal string? RemoteTag = string.Empty;
+
+    internal string? LocalTag = string.Empty;
+
+    /// <summary>
+    /// Contact header for the remote (caller) endpoint
+    /// </summary>
+    public SIPContactHeader RemoteContactHeader = new SIPContactHeader("unknown", SIPURI.ParseSIPURI("sip:unknown@127.0.0.1"));
+
+    /// <summary>
+    /// Contact header for this local endpoint. This is set when the OK response is sent.
+    /// </summary>
+    public SIPContactHeader? LocalContactHeader = null;
+
+    /// <summary>
+    /// Emergency Incident Data Object (EIDO) for this call.
+    /// </summary>
+    public EidoType? Eido = null;
 
     private Call(SipTransport transport, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
         IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
@@ -355,6 +391,34 @@ public class Call
         m_I3LogEventClientMgr = i3LogEventClientMgr;
         m_IdentitySettings = identitySettings;
         m_EventLoggingSettings = eventLoggingSettings;
+    }
+
+    /// <summary>
+    /// Creates a new incoming call
+    /// </summary>
+    /// <param name="invite">INVITE request that was received</param>
+    /// <param name="transaction">SIP transaction that was created for the INVITE for the call</param>
+    /// <param name="transport">SIP transport that the call came in on.</param>
+    /// <param name="initialState">Initial call state.</param>
+    /// <param name="certificate">X.509 certificate to use for MSRP processing</param>
+    /// <returns></returns>
+    public static Call CreateIncomingCall(SIPRequest invite, ServerInviteTransaction transaction,
+        SipTransport transport, CallStateEnum initialState, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
+        IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
+    {
+        Call call = new Call(transport, certificate, i3LogEventClientMgr, identitySettings, eventLoggingSettings);
+        call.IsIncoming = true;
+        call.InviteRequest = invite;
+        call.serverInviteTransaction = transaction;
+        call.CallState = initialState;
+        call.CallID = invite.Header!.CallId!;   // Will never be null here
+        call.LastInviteSequenceNumber = invite.Header.CSeq;
+        call.RemoteIpEndPoint = transaction.RemoteEndPoint;
+        call.RemoteTag = invite.Header.From?.FromTag;
+
+        call.RemoteContactHeader = invite.Header.Contact![0];
+
+        return call;
     }
 
     /// <summary>
@@ -920,15 +984,17 @@ public class Call
                 }
 
                 AsyncHttpRequestor Ahr = new AsyncHttpRequestor(certificate, 10000, null);
-                HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.GET, uri.ToString(),
-                    null, null, true);
+                HttpResults results = await Ahr.DoRequestAsync(HttpMethodEnum.GET, uri.ToString(), null, null, true);
                 if (results.StatusCode == HttpStatusCode.OK)
                 {
                     if (results.Body != null && results.ContentType != null && results.ContentType == strContentType)
                     {
                         object Obj = XmlHelper.DeserializeFromString(results.Body, AddDataType);
                         if (Obj != null)
+                        {
                             SetDelegate(Obj);
+                            CallAdditionalDataAvailable?.Invoke(this, strPurpose, results.Body);
+                        }
                         else
                             SipLogger.LogError($"Unable to deserialize {AddDataType} by-reference:\n{results.Body}");
                     }
@@ -976,7 +1042,7 @@ public class Call
     {
         Locations.Add(presence);
         LastLocationReceivedTime = DateTime.Now;
-        NewLocation?.Invoke(presence);  // Notify anyone that is listening.
+        NewLocation?.Invoke(this, presence);  // Notify anyone that is listening.
     }
 
     /// <summary>
@@ -990,7 +1056,7 @@ public class Call
         LastLocationReceivedTime = DateTime.Now;
         Presence[] presArray = locations.ToArray();
         if (presArray.Length > 0)
-            NewLocation?.Invoke(presArray[presArray.Length - 1]);
+            NewLocation?.Invoke(this, presArray[presArray.Length - 1]);
     }
 
     /// <summary>
@@ -1161,32 +1227,6 @@ public class Call
 
         MsrpConnection.SendMsrpMessage("text/plain", Encoding.UTF8.GetBytes(message));
         MsrpMessages.AddSentMessage("Me", message);
-    }
-
-    /// <summary>
-    /// Creates a new incoming call
-    /// </summary>
-    /// <param name="invite">INVITE request that was received</param>
-    /// <param name="transaction">SIP transaction that was created for the INVITE for the call</param>
-    /// <param name="transport">SIP transport that the call came in on.</param>
-    /// <param name="initialState">Initial call state.</param>
-    /// <param name="certificate">X.509 certificate to use for MSRP processing</param>
-    /// <returns></returns>
-    public static Call CreateIncomingCall(SIPRequest invite, ServerInviteTransaction transaction,
-        SipTransport transport, CallStateEnum initialState, X509Certificate2 certificate, I3LogEventClientMgr i3LogEventClientMgr,
-        IdentitySettings identitySettings, EventLoggingSettings eventLoggingSettings)
-    {
-        Call call = new Call(transport, certificate, i3LogEventClientMgr, identitySettings, eventLoggingSettings);
-        call.IsIncoming = true;
-        call.InviteRequest = invite;
-        call.serverInviteTransaction = transaction;
-        call.CallState = initialState;
-        call.CallID = invite.Header!.CallId!;   // Will never be null here
-        call.LastInviteSequenceNumber = invite.Header.CSeq;
-        call.RemoteIpEndPoint = transaction.RemoteEndPoint;
-        call.RemoteTag = invite.Header.From?.FromTag;
-
-        return call;
     }
 
     /// <summary>

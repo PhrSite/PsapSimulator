@@ -413,7 +413,7 @@ public partial class CallForm : Form
             SubscriberDataProviderLbl.Text = GetProviderName(SubscriberInfo.DataProviderReference);
     }
 
-    private void OnNewLocation(Presence newPresence)
+    private void OnNewLocation(Call call, Presence newPresence)
     {
         BeginInvoke(() => DisplayLocation(newPresence));
     }

@@ -8,6 +8,7 @@ using SipLib.Media;
 using SipLib.Network;
 using System.Net;
 using WindowsWaveAudio;
+using SipRecClient;
 
 using PsapSimulator.WindowsVideo;
 using System.Windows.Forms;
@@ -422,8 +423,8 @@ public partial class SettingsForm : Form
     private PortRange GetMediaPortRange(int MediaIndex)
     {
         PortRange range = new PortRange();
-        range.StartPort = int.Parse(PortsGridView.Rows[MediaIndex].Cells[StartPortCell].Value.ToString()!);
-        range.Count = int.Parse(PortsGridView.Rows[MediaIndex].Cells[CountCell].Value.ToString()!);
+        range.StartPort = int.Parse(PortsGridView.Rows[MediaIndex].Cells[StartPortCell].Value!.ToString()!);
+        range.Count = int.Parse(PortsGridView.Rows[MediaIndex].Cells[CountCell].Value!.ToString()!);
         return range;
     }
 
@@ -431,8 +432,8 @@ public partial class SettingsForm : Form
     {
         int StartPort = 0, Count = 0;
 
-        object StartVal = PortsGridView.Rows[Row].Cells[StartPortCell].Value;
-        object CountVal = PortsGridView.Rows[Row].Cells[CountCell].Value;
+        object StartVal = PortsGridView.Rows[Row].Cells[StartPortCell].Value!;
+        object CountVal = PortsGridView.Rows[Row].Cells[CountCell].Value!;
 
         if (StartVal == null)
         {

@@ -37,7 +37,8 @@ internal class WindowsAudioUtils
         }
 
         byte[] buffer = new byte[Wfr.Length];
-        Wfr.Read(buffer, 0, buffer.Length);
+        //Wfr.Read(buffer, 0, buffer.Length);
+        Wfr.ReadExactly(buffer);    // 7 Mar 25 PHR
         Samples = new short[Wfr.SampleCount];
 
         for (long i = 0; i < Wfr.Length; i += 2)

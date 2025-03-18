@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -32,18 +32,21 @@
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="SIPSorceryMedia.FFmpeg" Version="1.4.1" />
+    <PackageReference Include="SIPSorceryMedia.FFmpeg" Version="8.0.10" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Ng911CadIfLib">
-      <HintPath>..\..\..\Ng911CadIfLib\ClassLibrary\bin\Debug\net7.0\Ng911CadIfLib.dll</HintPath>
+      <HintPath>..\..\..\Ng911CadIfLib\ClassLibrary\bin\Debug\net8.0\Ng911CadIfLib.dll</HintPath>
     </Reference>
     <Reference Include="Ng911Lib">
-      <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net7.0\Ng911Lib.dll</HintPath>
+      <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net8.0\Ng911Lib.dll</HintPath>
     </Reference>
     <Reference Include="SipLib">
-      <HintPath>..\..\..\SipLib\ClassLibrary\bin\Debug\net8.0\SipLib.dll</HintPath>
+      <HintPath>..\..\..\SipLib\ClassLibrary\bin\Debug\net9.0\SipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="SipRecClient">
+      <HintPath>..\..\..\SipRecClient\ClassLibrary\bin\Debug\net8.0\SipRecClient.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -71,7 +74,16 @@
     <None Update="FFMPEG\avcodec-60.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FFMPEG\avcodec-61.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FFMPEG\avdevice-60.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FFMPEG\avdevice-61.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FFMPEG\avfilter-10.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FFMPEG\avfilter-9.dll">
@@ -80,16 +92,31 @@
     <None Update="FFMPEG\avformat-60.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FFMPEG\avformat-61.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FFMPEG\avutil-58.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FFMPEG\avutil-59.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FFMPEG\postproc-57.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FFMPEG\postproc-58.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FFMPEG\swresample-4.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FFMPEG\swresample-5.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FFMPEG\swscale-7.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FFMPEG\swscale-8.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Ijwhost.dll">

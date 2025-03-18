@@ -5,7 +5,7 @@
 using System.Net;
 using SipLib.Core;
 using SipLib.Media;
-using SipLib.SipRec;
+using SipRecClient;
 
 namespace PsapSimulator;
 

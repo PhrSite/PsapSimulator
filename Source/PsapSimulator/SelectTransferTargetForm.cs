@@ -1,4 +1,5 @@
-﻿/////////////////////////////////////////////////////////////////////////////////////
+﻿using System.ComponentModel;
+/////////////////////////////////////////////////////////////////////////////////////
 //  File:   SelectTransferTargetForm.cs                             22 Jan 25 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,7 +16,8 @@ public partial class SelectTransferTargetForm : Form
     /// <summary>
     /// This is the TransferTarget that the user selected.
     /// </summary>
-    public TransferTarget? SelectedTransferTarget {  get; private set; }
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public TransferTarget? SelectedTransferTarget { get; private set; }
 
     /// <summary>
     /// Constructor

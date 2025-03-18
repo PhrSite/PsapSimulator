@@ -26,7 +26,6 @@ using SipLib.RealTimeText;
 using SipLib.Msrp;
 using Pidf;
 using Ng911Lib.Utilities;
-using Held;
 using HttpUtils;
 using SIPSorceryMedia.FFmpeg;
 using I3V3.LoggingHelpers;
@@ -36,7 +35,7 @@ using Ng911CadIfLib;
 using PsapSimulator.WindowsVideo;
 using System.Net.Security;
 using SipLib.Subscriptions;
-using SipLib.SipRec;
+using SipRecClient;
 using System.Text;
 using Eido;
 using System;
@@ -116,7 +115,7 @@ public class CallManager
 
         try
         {
-            m_Certificate = new X509Certificate2(m_Settings.CertificateSettings.CertificateFilePath,
+            m_Certificate = X509CertificateLoader.LoadPkcs12FromFile(m_Settings.CertificateSettings.CertificateFilePath,
                 m_Settings.CertificateSettings.CertificatePassword);
         }
         catch (Exception certEx)
@@ -179,10 +178,12 @@ public class CallManager
         {
             FFmpegInit.Initialise(FfmpegLogLevelEnum.AV_LOG_FATAL, @".\FFMPEG");
         }
-        catch (Exception ffmpegEx)
+        catch (Exception)
         {
-            SipLogger.LogCritical(ffmpegEx, "Unable to initialize the FFMPEG libraries");
-            throw;
+            SipLogger.LogError("Unable to initialize the FFMPEG libraries. Disabling Video media.");
+            m_Settings.CallHandling.EnableVideo = false;
+            m_Settings.CallHandling.EnableTransmitVideo = false;
+            m_AnswerSettings.EnableVideo = false;
         }
 
         // Setup for I3 event logging.
@@ -284,16 +285,19 @@ public class CallManager
         int ImageWidth = 640;
         int ImageHeight = 480;
 
-        if (m_Settings.Devices.VideoDevice != null)
+        if (m_Settings.CallHandling.EnableVideo == true)
         {
-            CameraCapture = new WindowsCameraCapture(m_Settings.Devices.VideoDevice);
-            CameraCapture.FrameBitmapReady += OnFrameBitmapReady;
-            ImageWidth = (int)m_Settings.Devices.VideoDevice.DeviceFormat.Width;
-            ImageHeight = (int)m_Settings.Devices.VideoDevice.DeviceFormat.Height;
+            if (m_Settings.Devices.VideoDevice != null)
+            {
+                CameraCapture = new WindowsCameraCapture(m_Settings.Devices.VideoDevice);
+                CameraCapture.FrameBitmapReady += OnFrameBitmapReady;
+                ImageWidth = (int)m_Settings.Devices.VideoDevice.DeviceFormat.Width;
+                ImageHeight = (int)m_Settings.Devices.VideoDevice.DeviceFormat.Height;
 
-            bool Success = await CameraCapture.StartCapture();
-            if (Success == false)
-                await ShutdownCameraCapture();
+                bool Success = await CameraCapture.StartCapture();
+                if (Success == false)
+                    await ShutdownCameraCapture();
+            }
         }
 
         CameraDisabledCapture = new StaticImageCapture(Ch.TransmitVideoDisabledImageFile!, 30, ImageWidth,
@@ -357,16 +361,18 @@ public class CallManager
 
     private void OnLoggingServerStatusChanged(string strLoggerName, bool Responding)
     {
-        // TODO: handle this event
+        if (Responding == true)
+            SipLogger.LogInformation($"The NG9-1-1 event logger called '{strLoggerName}' started responding");
+        else
+            SipLogger.LogWarning($"The NG9-1-1 event logger called '{strLoggerName}' stopped responding");
     }
 
     private void OnLoggingServerError(HttpResults Hr, string strLoggerName, string strLogEvent)
     {
-        // TODO: handle this event
+        SipLogger.LogError($"The NG9-1-1 event logger '{strLoggerName}' returned an error code of {Hr.StatusCode}");
     }
 
-    private bool ValidateClientTlsCertificate(X509Certificate? certificate, X509Chain? chain,
-        SslPolicyErrors? sslPolicyErrors)
+    private bool ValidateClientTlsCertificate(X509Certificate? certificate, X509Chain? chain, SslPolicyErrors? sslPolicyErrors)
     {
         return true;
     }
@@ -377,11 +383,7 @@ public class CallManager
     /// <param name="bitmap"></param>
     private void OnFrameBitmapReady(Bitmap bitmap)
     {
-        // For debug only
         FrameBitmapReady?.Invoke(bitmap);
-        // For debug only
-        //if (m_CameraDisabledBitmap != null)
-        //    FrameBitmapReady?.Invoke(m_CameraDisabledBitmap);
     }
 
     /// <summary>
@@ -396,8 +398,8 @@ public class CallManager
     }
 
     /// <summary>
-    /// Shuts down the CallManager and releases all resources used by it. Do not attempt to use this
-    /// object again after calling this method.
+    /// Shuts down the CallManager and releases all resources used by it. Do not attempt to use this object again after 
+    /// calling this method.
     /// </summary>
     /// <returns></returns>
     public async Task Shutdown()
@@ -476,12 +478,11 @@ public class CallManager
 
     private void OnAudioDeviceStateChanged(bool Connected)
     {
-        // TODO: Handle this
+        SipLogger.LogWarning($"Audio device connected state changed to: {Connected}");
     }
 
     private const int WaitIntervalMsec = 100;
     private SemaphoreSlim m_Semaphore = new SemaphoreSlim(0, int.MaxValue);
-
     private const int TryingIntervalMs = 100;
     private const int RingingIntervalMs = 5000;
 
@@ -630,15 +631,13 @@ public class CallManager
             SIPRequest ByeRequest = SipUtils.BuildByeRequest(call.InviteRequest!, call.sipTransport!.SipChannel,
                 call.RemoteIpEndPoint!, call.IsIncoming, call.LastInviteSequenceNumber, call.OKResponse!);
 
-            // TODO: Get the correct SipTransport to used based on the SIP URI in the Contact header
+            // TODO: Get the correct SipTransport to use based on the SIP URI in the Contact header
             SipTransport transport = call.sipTransport; // For debug only
             transport.StartClientNonInviteTransaction(ByeRequest, call.RemoteIpEndPoint!, null!, 1000);
 
             // Notify the application
             CallEnded?.Invoke(CallID);
             EndCall(call);
-            // TODO: Cleanup the RtpChannels and MSRP transports -- Terminate the call
-
         }
         else
         {
@@ -707,9 +706,16 @@ public class CallManager
         CallStateChanged?.Invoke(GetCallSummary(call));
 
         if (m_OnLineCall != null && call.CallID == m_OnLineCall.CallID)
-        {
             m_OnLineCall = null;
+
+        if (call.Eido != null)
+        {
+            call.Eido.callComponent[0].callStateRegistryText = CallStateToStateRegistryText(call.CallState);
+            call.Eido.lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+            call.Eido.callComponent[0].lastUpdateTimestamp = call.Eido.lastUpdateTimestamp;
         }
+
+        SendEido(call);
     }
 
     /// <summary>
@@ -913,9 +919,21 @@ public class CallManager
             }
         }
 
+        CallStateEnum CurrentCallState = call.CallState;
         m_OnLineCall = call;
         call.CallState = CallStateEnum.OnLine;
         call.CallAnsweredTime = DateTime.Now;
+
+        if (CurrentCallState == CallStateEnum.OnHold)
+        {
+            if (call.Eido != null)
+            {
+                call.Eido.callComponent[0].callStateRegistryText = CallStateToStateRegistryText(call.CallState);
+                call.Eido.callComponent[0].answerDate = TimeUtils.DateTimeToNenaTimeStamp(call.CallAnsweredTime);
+                SendEido(call);
+            }
+        }
+
         CallStateChanged?.Invoke(GetCallSummary(call));
     }
 
@@ -1294,6 +1312,7 @@ public class CallManager
         
         call.OfferedSdp = OfferedSdp;
         call.AnsweredSdp = AnswerSdp;
+        call.RemoteContactHeader = invite.Header.Contact![0];
 
         CallStateChanged?.Invoke(GetCallSummary(call));
 
@@ -1570,13 +1589,16 @@ public class CallManager
 
         m_Calls.TryAdd(sipRequest.Header.CallId, newCall);
 
+        newCall.GetLocationAndAdditionalData();
+        newCall.NewLocation += OnCallNewLocation;
+        newCall.CallAdditionalDataAvailable += OnCallAdditionalDataAvailable;
+        SendEido(newCall);
+
         if (m_Settings.CallHandling.EnableAutoAnswer == true)
         {   // Answer the call and configure the media sources
             SIPResponse? OkResponse = BuildOkToIncomingInvite(newCall);
             if (OkResponse != null)
             {
-                newCall.CallState = CallStateEnum.AutoAnswered;
-                newCall.CallAnsweredTime = DateTime.Now;
                 newCall.serverInviteTransaction = null;
                 newCall.OKResponse = OkResponse;
                 Sit.SendResponse(OkResponse);
@@ -1590,7 +1612,7 @@ public class CallManager
         else
             newCall.CallState = CallStateEnum.Ringing;
 
-        EnqueueWorkItem(() =>  newCall.GetLocationAndAdditionalData());
+        //EnqueueWorkItem(() =>  newCall.GetLocationAndAdditionalData());
 
         // Check to see if this is a call that is being transfered. If there is, then there may be a EIDO for the call.
         SIPCallInfoHeader? callInfo = SipUtils.GetCallInfoHeaderForPurpose(sipRequest.Header, PurposeTypes.Eido);
@@ -1601,6 +1623,91 @@ public class CallManager
         }
 
         NewCall?.Invoke(GetCallSummary(newCall));
+    }
+
+    /// <summary>
+    /// Event handler for the CallAdditionalDataAvailable event of the Call class.
+    /// </summary>
+    /// <param name="call"></param>
+    /// <param name="strPurpose"></param>
+    /// <param name="xmlData"></param>
+    private void OnCallAdditionalDataAvailable(Call call, string strPurpose, string xmlData)
+    {
+        EnqueueWorkItem(() => HandleCallAdditionalDataAvailable(call, strPurpose, xmlData));
+    }
+
+    private void HandleCallAdditionalDataAvailable(Call call, string strPurpose, string xmlData)
+    {
+        Call? existingCall = GetCall(call.CallID);
+        if (existingCall == null)
+            return;     // The call has ended
+
+        if (call.Eido == null)
+            return;
+
+        AdditionalDataType additionalDataType = new AdditionalDataType();
+        additionalDataType.additionalDataByValue = xmlData;
+        additionalDataType.urlPurpose = strPurpose;
+        ReferenceType Reference = new ReferenceType();
+        Reference.Ref = additionalDataType.Id;
+        call.Eido.callComponent[0].additionalDataReference.Add(Reference);
+        call.Eido.additionalDataComponent.Add(additionalDataType);
+        call.Eido.lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+
+        // Note: Don't want to send a new EIDO for each block of Additional Data that is received.
+    }
+
+    /// <summary>
+    /// Event handler for the NewLocation event of a Call object. The Call object fires this event when location data is
+    /// received by-reference.
+    /// </summary>
+    /// <param name="call"></param>
+    /// <param name="newPresence"></param>
+    private void OnCallNewLocation(Call call, Presence newPresence)
+    {
+        EnqueueWorkItem(() => HandleNewCallLocation(call, newPresence));
+    }
+
+    private void HandleNewCallLocation(Call call, Presence newPresence)
+    {
+        // Make sure the call has not already ended.
+        Call? existingCall = GetCall(call.CallID);
+        if (existingCall == null)
+            return;
+
+        if (call.Eido == null)
+            return;
+
+        if (call.Eido.locationComponent == null)
+            call.Eido.locationComponent = new List<LocationInformationType>();
+
+        LocationInformationType locationInformation = new LocationInformationType();
+        locationInformation.locationByValue = XmlHelper.SerializeToString(newPresence);
+        // Assume that the first location received is for routing to the PSAP and subsequent locations represent
+        // the location of the caller.
+        if (call.Eido.locationComponent.Count == 0)
+            locationInformation.locationTypeDescriptionRegistryText = "Routing";
+        else
+            locationInformation.locationTypeDescriptionRegistryText = "Caller";
+        call.Eido.locationComponent.Add(locationInformation);
+        ReferenceType LocRt = new ReferenceType();
+        LocRt.Ref = locationInformation.Id;
+        call.Eido.callComponent[0].locationReference.Add(LocRt); ;
+        call.Eido.incidentComponent.locationReference.Add(LocRt);
+        call.Eido.personComponent[0].locationReference.Add(LocRt);
+        call.Eido.lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+        SendEido(call);
+    }
+
+    private void SendEido(Call call)
+    {
+        if (m_Ng911CadIfServer != null)
+        {
+            if (call.Eido == null)
+                call.Eido = BuildCallEido(call);
+
+            m_Ng911CadIfServer.SendEido(call.Eido);
+        }
     }
 
     private async Task GetEidoByReference(string eidoRequestUri, string callID)
@@ -1817,8 +1924,19 @@ public class CallManager
         StartSipRecRecording(call);
 
         // Check to see if the call was sent by a conference-aware user agent.
-        if (call.InviteRequest!.Header.Contact![0].ContactParameters.Has("isfocus") == true)
+        if (call.RemoteContactHeader.ContactParameters.Has("isfocus") == true)
             EnqueueWorkItem(() => call.StartConferenceSubscription());
+
+        call.CallAnsweredTime = DateTime.Now;
+        if (call.Eido != null)
+        {
+            call.Eido.callComponent[0].callStateRegistryText = "callAnswered";
+            call.Eido.callComponent[0].answerDate = TimeUtils.DateTimeToNenaTimeStamp(call.CallAnsweredTime);
+            call.Eido.lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+            call.Eido.callComponent[0].lastUpdateTimestamp = call.Eido.lastUpdateTimestamp;
+        }
+
+        SendEido(call);
     }
 
     private void SetupCallMsrpConnection(Call call, MediaDescription OfferedMd, MediaDescription AnsweredMd,
@@ -1891,6 +2009,8 @@ public class CallManager
 
     private void AutoAnswer(Call call)
     {
+        call.CallState = CallStateEnum.AutoAnswered;
+
         foreach (RtpChannel rtpChannel in call.RtpChannels)
         {
             if (rtpChannel.MediaType == MediaTypes.Audio)
@@ -1911,8 +2031,8 @@ public class CallManager
             }
         }
 
-        // Delay sending the auto-answer text message so that there is enough time for the call to
-        // any SIPREC recorders be set up.
+        // Delay sending the auto-answer text message so that there is enough time for the SIPREC call to
+        // any SIPREC recorders to be set up.
         call.LastAutoAnsweredTextSentTime = DateTime.Now - TimeSpan.FromSeconds(m_Settings.CallHandling.AutoAnswerTextMessageRepeatSeconds) -
             - TimeSpan.FromMilliseconds(500);
     }
@@ -1929,6 +2049,17 @@ public class CallManager
             m_OnLineCall = null;
 
         m_Calls.TryRemove(call.CallID, out Call? removedCall);
+
+        call.CallState = CallStateEnum.Ended;
+        if (call.Eido != null)
+        {
+            call.Eido.callComponent[0].callStateRegistryText = CallStateToStateRegistryText(call.CallState);
+            call.Eido.lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+            call.Eido.callComponent[0].lastUpdateTimestamp = call.Eido.lastUpdateTimestamp;
+        }
+        SendEido(call);
+        call.NewLocation -= OnCallNewLocation;
+        call.CallAdditionalDataAvailable -= OnCallAdditionalDataAvailable;
     }
 
     /// <summary>
@@ -2129,6 +2260,15 @@ public class CallManager
             RequestTerminated, "Request Terminated", call.sipTransport!.SipChannel, UserName);
         call.serverInviteTransaction!.SendResponse(reqTerminated);
 
+        call.CallState = CallStateEnum.Ended;
+        if (call.Eido != null)
+        {
+            call.Eido.callComponent[0].callStateRegistryText = CallStateToStateRegistryText(call.CallState);
+            call.Eido.callComponent[0].lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+            call.Eido.lastUpdateTimestamp = call.Eido.callComponent[0].lastUpdateTimestamp;
+            SendEido(call);
+        }
+
         // Notify the application
         CallEnded?.Invoke(call.CallID);
     }
@@ -2144,7 +2284,6 @@ public class CallManager
         {
             ByeResponse = SipUtils.BuildOkToByeOrCancel(sipRequest, remoteEndPoint);
             m_Calls.TryRemove(call!.CallID, out call);
-            // TODO: Notify the application
         }
 
         sipTransport.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null!, ByeResponse);
@@ -2178,7 +2317,7 @@ public class CallManager
             call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, ref LastCseqNum);
         string strEidoUri = $"<https://{GetEidoIpAddress()}:{EidoPort}{HttpEidoPath}/{call.CallID}>;purpose={PurposeTypes.Eido}";
         refer.Header.ReferTo = $"<{target.SipUri}?Call-Info={SIPEscape.EscapeSpecialCharacters(strEidoUri)}>";
-        IPEndPoint remoteEndpoint = call.InviteRequest!.Header.Contact![0]!.ContactURI!.ToSIPEndPoint()!.GetIPEndPoint();
+        IPEndPoint remoteEndpoint = call.RemoteContactHeader.ContactURI!.ToSIPEndPoint()!.GetIPEndPoint();
         call.LastInviteSequenceNumber = LastCseqNum;
         call.sipTransport.StartClientNonInviteTransaction(refer, remoteEndpoint, OnReferTransactionComplete, 10000);
     }
@@ -2200,7 +2339,7 @@ public class CallManager
         SIPRequest refer = SipUtils.BuildInDialogRequest(SIPMethodsEnum.REFER, call.sipTransport.SipChannel, true,
             call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, ref LastCseqNum);
         refer.Header.ReferTo = strTransferTargetUri + ";method=BYE";
-        IPEndPoint remoteEndpoint = call.InviteRequest!.Header.Contact![0]!.ContactURI!.ToSIPEndPoint()!.GetIPEndPoint();
+        IPEndPoint remoteEndpoint = call.RemoteContactHeader.ContactURI!.ToSIPEndPoint()!.GetIPEndPoint();
         call.LastInviteSequenceNumber = LastCseqNum;
         call.sipTransport.StartClientNonInviteTransaction(refer, remoteEndpoint, OnReferTransactionComplete, 10000);
     }
@@ -2226,7 +2365,7 @@ public class CallManager
         SIPRequest refer = SipUtils.BuildInDialogRequest(SIPMethodsEnum.REFER, call.sipTransport.SipChannel, true,
             call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, ref LastCseqNum);
 
-        SIPURI contactUri = call.InviteRequest!.Header.Contact![0]!.ContactURI!;
+        SIPURI contactUri = call.RemoteContactHeader.ContactURI!;
         SIPURI RefToUri = contactUri.CopyOf();
         RefToUri.Parameters.RemoveAll();
         RefToUri.User = "0000000000";       // This code means to drop the last added conference member
@@ -2327,6 +2466,8 @@ public class CallManager
         IPEndPoint ServerEndPoint = new IPEndPoint(IPAddress.Parse(GetEidoIpAddress()), EidoPort);
         m_Ng911CadIfServer = new Ng911CadIfServer(m_Certificate, ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
             Cls, EidoMutualAuthenticationCallback, EidoRetrievalCallback);
+        //m_Ng911CadIfServer = new Ng911CadIfServer(m_Certificate, ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
+        //    Cls, null, EidoRetrievalCallback);
         // Hook the events
         m_Ng911CadIfServer.NewSubscription += OnNewEidoSubscription;
         m_Ng911CadIfServer.SubscriptionEnded += OnEidoSubscriptionEnded;
@@ -2346,7 +2487,7 @@ public class CallManager
 
     private void OnEidoSubscriptionEnded(string strSubscriptionId, string strIdType, string strId, IPEndPoint RemIpe, string strReason)
     {
-        
+        SipLogger.LogInformation($"EIDO Subscription from IPEndPoint = {RemIpe.ToString()} ended");
     }
 
     // Event handler for the NewEidoSubscription event of the Ng911CadIfServer class.
@@ -2360,9 +2501,14 @@ public class CallManager
         if (m_Ng911CadIfServer == null)
             return;
 
+        SipLogger.LogInformation($"EIDO Subscription request from IPEndPoint = {RemIpe.ToString()}");
+
         List<EidoType> eidoList = new List<EidoType>();
         foreach (Call call in m_Calls.Values.ToArray())
-            eidoList.Add(BuildCallEido(call));
+        {
+            if (call.Eido != null)
+                eidoList.Add(call.Eido);
+        }
 
         if (eidoList.Count > 0)
             m_Ng911CadIfServer.SendEidosToSubscriber(strSubscriptionId, eidoList);
@@ -2451,7 +2597,7 @@ public class CallManager
         eido.issuingElementIdentification = agency.Id;
 
         eido.personComponent = new List<PersonInformationType>();
-        PersonInformationType person = new Eido.PersonInformationType();
+        PersonInformationType person = new PersonInformationType();
         person.personIncidentRoleRegistryText = ["Caller"];
         person.callIdentifier = [call.EmergencyCallIdentifier];
         person.additionalDataReference = new List<ReferenceType>();
@@ -2482,7 +2628,7 @@ public class CallManager
         eido.callbackComponent = [callBack];
         callBack.callBackInformationUri = new List<string>();
         callBack.callBackInformationUri = [SipUtils.GetPaiOrFromUri(call.InviteRequest!.Header).ToParameterlessString()];
-        callBack.deviceContactHeader = call.InviteRequest!.Header.Contact![0].ToString();
+        callBack.deviceContactHeader = call.RemoteContactHeader.ToString();
 
         // Link the callback object to the call object
         callInfo.callBackReference = new ReferenceType();
@@ -2505,11 +2651,12 @@ public class CallManager
         eido.incidentComponent = incidentInformation;
 
         Presence[] locations = call.Locations.ToArray();
+        callInfo.locationReference = new List<ReferenceType>();
+        incidentInformation.locationReference = new List<ReferenceType>();
+        eido.locationComponent = new List<LocationInformationType>();
+
         if (locations.Length > 0)
         {
-            eido.locationComponent = new List<LocationInformationType>();
-            callInfo.locationReference = new List<ReferenceType>();
-            incidentInformation.locationReference = new List<ReferenceType>();
             for (int i = 0; i < locations.Length; i++)
             {
                 LocationInformationType locationInformation = new LocationInformationType();
@@ -2527,13 +2674,9 @@ public class CallManager
                 LocRt.Ref = locationInformation.Id;
                 callInfo.locationReference.Add(LocRt);
                 // Link the incident to this location
-                ReferenceType IitRt = new ReferenceType();
-                IitRt.Ref = locationInformation.Id;
-                incidentInformation.locationReference.Add(IitRt);
+                incidentInformation.locationReference.Add(LocRt);
                 // Link the person to this location
-                ReferenceType locReference = new ReferenceType();
-                locReference.Ref = locationInformation.Id;
-                person.locationReference.Add(locReference);
+                person.locationReference.Add(LocRt);
             }
         }
 
