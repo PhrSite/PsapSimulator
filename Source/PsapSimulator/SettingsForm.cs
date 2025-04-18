@@ -548,6 +548,7 @@ public partial class SettingsForm : Form
 
         SetSipRecSummary();
         SetEventLoggingSummary();
+        ShowTestCallEnabled();
 
         m_IsLoading = false;
     }
@@ -798,5 +799,23 @@ public partial class SettingsForm : Form
     {
         TransferSettingsForm Tsf = new TransferSettingsForm();
         Tsf.ShowDialog();
+    }
+
+    private void TestCallSettingsBtn_Click(object sender, EventArgs e)
+    {
+        TestCallSettingsForm form = new TestCallSettingsForm(m_AppSettings.TestCallSettings);
+        DialogResult result = form.ShowDialog();
+        if (result == DialogResult.OK)
+        {
+            ShowTestCallEnabled();
+        }
+    }
+
+    private void ShowTestCallEnabled()
+    {
+        if (m_AppSettings.TestCallSettings.Enable == true)
+            TestCallsEnabledLbl.Text = "Enabled";
+        else
+            TestCallsEnabledLbl.Text = "Disabled";
     }
 }

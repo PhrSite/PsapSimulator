@@ -67,6 +67,7 @@
             label6 = new Label();
             label5 = new Label();
             CallHandlingPage = new TabPage();
+            ConfSettingsBtn = new Button();
             NonInteractiveCallsTb = new MaskedTextBox();
             MaxCallsTb = new MaskedTextBox();
             groupBox4 = new GroupBox();
@@ -131,7 +132,8 @@
             SipRecBtn = new Button();
             SaveBtn = new Button();
             CancelBtn = new Button();
-            ConfSettingsBtn = new Button();
+            TestCallSettingsBtn = new Button();
+            TestCallsEnabledLbl = new Label();
             tabControl1.SuspendLayout();
             NetworkPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PortsGridView).BeginInit();
@@ -552,12 +554,22 @@
             CallHandlingPage.Controls.Add(EnableAutoAnswerCb);
             CallHandlingPage.Controls.Add(label11);
             CallHandlingPage.Controls.Add(label10);
-            CallHandlingPage.Location = new Point(4, 40);
+            CallHandlingPage.Location = new Point(4, 29);
             CallHandlingPage.Name = "CallHandlingPage";
-            CallHandlingPage.Size = new Size(839, 580);
+            CallHandlingPage.Size = new Size(839, 591);
             CallHandlingPage.TabIndex = 2;
             CallHandlingPage.Text = " Call Handling ";
             CallHandlingPage.UseVisualStyleBackColor = true;
+            // 
+            // ConfSettingsBtn
+            // 
+            ConfSettingsBtn.Location = new Point(26, 386);
+            ConfSettingsBtn.Name = "ConfSettingsBtn";
+            ConfSettingsBtn.Size = new Size(331, 39);
+            ConfSettingsBtn.TabIndex = 9;
+            ConfSettingsBtn.Text = "Conference/Transfer Settings";
+            ConfSettingsBtn.UseVisualStyleBackColor = true;
+            ConfSettingsBtn.Click += ConfSettingsBtn_Click;
             // 
             // NonInteractiveCallsTb
             // 
@@ -1009,9 +1021,9 @@
             // 
             DevicesPage.Controls.Add(groupBox8);
             DevicesPage.Controls.Add(groupBox7);
-            DevicesPage.Location = new Point(4, 29);
+            DevicesPage.Location = new Point(4, 40);
             DevicesPage.Name = "DevicesPage";
-            DevicesPage.Size = new Size(839, 591);
+            DevicesPage.Size = new Size(839, 580);
             DevicesPage.TabIndex = 4;
             DevicesPage.Text = " Devices ";
             DevicesPage.UseVisualStyleBackColor = true;
@@ -1115,13 +1127,15 @@
             // 
             // InterfacesPage
             // 
+            InterfacesPage.Controls.Add(TestCallsEnabledLbl);
+            InterfacesPage.Controls.Add(TestCallSettingsBtn);
             InterfacesPage.Controls.Add(EventLoggingLbl);
             InterfacesPage.Controls.Add(SipRecLbl);
             InterfacesPage.Controls.Add(EventLoggingBtn);
             InterfacesPage.Controls.Add(SipRecBtn);
-            InterfacesPage.Location = new Point(4, 29);
+            InterfacesPage.Location = new Point(4, 40);
             InterfacesPage.Name = "InterfacesPage";
-            InterfacesPage.Size = new Size(839, 591);
+            InterfacesPage.Size = new Size(839, 580);
             InterfacesPage.TabIndex = 5;
             InterfacesPage.Text = " Interfaces ";
             InterfacesPage.UseVisualStyleBackColor = true;
@@ -1186,15 +1200,24 @@
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
             // 
-            // ConfSettingsBtn
+            // TestCallSettingsBtn
             // 
-            ConfSettingsBtn.Location = new Point(26, 386);
-            ConfSettingsBtn.Name = "ConfSettingsBtn";
-            ConfSettingsBtn.Size = new Size(331, 39);
-            ConfSettingsBtn.TabIndex = 9;
-            ConfSettingsBtn.Text = "Conference/Transfer Settings";
-            ConfSettingsBtn.UseVisualStyleBackColor = true;
-            ConfSettingsBtn.Click += ConfSettingsBtn_Click;
+            TestCallSettingsBtn.Location = new Point(22, 184);
+            TestCallSettingsBtn.Name = "TestCallSettingsBtn";
+            TestCallSettingsBtn.Size = new Size(291, 39);
+            TestCallSettingsBtn.TabIndex = 4;
+            TestCallSettingsBtn.Text = "Test Call Settings";
+            TestCallSettingsBtn.UseVisualStyleBackColor = true;
+            TestCallSettingsBtn.Click += TestCallSettingsBtn_Click;
+            // 
+            // TestCallsEnabledLbl
+            // 
+            TestCallsEnabledLbl.BorderStyle = BorderStyle.Fixed3D;
+            TestCallsEnabledLbl.Location = new Point(335, 184);
+            TestCallsEnabledLbl.Name = "TestCallsEnabledLbl";
+            TestCallsEnabledLbl.Size = new Size(106, 39);
+            TestCallsEnabledLbl.TabIndex = 5;
+            TestCallsEnabledLbl.Text = "Enabled";
             // 
             // SettingsForm
             // 
@@ -1356,5 +1379,7 @@
         private Label SipRecLbl;
         private CheckBox MutualAuthCheck;
         private Button ConfSettingsBtn;
+        private Button TestCallSettingsBtn;
+        private Label TestCallsEnabledLbl;
     }
 }

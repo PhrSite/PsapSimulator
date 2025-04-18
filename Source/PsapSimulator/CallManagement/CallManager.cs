@@ -18,6 +18,7 @@ using AdditionalData;
 using SipLib.Sdp;
 using SipLib.Media;
 using SipLib.Rtp;
+using SipLib.TestCalls;
 
 using WindowsWaveAudio;
 using System.Diagnostics;
@@ -105,6 +106,8 @@ public class CallManager
     private I3LogEventClientMgr m_I3LogEventClientMgr;
     private Ng911CadIfServer? m_Ng911CadIfServer = null;
 
+    private IncomingTestCallManager m_TestCallManager;
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -141,6 +144,16 @@ public class CallManager
         m_OnHoldAudioSampleData = WindowsAudioUtils.ReadWaveFile(m_Settings.CallHandling.CallHoldAudioFile!);
 
         m_I3LogEventClientMgr = new I3LogEventClientMgr();
+
+        // Setup up the TestCAllManager
+        SdpAnswerSettings TestCallAnswerSettings = new SdpAnswerSettings(m_SupportedAudioCodecs, m_SupportedVideoCodecs,
+            UserName, m_Fingerprint, m_PortManager);
+        // Always enable RTP media (audio, video, RTT) and disable MSRP
+        TestCallAnswerSettings.EnableAudio = true;
+        TestCallAnswerSettings.EnableVideo = true;
+        TestCallAnswerSettings.EnableRtt = true;
+        TestCallAnswerSettings.EnableMsrp = false;      // Not used for test calls.
+        m_TestCallManager = new IncomingTestCallManager(TestCallAnswerSettings, m_Settings.TestCallSettings, UserName);
     }
 
     /// <summary>
@@ -314,7 +327,7 @@ public class CallManager
         m_SrcManager.Start();
 
         StartNg911CadIfServer();
-
+        m_TestCallManager.Start();
         m_Started = true;
 
     }
@@ -408,6 +421,7 @@ public class CallManager
             return;
 
         await ShutdownNg911CadIfServer();
+        await m_TestCallManager.Shutdown();
 
         m_CancellationTokenSource.Cancel();
 
@@ -1213,6 +1227,12 @@ public class CallManager
         string? callId = sipRequest.Header.CallId;
         if (string.IsNullOrEmpty(callId) == true)
             return;
+
+        if (IncomingTestCall.IsNg911TestCall(sipRequest) == true)
+        {
+            m_TestCallManager.ProcessTestCallInviteRequest(sipRequest, remoteEndPoint, sipTransport);
+            return;
+        }
 
         // Determine if this is a new call or an existing one
         Call? call = GetCall(sipRequest.Header.CallId);
@@ -2278,8 +2298,16 @@ public class CallManager
         Call? call = GetCall(sipRequest.Header.CallId);
         SIPResponse ByeResponse;
         if (call == null)
-            ByeResponse = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
-                "Dialog Does Not Exist", sipTransport.SipChannel, UserName);
+        {
+            if (m_TestCallManager.IsActiveTestCall(sipRequest) == true)
+            {
+                m_TestCallManager.ProcessTestCallByeRequest(sipRequest, remoteEndPoint, sipTransport);
+                return;
+            }
+            else
+                ByeResponse = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.CallLegTransactionDoesNotExist,
+                    "Dialog Does Not Exist", sipTransport.SipChannel, UserName);
+        }
         else
         {
             ByeResponse = SipUtils.BuildOkToByeOrCancel(sipRequest, remoteEndPoint);

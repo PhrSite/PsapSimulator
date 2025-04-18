@@ -355,9 +355,7 @@ public partial class Form1 : Form
     private void OnCallManagerError(string strMessage)
     {
         if (m_CallForm == null)
-        {
-            MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+            BeginInvoke(() => MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error));
     }
 
     private string? GetSelecteCallID()
@@ -446,6 +444,12 @@ public partial class Form1 : Form
         if (m_CallManager == null)
         {
             ShowNotRunning();
+            return;
+        }
+
+        if (CallListView.Items.Count == 0)
+        {
+            MessageBox.Show("No calls to end", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 

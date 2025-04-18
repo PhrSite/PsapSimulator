@@ -7,6 +7,7 @@ using Ng911Lib.Utilities;
 using SipLib.Logging;
 using System.Text.Json.Serialization;
 using SipRecClient;
+using SipLib.TestCalls;
 
 /// <summary>
 /// All settings for the application
@@ -16,7 +17,7 @@ public class AppSettings
     /// <summary>
     /// Network configuration settings
     /// </summary>
-    public NetworkSettings NetworkSettings {get; set; } = new NetworkSettings();
+    public NetworkSettings NetworkSettings { get; set; } = new NetworkSettings();
 
     /// <summary>
     /// Specifies the X.509 certificate to use
@@ -49,6 +50,11 @@ public class AppSettings
     public EventLoggingSettings EventLogging { get; set; } = new EventLoggingSettings();
 
     /// <summary>
+    /// Settings for incoming NG9-1-1 test calls.
+    /// </summary>
+    public IncomingTestCallSettings TestCallSettings { get; set; } = new IncomingTestCallSettings();
+
+    /// <summary>
     /// Constructor
     /// </summary>
     [JsonConstructor]
@@ -60,7 +66,7 @@ public class AppSettings
     private const string SettingsFileName = $"{AppName}.json";
 
     /// <summary>
-    /// Gets the saved configuration settings if they exist or the default settings if they do no.
+    /// Gets the saved configuration settings if they exist or the default settings if they do not.
     /// </summary>
     /// <returns>Returns the configuration settings</returns>
     public static AppSettings GetAppSettings()
