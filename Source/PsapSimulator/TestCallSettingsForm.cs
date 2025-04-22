@@ -40,7 +40,7 @@ public partial class TestCallSettingsForm : Form
             return false;
         }
 
-        if (maxCalls > 1)
+        if (maxCalls < 1)
         {
             MessageBox.Show("The Maximum Test Calls setting must greater than or equal to 1.", "Error", MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
