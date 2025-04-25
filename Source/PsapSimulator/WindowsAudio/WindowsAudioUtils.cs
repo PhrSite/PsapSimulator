@@ -41,8 +41,17 @@ internal class WindowsAudioUtils
         Wfr.ReadExactly(buffer);    // 7 Mar 25 PHR
         Samples = new short[Wfr.SampleCount];
 
-        for (long i = 0; i < Wfr.Length; i += 2)
-            Samples[i / 2] = BitConverter.ToInt16(buffer, (int)i);
+        //for (long i = 0; i < Wfr.Length; i += 2)
+        //    Samples[i / 2] = BitConverter.ToInt16(buffer, (int)i);
+        // For debug only
+        MemoryStream memoryStream = new MemoryStream(buffer);
+        BinaryReader binaryReader = new BinaryReader(memoryStream);
+        for (long i = 0; i < Wfr.Length / 2; i++)
+            Samples[i] = binaryReader.ReadInt16();
+
+        binaryReader.Close();
+        memoryStream.Close();
+        memoryStream.Dispose();
 
         AudioSampleData Asd = new AudioSampleData(Samples, waveFormat.SampleRate);
         return Asd;
@@ -71,6 +80,9 @@ internal class WindowsAudioUtils
                     case "G722":
                         encoder = new G722Encoder();
                         break;
+                    case "G729":
+                        encoder = new G729Encoder();
+                        break;
                     case "AMR-WB":
                         encoder = new AmrWbEncoder();
                         break;
@@ -92,6 +104,8 @@ internal class WindowsAudioUtils
                     return new PcmaEncoder();
                 else if (i == 9)
                     return new G722Encoder();
+                else if (i == 18)
+                    return new G729Encoder();
             }
         }
 
@@ -121,6 +135,9 @@ internal class WindowsAudioUtils
                     case "G722":
                         decoder = new G722Decoder();
                         break;
+                    case "G729":
+                        decoder = new G729Decoder();
+                        break;
                     case "AMR-WB":
                         decoder = new AmrWbDecoder();
                         break;
@@ -143,6 +160,8 @@ internal class WindowsAudioUtils
                     return new PcmaDecoder();
                 else if (i == 9)
                     return new G722Decoder();
+                else if (i == 18)
+                    return new G729Decoder();
             }
         }
 

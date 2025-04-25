@@ -21,7 +21,6 @@ using SipLib.Rtp;
 using SipLib.TestCalls;
 
 using WindowsWaveAudio;
-using System.Diagnostics;
 
 using SipLib.RealTimeText;
 using SipLib.Msrp;
@@ -90,7 +89,7 @@ public class CallManager
 
     private static List<string> m_SupportedAudioCodecs = new List<string>()
     {
-        "PCMU", "PCMA", "G722", "AMR-WB"
+        "PCMU", "PCMA", "G722", "AMR-WB", "G729"
     };
 
     private AudioSampleData m_AutoAnswerAudioSampleData;

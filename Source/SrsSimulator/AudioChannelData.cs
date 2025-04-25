@@ -6,6 +6,7 @@ using SipLib.Rtp;
 using SipLib.Sdp;
 using NAudio.Wave;
 using SipLib.Logging;
+using SipLib.Media;
 
 namespace SrsSimulator;
 
@@ -67,6 +68,10 @@ internal class AudioChannelData : RtpRecordingChannelData
                 SampleRate = 16000;
                 AverageBytesPerSecond = 16000;
                 break;
+            case "G729":
+                m_TranscodeG729ToPcmu = true;
+                encoding = WaveFormatEncoding.MuLaw;
+                break;
         }
 
         if (encoding == WaveFormatEncoding.Unknown)
@@ -82,7 +87,11 @@ internal class AudioChannelData : RtpRecordingChannelData
         rtpChannel.RtpPacketReceived += OnAudioRtpPacketReceived;
         rtpChannel.StartListening();
     }
-    
+
+    private bool m_TranscodeG729ToPcmu = false;
+    private G729Decoder? m_G729Decoder = null;
+    private PcmuEncoder? m_PcmuEncoder = null;
+
     private void OnAudioRtpPacketReceived(RtpPacket rtpPacket)
     {
         if (m_WaveFileWriter == null)
@@ -91,6 +100,18 @@ internal class AudioChannelData : RtpRecordingChannelData
         byte[]? payload = rtpPacket.Payload;
         if (payload == null || payload.Length == 0)
             return;     // Nothing to write.
+
+        if (m_TranscodeG729ToPcmu == true)
+        {
+            if (m_G729Decoder == null)
+                m_G729Decoder = new G729Decoder();
+
+            if (m_PcmuEncoder == null)
+                m_PcmuEncoder = new PcmuEncoder();
+
+            short[] PcmSamples = m_G729Decoder.Decode(payload);
+            payload = m_PcmuEncoder.Encode(PcmSamples);
+        }
 
         m_WaveFileWriter.Write(payload, 0, payload.Length);
     }

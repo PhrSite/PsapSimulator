@@ -17,7 +17,7 @@ internal class Program
 
     static async Task Main(string[] args)
     {
-        X509Certificate2 myCertificate = new X509Certificate2("SrsSimulator.pfx", "SrsSimulator");
+        X509Certificate2 myCertificate = X509CertificateLoader.LoadPkcs12FromFile("SrsSimulator.pfx", "SrsSimulator");
 
         SIPTCPChannel Channel;
         string UserName = "SrsSimulator";
