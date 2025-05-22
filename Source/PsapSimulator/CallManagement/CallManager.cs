@@ -2009,7 +2009,7 @@ public class CallManager
 
     private void SetCallAudioCodecSourceAndDestination(Call call, RtpChannel rtpChannel, MediaDescription AudioAnswerMd)
     {
-        IAudioEncoder? encoder = WindowsAudioUtils.GetAudioEncoder(AudioAnswerMd);
+        IAudioEncoder? encoder = AudioMediaUtils.GetAudioEncoder(AudioAnswerMd);
         if (encoder != null)
             call.AudioSampleSource = new AudioSource(AudioAnswerMd, encoder, rtpChannel);
         else
@@ -2018,7 +2018,7 @@ public class CallManager
             return;
         }
 
-        IAudioDecoder? decoder = WindowsAudioUtils.GetAudioDecoder(AudioAnswerMd);
+        IAudioDecoder? decoder = AudioMediaUtils.GetAudioDecoder(AudioAnswerMd);
         if (decoder != null)
             call.AudioDestination = new AudioDestination(AudioAnswerMd, decoder, rtpChannel, null,
                 m_WaveAudio!.SampleRate);

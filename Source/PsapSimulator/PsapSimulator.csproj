@@ -24,7 +24,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="AmrWbCppLib" Version="0.0.1" />
     <PackageReference Include="EidoLib" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
