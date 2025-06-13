@@ -12,6 +12,7 @@ using ConferenceEvent;
 using SipLib.Core;
 using System.Diagnostics;
 using Ng911Lib.Utilities;
+using SipLib.Media;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -102,17 +103,17 @@ public partial class CallForm : Form
 
     private void OnReferNotifyStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
     {
-        int StatusCode = (int) responseEnum;
+        int StatusCode = (int)responseEnum;
         // For debug only
         Debug.WriteLine($"NOTIFY: Status Code = {StatusCode}, Reason = {reason}");
     }
 
     private void OnReferResponseStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
     {
-        int StatusCode = (int) responseEnum;
+        int StatusCode = (int)responseEnum;
         if (StatusCode >= 400)
         {   // The REFER request to the conference-aware user agent was rejected.
-            BeginInvoke(() => 
+            BeginInvoke(() =>
             {
                 MessageBox.Show($"The conference/tranfer request was rejected.\nStatus Code = {StatusCode}, " +
                     $"Reason = {reason}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -738,7 +739,7 @@ public partial class CallForm : Form
         if (Lvi == null)
             return;     // Error message already displayed
 
-        usertype user = (usertype) Lvi.Tag!;
+        usertype user = (usertype)Lvi.Tag!;
         string strEntity = user.entity;
         SIPURI? transferTargetUri = null;
         if (SIPURI.TryParse(strEntity, out transferTargetUri) == true)
@@ -778,5 +779,28 @@ public partial class CallForm : Form
         }
 
         m_CallManager.StartDropLast(m_Call);
+    }
+
+    // 3 Jun 25 PHR -- For debug only
+    private void MicMuteBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.CallState != CallStateEnum.OnLine && m_Call.CallState != CallStateEnum.AutoAnswered &&
+            m_Call.CallState != CallStateEnum.OnHold)
+        {
+            MessageBox.Show("The call must be Auto Answered, On-Line or On-Hold in order to use Mic Mute", "Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        if (m_Call.MicMuteOn == false)
+        {
+            m_CallManager.SetMicMuteOn(m_Call);
+            MicMuteBtn.Text = "Mic Mute On";
+        }
+        else
+        {
+            m_CallManager.SetMicMuteOff(m_Call);
+            MicMuteBtn.Text = "Mic Mute Off";
+        }
     }
 }

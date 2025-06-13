@@ -30,7 +30,6 @@ internal class SrsUa : QueuedActionWorkerTask
     private MediaPortManager m_MediaPortManager;
     private SdpAnswerSettings m_SdpAnswerSettings;
 
-    private List<string> AudioCodecs = new List<string>() { "PCMU", "PCMA", "G722" };
     private List<string> VideoCodecs = new List<string>() { "H264", "VP8" };
 
     private bool m_Started = false;
@@ -38,8 +37,7 @@ internal class SrsUa : QueuedActionWorkerTask
     private Dictionary<string, SrsCall> m_Calls = new Dictionary<string, SrsCall>();
     private string m_RecordingsDirectory;
 
-    public SrsUa(SIPChannel sipChannel, string userName, X509Certificate2 myCertificate,
-        string recordingsDirectory) : base(10)
+    public SrsUa(SIPChannel sipChannel, string userName, X509Certificate2 myCertificate, string recordingsDirectory) : base(10)
     {
         m_SipChannel = sipChannel;
         m_SipTransport = new SipTransport(m_SipChannel);
@@ -55,8 +53,8 @@ internal class SrsUa : QueuedActionWorkerTask
         PortSettings.MsrpPorts = new PortRange() { StartPort = 12000, Count = 1000 };
         m_MediaPortManager = new MediaPortManager(PortSettings);
 
-        m_SdpAnswerSettings = new SdpAnswerSettings(AudioCodecs, VideoCodecs, m_userName, RtpChannel.CertificateFingerprint!,
-            m_MediaPortManager);
+        m_SdpAnswerSettings = new SdpAnswerSettings(AudioMediaUtils.SupportedAudioCodecs, VideoCodecs, m_userName, 
+            RtpChannel.CertificateFingerprint!, m_MediaPortManager);
     }
 
     private string GetCallRecordingDirectory(string callID)

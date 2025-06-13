@@ -10,6 +10,7 @@ using System.Net;
 using System.Diagnostics;
 using PsapSimulator.WindowsVideo;
 using System.Text;
+using System.Threading;
 
 namespace PsapSimulator;
 
@@ -92,7 +93,11 @@ public partial class Form1 : Form
             if (OkToStart(appSettings) == false)
                 return;     // The user has already been notified of the problem.
 
+            Application.UseWaitCursor = true;
             CallListView.Items.Clear();
+            SettingsBtn.Enabled = false;
+            CloseBtn.Enabled = false;
+            StartBtn.Text = "Starting...";
 
             try
             {
@@ -104,19 +109,18 @@ public partial class Form1 : Form
                     $"in: '{Program.LoggingDirectory}'";
                 MessageBox.Show(strMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SipLogger.LogCritical(ex, "Unable to start the call manager");
+                Application.UseWaitCursor = false;
                 return;
             }
-
-            SettingsBtn.Enabled = false;
-            CloseBtn.Enabled = false;
 
             m_CallManager.NewCall += OnNewCall;
             m_CallManager.CallEnded += OnCallEnded;
             m_CallManager.CallStateChanged += OnCallStateChanged;
-
             m_CallManager.CallManagerError += OnCallManagerError;
+
             await m_CallManager.Start();
             StartBtn.Text = "Stop";
+            Application.UseWaitCursor = false;
         }
         else
         {   // The CallManager is currently running so shut it down.
@@ -127,10 +131,12 @@ public partial class Form1 : Form
                 return;
             }
 
+            Application.UseWaitCursor = true;
             await ShutdownCallManager();
             StartBtn.Text = "Start";
             CloseBtn.Enabled = true;
             SettingsBtn.Enabled = true;
+            Application.UseWaitCursor = false;
         }
 
         ShowStatus();
@@ -194,6 +200,7 @@ public partial class Form1 : Form
         m_CallManager.NewCall -= OnNewCall;
         m_CallManager.CallEnded -= OnCallEnded;
         m_CallManager.CallStateChanged -= OnCallStateChanged;
+        m_CallManager.CallManagerError -= OnCallManagerError;
 
         await m_CallManager.Shutdown();
         m_CallManager = null;

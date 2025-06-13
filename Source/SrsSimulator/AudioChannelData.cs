@@ -72,6 +72,12 @@ internal class AudioChannelData : RtpRecordingChannelData
                 m_TranscodeG729ToPcmu = true;
                 encoding = WaveFormatEncoding.MuLaw;
                 break;
+            case "AMR-WB":
+                m_TranscodeAmrWbToPcmu = true;
+                SampleRate = 16000;
+                encoding = WaveFormatEncoding.MuLaw;
+                AverageBytesPerSecond = 16000;
+                break;
         }
 
         if (encoding == WaveFormatEncoding.Unknown)
@@ -91,6 +97,8 @@ internal class AudioChannelData : RtpRecordingChannelData
     private bool m_TranscodeG729ToPcmu = false;
     private G729Decoder? m_G729Decoder = null;
     private PcmuEncoder? m_PcmuEncoder = null;
+    private bool m_TranscodeAmrWbToPcmu = false;
+    private AmrWbDecoder? m_AmrWbEncoder = null;
 
     private void OnAudioRtpPacketReceived(RtpPacket rtpPacket)
     {
@@ -110,6 +118,18 @@ internal class AudioChannelData : RtpRecordingChannelData
                 m_PcmuEncoder = new PcmuEncoder();
 
             short[] PcmSamples = m_G729Decoder.Decode(payload);
+            payload = m_PcmuEncoder.Encode(PcmSamples);
+        }
+
+        if (m_TranscodeAmrWbToPcmu == true)
+        {
+            if (m_AmrWbEncoder == null)
+                m_AmrWbEncoder = new AmrWbDecoder();
+
+            if (m_PcmuEncoder == null)
+                m_PcmuEncoder = new PcmuEncoder();
+
+            short[] PcmSamples = m_AmrWbEncoder.Decode(payload);
             payload = m_PcmuEncoder.Encode(PcmSamples);
         }
 

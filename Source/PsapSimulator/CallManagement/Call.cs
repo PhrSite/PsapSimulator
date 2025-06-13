@@ -1411,6 +1411,10 @@ public class Call
         m_FirstRttPacketSent = true;
         SendMediaStartLogEvent(MediaTypes.RTT, MediaLabel.SentRTT, "outgoing");
     }
+
+    // 3 Jun 25 PHR -- For debug only
+    public bool MicMuteOn { get; set; } = false;
+
 }
 
 /// <summary>

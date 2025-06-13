@@ -119,8 +119,7 @@ internal class SrsCall
         if (Error != null)
         {
             // TODO: Log the error
-            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, "Invalid SIPREC Metadata",
-                m_Transport.SipChannel, null);
+            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, Error, m_Transport.SipChannel, null);
         }
         else
             return m_OkResponse;

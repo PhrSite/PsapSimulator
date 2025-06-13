@@ -35,6 +35,7 @@
             EndBtn = new Button();
             KeypadBtn = new Button();
             CloseBtn = new Button();
+            MicMuteBtn = new Button();
             panel1 = new Panel();
             CallInfoTabCtrl = new TabControl();
             LocationTab = new TabPage();
@@ -161,6 +162,7 @@
             flowLayoutPanel1.Controls.Add(AnswerBtn);
             flowLayoutPanel1.Controls.Add(HoldBtn);
             flowLayoutPanel1.Controls.Add(EndBtn);
+            flowLayoutPanel1.Controls.Add(MicMuteBtn);
             flowLayoutPanel1.Controls.Add(KeypadBtn);
             flowLayoutPanel1.Controls.Add(CloseBtn);
             flowLayoutPanel1.Dock = DockStyle.Fill;
@@ -201,7 +203,7 @@
             // 
             // KeypadBtn
             // 
-            KeypadBtn.Location = new Point(443, 3);
+            KeypadBtn.Location = new Point(609, 3);
             KeypadBtn.Name = "KeypadBtn";
             KeypadBtn.Size = new Size(119, 41);
             KeypadBtn.TabIndex = 4;
@@ -210,13 +212,23 @@
             // 
             // CloseBtn
             // 
-            CloseBtn.Location = new Point(568, 3);
+            CloseBtn.Location = new Point(734, 3);
             CloseBtn.Name = "CloseBtn";
             CloseBtn.Size = new Size(139, 41);
             CloseBtn.TabIndex = 3;
             CloseBtn.Text = "Close";
             CloseBtn.UseVisualStyleBackColor = true;
             CloseBtn.Click += CloseBtn_Click;
+            // 
+            // MicMuteBtn
+            // 
+            MicMuteBtn.Location = new Point(443, 3);
+            MicMuteBtn.Name = "MicMuteBtn";
+            MicMuteBtn.Size = new Size(160, 41);
+            MicMuteBtn.TabIndex = 5;
+            MicMuteBtn.Text = "Mic Mute Off";
+            MicMuteBtn.UseVisualStyleBackColor = true;
+            MicMuteBtn.Click += MicMuteBtn_Click;
             // 
             // panel1
             // 
@@ -1244,5 +1256,6 @@
         private TabPage ProvidersTab;
         private TextBox ProvidersTb;
         private Label LocTimeLbl;
+        private Button MicMuteBtn;
     }
 }

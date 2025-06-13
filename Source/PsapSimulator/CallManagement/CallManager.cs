@@ -87,11 +87,6 @@ public class CallManager
         "H264", "VP8"
     };
 
-    private static List<string> m_SupportedAudioCodecs = new List<string>()
-    {
-        "PCMU", "PCMA", "G722", "AMR-WB", "G729"
-    };
-
     private AudioSampleData m_AutoAnswerAudioSampleData;
     private AudioSampleData m_OnHoldAudioSampleData;
     private Call? m_OnLineCall = null;
@@ -129,7 +124,7 @@ public class CallManager
         m_PortManager = new MediaPortManager(m_Settings.NetworkSettings.MediaPorts);
         m_Fingerprint = RtpChannel.CertificateFingerprint!;
 
-        m_AnswerSettings = new SdpAnswerSettings(m_SupportedAudioCodecs, m_SupportedVideoCodecs, UserName,
+        m_AnswerSettings = new SdpAnswerSettings(AudioMediaUtils.SupportedAudioCodecs, m_SupportedVideoCodecs, UserName,
             m_Fingerprint, m_PortManager);
         m_AnswerSettings.EnableAudio = m_Settings.CallHandling.EnableAudio;
         m_AnswerSettings.EnableVideo = m_Settings.CallHandling.EnableVideo;
@@ -145,7 +140,7 @@ public class CallManager
         m_I3LogEventClientMgr = new I3LogEventClientMgr();
 
         // Setup up the TestCAllManager
-        SdpAnswerSettings TestCallAnswerSettings = new SdpAnswerSettings(m_SupportedAudioCodecs, m_SupportedVideoCodecs,
+        SdpAnswerSettings TestCallAnswerSettings = new SdpAnswerSettings(AudioMediaUtils.SupportedAudioCodecs, m_SupportedVideoCodecs,
             UserName, m_Fingerprint, m_PortManager);
         // Always enable RTP media (audio, video, RTT) and disable MSRP
         TestCallAnswerSettings.EnableAudio = true;
@@ -312,8 +307,7 @@ public class CallManager
             }
         }
 
-        CameraDisabledCapture = new StaticImageCapture(Ch.TransmitVideoDisabledImageFile!, 30, ImageWidth,
-            ImageHeight);
+        CameraDisabledCapture = new StaticImageCapture(Ch.TransmitVideoDisabledImageFile!, 30, ImageWidth, ImageHeight);
         await CameraDisabledCapture.StartCapture();
         AutoAnswerCapture = new StaticImageCapture(Ch.AutoAnswerVideoFile!, 30, ImageWidth, ImageHeight);
         await AutoAnswerCapture.StartCapture();
@@ -683,16 +677,15 @@ public class CallManager
         if (call.CallState == CallStateEnum.OnHold)
             return;     // Already on-hold
 
-        if (call.CurrentAudioSampleSource != null)
+        if (call.AudioSampleSource != null)
         {
-            call.CurrentAudioSampleSource.Stop();
-            call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource!.SendAudioSamples;
+            call.AudioSampleSource.ClearAudioSampleSource();
         }
 
-        if (call.CurrentAudioSampleSource != null && call.AudioDestination != null)
+        if (call.AudioSampleSource != null && call.CurrentAudioSampleSource != null && call.AudioDestination != null)
         {
             call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
-            call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
+            call.AudioSampleSource.SetAudioSampleSource(call.CurrentAudioSampleSource);
             call.CurrentAudioSampleSource.Start();
             call.AudioDestination.SetDestinationHandler(null);
         }
@@ -898,16 +891,17 @@ public class CallManager
                 if (call.CurrentAudioSampleSource != null)
                 {
                     call.CurrentAudioSampleSource!.Stop();
-                    call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource!.SendAudioSamples;
+                    call.AudioSampleSource!.ClearAudioSampleSource();
                 }
 
-                // Connect audio input from the windows microphone audio source
-                call.CurrentAudioSampleSource = m_WaveAudio;
-                m_WaveAudio!.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
-                call.AudioSampleSource.Start();
-
-                // Connect the audio destination handler
-                call.AudioDestination!.SetDestinationHandler(m_WaveAudio.AudioOutSamplesReady);
+                if (m_WaveAudio != null)
+                {
+                    // Connect audio input from the windows microphone audio source
+                    call.CurrentAudioSampleSource = m_WaveAudio;
+                    call.AudioSampleSource!.SetAudioSampleSource(m_WaveAudio);
+                    // Connect the audio destination handler
+                    call.AudioDestination!.SetDestinationHandler(m_WaveAudio.AudioOutSamplesReady);
+                }
             }
         }
 
@@ -1227,7 +1221,7 @@ public class CallManager
         if (string.IsNullOrEmpty(callId) == true)
             return;
 
-        if (IncomingTestCall.IsNg911TestCall(sipRequest) == true)
+        if (IncomingTestCallManager.IsNg911TestCall(sipRequest) == true)
         {
             m_TestCallManager.ProcessTestCallInviteRequest(sipRequest, remoteEndPoint, sipTransport);
             return;
@@ -1492,13 +1486,15 @@ public class CallManager
         {
             if (call.AudioSampleSource != null)
             {
-                call.AudioSampleSource.Stop();
-                call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource.SendAudioSamples;
+                call.AudioSampleSource.ClearAudioSampleSource();
+                //call.AudioSampleSource.Stop();
+                //call.CurrentAudioSampleSource.AudioSamplesReady -= call.AudioSampleSource.SendAudioSamples;
             }
 
             SetCallAudioCodecSourceAndDestination(call, rtpChannel, AudioAnswerMd);
             if (call.AudioSampleSource != null)
-                call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource.SendAudioSamples;
+                call.AudioSampleSource.SetAudioSampleSource(call.CurrentAudioSampleSource);
+                //call.CurrentAudioSampleSource.AudioSamplesReady += call.AudioSampleSource.SendAudioSamples;
 
             if (call.AudioDestination != null)
             {
@@ -2036,9 +2032,8 @@ public class CallManager
             {
                 FileAudioSource Fas = new FileAudioSource(m_AutoAnswerAudioSampleData, null!);
                 call.CurrentAudioSampleSource = Fas;
-                Fas.AudioSamplesReady += call.AudioSampleSource!.SendAudioSamples;
+                call.AudioSampleSource!.SetAudioSampleSource(Fas);
                 Fas.Start();
-                call.AudioSampleSource.Start();
             }
             else if (rtpChannel.MediaType == MediaTypes.Video)
             {
@@ -2258,7 +2253,6 @@ public class CallManager
     {
 
     }
-
 
     private void ProcessCancelRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
@@ -2778,6 +2772,66 @@ public class CallManager
         }
 
         return stateRegistryText;
+    }
+
+
+    public void SetMicMuteOn(Call call)
+    {
+        EnqueueWorkItem(() => DoSetMicMuteOn(call));
+    }
+
+    private void DoSetMicMuteOn(Call call)
+    {
+        if ((call.CallState == CallStateEnum.AutoAnswered || call.CallState == CallStateEnum.OnHold) &&
+            call.CurrentAudioSampleSource != null)
+        {
+            call.CurrentAudioSampleSource.Stop();
+        }
+
+        if (call.AudioSampleSource == null)
+            return;
+
+        call.MicMuteOn = true;
+        SilenceAudioSampleSource Sass = new SilenceAudioSampleSource();
+        call.CurrentAudioSampleSource = Sass;
+        call.AudioSampleSource.SetAudioSampleSource(Sass);
+        Sass.Start();
+    }
+
+    public void SetMicMuteOff(Call call)
+    {
+        EnqueueWorkItem(() => DoSetMicMuteOff(call));
+    }
+
+    private void DoSetMicMuteOff(Call call)
+    {
+        if (call.AudioSampleSource == null)
+            return;
+
+        if (call.CurrentAudioSampleSource != null)
+            call.CurrentAudioSampleSource.Stop();
+
+        call.MicMuteOn = false;
+        if (call.CallState == CallStateEnum.AutoAnswered)
+        {
+            FileAudioSource Fas = new FileAudioSource(m_AutoAnswerAudioSampleData, null!);
+            call.CurrentAudioSampleSource = Fas;
+            call.AudioSampleSource!.SetAudioSampleSource(Fas);
+            Fas.Start();
+        }
+        else if (call.CallState == CallStateEnum.OnHold)
+        {
+            call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
+            call.AudioSampleSource.SetAudioSampleSource(call.CurrentAudioSampleSource);
+            call.CurrentAudioSampleSource.Start();
+        }
+        else if (call.CallState == CallStateEnum.OnLine)
+        {
+            if (m_WaveAudio == null)
+                return;
+            call.CurrentAudioSampleSource = m_WaveAudio;
+            call.AudioSampleSource!.SetAudioSampleSource(m_WaveAudio);
+        }
     }
 }
 
