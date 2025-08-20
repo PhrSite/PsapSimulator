@@ -31,6 +31,7 @@ using SIPSorceryMedia.FFmpeg;
 using I3V3.LoggingHelpers;
 using I3V3.LogEvents;
 using Ng911CadIfLib;
+using I3SubNot;
 
 using PsapSimulator.WindowsVideo;
 using System.Net.Security;
@@ -41,6 +42,7 @@ using Eido;
 using System;
 using System.Collections.Generic;
 using SipLib.Collections;
+using System.Net.Sockets;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -102,13 +104,22 @@ public class CallManager
 
     private IncomingTestCallManager m_TestCallManager;
 
+    private ElementStateSubscriptionManager m_ELementStateSubscriptionManager;
+    private ServiceStateSubscriptionManager m_ServiceStateSubscriptionManager;
+    private QueueStateSubscriptionManager m_QueueStateSubscriptionManager;
+
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="appSettings">Applications settings</param>
+    /// <param name="appSettings">Application settings</param>
     public CallManager(AppSettings appSettings)
     {
         m_Settings = appSettings;
+
+        m_ELementStateSubscriptionManager = new ElementStateSubscriptionManager(m_Settings.Identity.ElementID);
+        m_ServiceStateSubscriptionManager = new ServiceStateSubscriptionManager(ServiceType.PSAP,
+            m_Settings.Identity.AgencyID);
+        m_QueueStateSubscriptionManager = new QueueStateSubscriptionManager(m_Settings.CallHandling.MaximumCalls);
 
         try
         {
@@ -314,10 +325,20 @@ public class CallManager
         OnHoldCapture = new StaticImageCapture(Ch.CallHoldVideoFile!, 30, ImageWidth, ImageHeight);
         await OnHoldCapture.StartCapture();
 
-        m_SrcManager = new SrcManager(m_Settings.SipRec, m_PortManager, m_Certificate, m_Settings.Identity.AgencyID,
-            m_Settings.Identity.AgentID, m_Settings.Identity.ElementID, m_I3LogEventClientMgr, m_Settings.EventLogging.EnableLogging);
-
-        m_SrcManager.Start();
+        try
+        {
+            m_SrcManager = new SrcManager(m_Settings.SipRec, m_PortManager, m_Certificate, m_Settings.Identity.AgencyID,
+                m_Settings.Identity.AgentID, m_Settings.Identity.ElementID, m_I3LogEventClientMgr, m_Settings.EventLogging.EnableLogging);
+            m_SrcManager.Start();
+        }
+        catch (SocketException se)
+        {
+            SipLogger.LogError(se, "Error starting the SrcManager");
+        }
+        catch (Exception ex)
+        {
+            SipLogger.LogError(ex, "Error starting the SrcManager");
+        }
 
         StartNg911CadIfServer();
         m_TestCallManager.Start();
@@ -349,7 +370,6 @@ public class CallManager
             }
 
         }
-
 
         if (m_Settings.EventLogging.EnableLogging == false)
             return;
@@ -557,6 +577,9 @@ public class CallManager
             }
         }
 
+        m_ELementStateSubscriptionManager.DoTimedEvents();
+        m_ServiceStateSubscriptionManager.DoTimedEvents();
+        m_QueueStateSubscriptionManager.DoTimedEvents();
     }
 
     /// <summary>
@@ -1000,7 +1023,7 @@ public class CallManager
                 ProcessSipNotifyRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.SUBSCRIBE:
-
+                ProcessSubscribeRequest(sipRequest, remoteEndPoint, sipTransport);
                 break;
             case SIPMethodsEnum.PUBLISH:
                 SendMethdNotAllowed(sipRequest, remoteEndPoint, sipTransport);
@@ -1134,11 +1157,55 @@ public class CallManager
         logEvent.ipAddressPort = call.RemoteIpEndPoint?.ToString();
     }
 
+    private void ProcessSubscribeRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
+    {
+        if (string.IsNullOrEmpty(sipRequest.Header.Event) == true)
+        {   // Error -- No Event header so this is a bad request
+            SendFinalRejectionResponse(sipRequest, remoteEndPoint, sipTransport, SIPResponseStatusCodesEnum.BadRequest, "No Event Header");
+            return;
+        }
+
+        if (SubscriptionEvents.SubscriptionIsSupported(sipRequest.Header.Event) == false)
+        {
+            SendFinalRejectionResponse(sipRequest, remoteEndPoint, sipTransport, SIPResponseStatusCodesEnum.NotAcceptable,
+                "Event Type Not Supported");
+            return;
+        }
+
+        switch (sipRequest.Header.Event)
+        {
+            case ElementState.EventName:
+                m_ELementStateSubscriptionManager.ProcessSubscribeRequest(sipRequest, remoteEndPoint, sipTransport);
+                break;
+            case ServiceState.EventName:
+                m_ServiceStateSubscriptionManager.ProcessSubscribeRequest(sipRequest, remoteEndPoint, sipTransport);
+                break;
+            case QueueState.EventName:
+                m_QueueStateSubscriptionManager.ProcessSubscribeRequest(sipRequest, remoteEndPoint, sipTransport);
+                break;
+            default:
+                // Its either Presence or Conference. This application is never the server (notifier) for these
+                // event packages.
+                SendFinalRejectionResponse(sipRequest, remoteEndPoint, sipTransport, SIPResponseStatusCodesEnum.NotAcceptable,
+                    "Event Type Not Supported");
+                break;
+        }
+    }
+
+    private void SendFinalRejectionResponse(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport,
+        SIPResponseStatusCodesEnum status, string reasonText)
+    {
+        SIPResponse response = SipUtils.BuildResponse(sipRequest, status, reasonText,
+            sipTransport.SipChannel, UserName);
+        // Just send a final response.
+        sipTransport.StartServerNonInviteTransaction(sipRequest, remoteEndPoint.GetIPEndPoint(), null, response);
+    }
+
     private void ProcessSipNotifyRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
     {
         if (string.IsNullOrEmpty(sipRequest.Header.Event) == true)
         {   // Error -- No Event header so this is a bad request
-
+            SendFinalRejectionResponse(sipRequest, remoteEndPoint, sipTransport, SIPResponseStatusCodesEnum.BadRequest, "No Event Header");
             return;
         }
 
@@ -2833,5 +2900,70 @@ public class CallManager
             call.AudioSampleSource!.SetAudioSampleSource(m_WaveAudio);
         }
     }
+
+    private string m_CurrentElementState = "Normal";
+    private string m_CurrentServiceState = "Normal";
+    private string m_CurrentSecurityPosture = "Green";
+    private string m_CurrentQueueState = "Active";
+
+    /// <summary>
+    /// Gets or sets the current CurrentElementState value.
+    /// </summary>
+    public string CurrentElementState
+    {   
+        get { return m_CurrentElementState; } 
+        set
+        {
+            m_CurrentElementState = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the current CurrentServiceState value.
+    /// </summary>
+    public string CurrentServiceState
+    {
+        get { return m_CurrentServiceState; }
+        set
+        {
+            m_CurrentServiceState = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or set the current CurrentSecurityPosture value.
+    /// </summary>
+    public string CurrentSecurityPosture
+    {
+        get { return m_CurrentSecurityPosture; }
+        set
+        {
+            m_CurrentSecurityPosture = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the current m_CurrentQueueState value.
+    /// </summary>
+    public string CurrentQueueState
+    {
+        get { return m_CurrentQueueState; }
+        set
+        {
+            m_CurrentQueueState = value;
+        }
+    }
+
+    public void NotifyStateSubscribers()
+    {
+        EnqueueWorkItem(() => 
+        {
+            m_ELementStateSubscriptionManager.NotifyElementStateChange(CurrentElementState, "Changed by user");
+            m_ServiceStateSubscriptionManager.NotifyServiceStateChange(CurrentServiceState, CurrentSecurityPosture,
+                "Changed by user");
+            m_QueueStateSubscriptionManager.NotifyQueueStateChange(CurrentQueueState, m_Calls.Count);
+        });
+    }
+
 }
 

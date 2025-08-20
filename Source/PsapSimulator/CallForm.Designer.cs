@@ -33,9 +33,9 @@
             AnswerBtn = new Button();
             HoldBtn = new Button();
             EndBtn = new Button();
+            MicMuteBtn = new Button();
             KeypadBtn = new Button();
             CloseBtn = new Button();
-            MicMuteBtn = new Button();
             panel1 = new Panel();
             CallInfoTabCtrl = new TabControl();
             LocationTab = new TabPage();
@@ -201,6 +201,16 @@
             EndBtn.UseVisualStyleBackColor = true;
             EndBtn.Click += EndBtn_Click;
             // 
+            // MicMuteBtn
+            // 
+            MicMuteBtn.Location = new Point(443, 3);
+            MicMuteBtn.Name = "MicMuteBtn";
+            MicMuteBtn.Size = new Size(160, 41);
+            MicMuteBtn.TabIndex = 5;
+            MicMuteBtn.Text = "Mic Mute Off";
+            MicMuteBtn.UseVisualStyleBackColor = true;
+            MicMuteBtn.Click += MicMuteBtn_Click;
+            // 
             // KeypadBtn
             // 
             KeypadBtn.Location = new Point(609, 3);
@@ -209,6 +219,7 @@
             KeypadBtn.TabIndex = 4;
             KeypadBtn.Text = "Keypad";
             KeypadBtn.UseVisualStyleBackColor = true;
+            KeypadBtn.Click += KeypadBtn_Click;
             // 
             // CloseBtn
             // 
@@ -219,16 +230,6 @@
             CloseBtn.Text = "Close";
             CloseBtn.UseVisualStyleBackColor = true;
             CloseBtn.Click += CloseBtn_Click;
-            // 
-            // MicMuteBtn
-            // 
-            MicMuteBtn.Location = new Point(443, 3);
-            MicMuteBtn.Name = "MicMuteBtn";
-            MicMuteBtn.Size = new Size(160, 41);
-            MicMuteBtn.TabIndex = 5;
-            MicMuteBtn.Text = "Mic Mute Off";
-            MicMuteBtn.UseVisualStyleBackColor = true;
-            MicMuteBtn.Click += MicMuteBtn_Click;
             // 
             // panel1
             // 

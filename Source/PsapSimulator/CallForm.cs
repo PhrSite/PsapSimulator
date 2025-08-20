@@ -803,4 +803,16 @@ public partial class CallForm : Form
             MicMuteBtn.Text = "Mic Mute Off";
         }
     }
+
+    private void KeypadBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.AudioSampleSource == null)
+        {
+            MessageBox.Show("Error", "No audio media for this call", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        KeypadForm form = new KeypadForm(m_Call, m_Call.AudioSampleSource);
+        form.ShowDialog();
+    }
 }

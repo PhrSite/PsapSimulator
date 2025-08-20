@@ -8,7 +8,7 @@ using System.Net;
 namespace SipLib.Subscriptions;
 
 /// <summary>
-/// Contains data and state information about a SIP subscription
+/// Contains data and state information about a SIP subscription for a subscriber.
 /// </summary>
 public class SubscriberData
 {

@@ -3,6 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace SipLib.Subscriptions;
+using I3SubNot;
 
 /// <summary>
 /// Definitions of the types of subscription events for SUBSCRIBE/NOTIFY
@@ -20,30 +21,15 @@ public static class SubscriptionEvents
     public const string Conference = "conference";
 
     /// <summary>
-    /// Event type for the I3V3 Element State event. See Section 2.4.1 of NENA-STA-010.3.
-    /// </summary>
-    public const string ElementState = "emergency-ElementState";
-
-    /// <summary>
-    /// Event type for the I3V3 Service State event. See Section 2.4.2 of NENA-STA-010.3.
-    /// </summary>
-    public const string ServiceState = "emergency-ServiceState";
-
-    /// <summary>
-    /// Event type for the I3V3 Queue State Event. See Section 4.2.1.3 of NENA-STA-010.3.
-    /// </summary>
-    public const string QueueState = "emergency-QueueState";
-
-    /// <summary>
     /// List of supported event packages.
     /// </summary>
     private static string[] SupportedEvents =
     {
         Presence,
         Conference,
-        ElementState,
-        ServiceState,
-        QueueState
+        ElementState.EventName,
+        ServiceState.EventName,
+        QueueState.EventName
     };
 
     /// <summary>

@@ -245,6 +245,11 @@ public class Call
     public DateTime LastLocationReceivedTime = DateTime.MinValue;
 
     /// <summary>
+    /// Contains a list of DTMF digits that have been sent for this call.
+    /// </summary>
+    public List<DtmfEventEnum> SentDtmfDigits = new List<DtmfEventEnum>();
+
+    /// <summary>
     /// This event is fired when new location for the call is received by-reference.
     /// </summary>
     public event NewLocationDelegate? NewLocation = null;

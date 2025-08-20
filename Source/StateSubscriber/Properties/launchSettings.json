@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "StateSubscriber": {
+      "commandName": "Project",
+      "commandLineArgs": "192.168.1.82:5060 5090"
+    }
+  }
+}

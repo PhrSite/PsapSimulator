@@ -57,6 +57,7 @@
             OnLineLbl = new Label();
             StatusLbl = new Label();
             toolTip1 = new ToolTip(components);
+            StatesBtn = new Button();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -115,6 +116,7 @@
             tableLayoutPanel1.Controls.Add(label5, 6, 0);
             tableLayoutPanel1.Controls.Add(OnLineLbl, 7, 0);
             tableLayoutPanel1.Controls.Add(StatusLbl, 0, 2);
+            tableLayoutPanel1.Controls.Add(StatesBtn, 7, 3);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -367,6 +369,17 @@
             StatusLbl.Text = "Not listening. Press Start";
             StatusLbl.TextAlign = ContentAlignment.MiddleLeft;
             // 
+            // StatesBtn
+            // 
+            StatesBtn.Dock = DockStyle.Fill;
+            StatesBtn.Location = new Point(913, 659);
+            StatesBtn.Name = "StatesBtn";
+            StatesBtn.Size = new Size(124, 36);
+            StatesBtn.TabIndex = 21;
+            StatesBtn.Text = "States";
+            StatesBtn.UseVisualStyleBackColor = true;
+            StatesBtn.Click += StatesBtn_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -420,5 +433,6 @@
         private Label OnLineLbl;
         private ToolTip toolTip1;
         private Label StatusLbl;
+        private Button StatesBtn;
     }
 }

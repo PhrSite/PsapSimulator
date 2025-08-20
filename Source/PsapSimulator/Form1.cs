@@ -149,6 +149,7 @@ public partial class Form1 : Form
             StatusLbl.Text = "Not listening. Press Start";
             StatusLbl.BackColor = Color.Red;
             StatusLbl.ForeColor = Color.White;
+            StatesBtn.Enabled = false;
         }
         else
         {
@@ -189,6 +190,7 @@ public partial class Form1 : Form
             StatusLbl.Text = sb.ToString();
             StatusLbl.BackColor = Color.Green;
             StatusLbl.ForeColor = Color.White;
+            StatesBtn.Enabled = true;
         }
     }
 
@@ -475,5 +477,14 @@ public partial class Form1 : Form
         ShowCallForm(callID);
         m_CurrentCallID = null;
         m_CallForm = null;
+    }
+
+    private void StatesBtn_Click(object sender, EventArgs e)
+    {
+        if (m_CallManager == null)
+            return;
+
+        PsapStatesForm form = new PsapStatesForm(m_CallManager);
+        form.ShowDialog();
     }
 }
