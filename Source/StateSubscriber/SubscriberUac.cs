@@ -40,10 +40,10 @@ public class SubscriberUac : QueuedActionWorkerTask
 
         m_Subscriptions.Add(SubNotConsts.ElementState, new SubscriptionData(SubNotConsts.ElementState, BuildSubscribeRequest(
             SubNotConsts.ElementState)));
-        //m_Subscriptions.Add(SubNotConsts.ServiceState, new SubscriptionData(SubNotConsts.ServiceState, BuildSubscribeRequest(
-        //    SubNotConsts.ServiceState)));
-        //m_Subscriptions.Add(SubNotConsts.QueueState, new SubscriptionData(SubNotConsts.QueueState, BuildSubscribeRequest(
-        //    SubNotConsts.QueueState)));
+        m_Subscriptions.Add(SubNotConsts.ServiceState, new SubscriptionData(SubNotConsts.ServiceState, BuildSubscribeRequest(
+            SubNotConsts.ServiceState)));
+        m_Subscriptions.Add(SubNotConsts.QueueState, new SubscriptionData(SubNotConsts.QueueState, BuildSubscribeRequest(
+            SubNotConsts.QueueState)));
     }
 
     private SIPRequest BuildSubscribeRequest(string eventName)

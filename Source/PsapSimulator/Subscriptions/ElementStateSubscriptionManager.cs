@@ -5,6 +5,9 @@
 namespace SipLib.Subscriptions;
 
 using I3SubNot;
+using I3V3.LogEvents;
+using I3V3.LoggingHelpers;
+using Ng911Lib.Utilities;
 using SipLib.Core;
 using SipLib.Transactions;
 
@@ -16,14 +19,16 @@ public class ElementStateSubscriptionManager : SubscriptionManager
     private string m_ElementID;
     private string m_CurrentState = ElementState.Normal;
     private string? m_Reason = null;
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="elementID">Element ID of the element that is acting as the Element State notifier. Section 2.1.3
     /// of NENA-STA-010.3b specifies the format of this string. For example: esrp1.state.pa.us</param>
-    public ElementStateSubscriptionManager(string elementID) : base()
+    public ElementStateSubscriptionManager(string elementID, I3LogEventClientMgr i3LogEventClientMgr) : base()
     {
+        m_I3LogEventClientMgr = i3LogEventClientMgr;
         m_ElementID = elementID;
     }
 
@@ -36,6 +41,7 @@ public class ElementStateSubscriptionManager : SubscriptionManager
     /// <param name="changeReason">Specifies the reason for the change in Element State. Optional.</param>
     public void NotifyElementStateChange(string newState, string? changeReason)
     {
+        bool Changed = m_CurrentState != newState ? true : false;
         m_CurrentState = newState;
         m_Reason = changeReason;
         ElementState State = new ElementState()
@@ -44,6 +50,16 @@ public class ElementStateSubscriptionManager : SubscriptionManager
             state = m_CurrentState,
             reason = m_Reason
         };
+
+        if (Changed == true)
+        {
+            ElementStateChangeLogEvent Le = new ElementStateChangeLogEvent();
+            Le.affectedElementId = m_ElementID;
+            Le.notificationContents = JsonHelper.SerializeToString(State);
+            Le.StateChangeNotificationContents = newState;
+            Le.direction = "outgoing";
+            m_I3LogEventClientMgr.SendLogEvent(Le);
+        }
 
         IEnumerable<Subscription> subs = Subscriptions.Values.ToArray<Subscription>();
 

@@ -52,6 +52,9 @@ public partial class Form1 : Form
 
     private async void Form1_Load(object sender, EventArgs e)
     {
+        string strVer = System.Reflection.Assembly.GetEntryAssembly()!.GetName()!.Version!.ToString();
+        Text += $" -- Version: {strVer}";
+
         SetCallListViewColumns();
         m_VideoDevices = await VideoDeviceEnumerator.GetVideoFrameSources();
         ShowStatus();

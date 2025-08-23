@@ -43,10 +43,12 @@
             label4 = new Label();
             label3 = new Label();
             IPv6Group = new GroupBox();
+            CopyIpV6Btn = new Button();
             IPv6Combo = new ComboBox();
             label2 = new Label();
             IPv6Check = new CheckBox();
             IPv4Group = new GroupBox();
+            CopyIpV4Btn = new Button();
             IPv4Combo = new ComboBox();
             label1 = new Label();
             IPv4Check = new CheckBox();
@@ -126,14 +128,14 @@
             AudioDeviceCombo = new ComboBox();
             label25 = new Label();
             InterfacesPage = new TabPage();
+            TestCallsEnabledLbl = new Label();
+            TestCallSettingsBtn = new Button();
             EventLoggingLbl = new Label();
             SipRecLbl = new Label();
             EventLoggingBtn = new Button();
             SipRecBtn = new Button();
             SaveBtn = new Button();
             CancelBtn = new Button();
-            TestCallSettingsBtn = new Button();
-            TestCallsEnabledLbl = new Label();
             tabControl1.SuspendLayout();
             NetworkPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PortsGridView).BeginInit();
@@ -256,7 +258,7 @@
             PortsGridView.BackgroundColor = SystemColors.Control;
             PortsGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             PortsGridView.Columns.AddRange(new DataGridViewColumn[] { MediaCol, StartPortCol, PortCountCol });
-            PortsGridView.Location = new Point(311, 320);
+            PortsGridView.Location = new Point(311, 334);
             PortsGridView.MultiSelect = false;
             PortsGridView.Name = "PortsGridView";
             PortsGridView.RowHeadersVisible = false;
@@ -264,7 +266,7 @@
             PortsGridView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             PortsGridView.ScrollBars = ScrollBars.None;
             PortsGridView.SelectionMode = DataGridViewSelectionMode.CellSelect;
-            PortsGridView.Size = new Size(495, 188);
+            PortsGridView.Size = new Size(495, 174);
             PortsGridView.TabIndex = 6;
             // 
             // MediaCol
@@ -312,15 +314,27 @@
             // 
             // IPv6Group
             // 
+            IPv6Group.Controls.Add(CopyIpV6Btn);
             IPv6Group.Controls.Add(IPv6Combo);
             IPv6Group.Controls.Add(label2);
             IPv6Group.Controls.Add(IPv6Check);
             IPv6Group.Location = new Point(19, 174);
             IPv6Group.Name = "IPv6Group";
-            IPv6Group.Size = new Size(800, 125);
+            IPv6Group.Size = new Size(800, 140);
             IPv6Group.TabIndex = 1;
             IPv6Group.TabStop = false;
             IPv6Group.Text = "IPv6";
+            // 
+            // CopyIpV6Btn
+            // 
+            CopyIpV6Btn.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            CopyIpV6Btn.Location = new Point(305, 92);
+            CopyIpV6Btn.Name = "CopyIpV6Btn";
+            CopyIpV6Btn.Size = new Size(94, 29);
+            CopyIpV6Btn.TabIndex = 4;
+            CopyIpV6Btn.Text = "Copy";
+            CopyIpV6Btn.UseVisualStyleBackColor = true;
+            CopyIpV6Btn.Click += CopyIpV6Btn_Click;
             // 
             // IPv6Combo
             // 
@@ -352,15 +366,27 @@
             // 
             // IPv4Group
             // 
+            IPv4Group.Controls.Add(CopyIpV4Btn);
             IPv4Group.Controls.Add(IPv4Combo);
             IPv4Group.Controls.Add(label1);
             IPv4Group.Controls.Add(IPv4Check);
             IPv4Group.Location = new Point(17, 28);
             IPv4Group.Name = "IPv4Group";
-            IPv4Group.Size = new Size(802, 125);
+            IPv4Group.Size = new Size(802, 140);
             IPv4Group.TabIndex = 0;
             IPv4Group.TabStop = false;
             IPv4Group.Text = "IPv4";
+            // 
+            // CopyIpV4Btn
+            // 
+            CopyIpV4Btn.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            CopyIpV4Btn.Location = new Point(307, 96);
+            CopyIpV4Btn.Name = "CopyIpV4Btn";
+            CopyIpV4Btn.Size = new Size(94, 29);
+            CopyIpV4Btn.TabIndex = 3;
+            CopyIpV4Btn.Text = "Copy";
+            CopyIpV4Btn.UseVisualStyleBackColor = true;
+            CopyIpV4Btn.Click += CopyIpV4Btn_Click;
             // 
             // IPv4Combo
             // 
@@ -1021,9 +1047,9 @@
             // 
             DevicesPage.Controls.Add(groupBox8);
             DevicesPage.Controls.Add(groupBox7);
-            DevicesPage.Location = new Point(4, 40);
+            DevicesPage.Location = new Point(4, 29);
             DevicesPage.Name = "DevicesPage";
-            DevicesPage.Size = new Size(839, 580);
+            DevicesPage.Size = new Size(839, 591);
             DevicesPage.TabIndex = 4;
             DevicesPage.Text = " Devices ";
             DevicesPage.UseVisualStyleBackColor = true;
@@ -1133,12 +1159,31 @@
             InterfacesPage.Controls.Add(SipRecLbl);
             InterfacesPage.Controls.Add(EventLoggingBtn);
             InterfacesPage.Controls.Add(SipRecBtn);
-            InterfacesPage.Location = new Point(4, 40);
+            InterfacesPage.Location = new Point(4, 29);
             InterfacesPage.Name = "InterfacesPage";
-            InterfacesPage.Size = new Size(839, 580);
+            InterfacesPage.Size = new Size(839, 591);
             InterfacesPage.TabIndex = 5;
             InterfacesPage.Text = " Interfaces ";
             InterfacesPage.UseVisualStyleBackColor = true;
+            // 
+            // TestCallsEnabledLbl
+            // 
+            TestCallsEnabledLbl.BorderStyle = BorderStyle.Fixed3D;
+            TestCallsEnabledLbl.Location = new Point(335, 184);
+            TestCallsEnabledLbl.Name = "TestCallsEnabledLbl";
+            TestCallsEnabledLbl.Size = new Size(106, 39);
+            TestCallsEnabledLbl.TabIndex = 5;
+            TestCallsEnabledLbl.Text = "Enabled";
+            // 
+            // TestCallSettingsBtn
+            // 
+            TestCallSettingsBtn.Location = new Point(22, 184);
+            TestCallSettingsBtn.Name = "TestCallSettingsBtn";
+            TestCallSettingsBtn.Size = new Size(291, 39);
+            TestCallSettingsBtn.TabIndex = 4;
+            TestCallSettingsBtn.Text = "Test Call Settings";
+            TestCallSettingsBtn.UseVisualStyleBackColor = true;
+            TestCallSettingsBtn.Click += TestCallSettingsBtn_Click;
             // 
             // EventLoggingLbl
             // 
@@ -1199,25 +1244,6 @@
             CancelBtn.Text = "Cancel";
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
-            // 
-            // TestCallSettingsBtn
-            // 
-            TestCallSettingsBtn.Location = new Point(22, 184);
-            TestCallSettingsBtn.Name = "TestCallSettingsBtn";
-            TestCallSettingsBtn.Size = new Size(291, 39);
-            TestCallSettingsBtn.TabIndex = 4;
-            TestCallSettingsBtn.Text = "Test Call Settings";
-            TestCallSettingsBtn.UseVisualStyleBackColor = true;
-            TestCallSettingsBtn.Click += TestCallSettingsBtn_Click;
-            // 
-            // TestCallsEnabledLbl
-            // 
-            TestCallsEnabledLbl.BorderStyle = BorderStyle.Fixed3D;
-            TestCallsEnabledLbl.Location = new Point(335, 184);
-            TestCallsEnabledLbl.Name = "TestCallsEnabledLbl";
-            TestCallsEnabledLbl.Size = new Size(106, 39);
-            TestCallsEnabledLbl.TabIndex = 5;
-            TestCallsEnabledLbl.Text = "Enabled";
             // 
             // SettingsForm
             // 
@@ -1381,5 +1407,7 @@
         private Button ConfSettingsBtn;
         private Button TestCallSettingsBtn;
         private Label TestCallsEnabledLbl;
+        private Button CopyIpV4Btn;
+        private Button CopyIpV6Btn;
     }
 }

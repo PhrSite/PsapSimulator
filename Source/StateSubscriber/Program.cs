@@ -7,7 +7,7 @@ using SipLib.Core;
 using SipLib.Network;
 using SipLib.Transactions;
 using System.Net;
-using System.Security.Cryptography;
+using System.Net.Sockets;
 
 namespace SipLib.Subscriptions;
 
@@ -21,14 +21,6 @@ internal class Program
         string UserName = "StateSubscriber";
         IPAddress localAddress;
         Console.Title = UserName;
-
-        List<IPAddress> addresses = IpUtils.GetIPv4Addresses();
-        //List<IPAddress> addresses = IpUtils.GetIPv6Addresses();
-        if (addresses == null || addresses.Count == 0)
-        {
-            Console.WriteLine("Error: No IPv4 addresses available");
-            return;
-        }
 
         if (args.Length != 2)
         {
@@ -49,7 +41,24 @@ internal class Program
             return;
         }
 
-        localAddress = addresses[0];    // Pick the first available IPv4 address to listen on
+        List<IPAddress> addresses;
+        if (notifierEndPoint.Address.AddressFamily == AddressFamily.InterNetwork)
+            addresses = IpUtils.GetIPv4Addresses();
+        else if (notifierEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
+            addresses = IpUtils.GetIPv6Addresses();
+        else
+        {
+            Console.WriteLine("The IP address of the IPEndPoint argument must be either an IPv4 or an IPv6 address");
+            return;
+        }
+
+        if (addresses.Count == 0)
+        {
+            Console.WriteLine("Error: No local IP addresses available");
+            return;
+        }
+
+        localAddress = addresses[0];    // Pick the first available IP address to listen on
         IPEndPoint localIPEndPoint = new IPEndPoint(localAddress, m_LocalSipPort);
         Channel = new SIPTCPChannel(localIPEndPoint, UserName);
         SipTransport sipTransport = new SipTransport(Channel);

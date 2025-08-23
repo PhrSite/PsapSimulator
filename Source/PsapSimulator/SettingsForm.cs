@@ -818,4 +818,20 @@ public partial class SettingsForm : Form
         else
             TestCallsEnabledLbl.Text = "Disabled";
     }
+
+    private void CopyIpV4Btn_Click(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(IPv4Combo.Text) == false)
+            Clipboard.SetText(IPv4Combo.Text);
+        else
+            MessageBox.Show("No IPv4 address selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+
+    private void CopyIpV6Btn_Click(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(IPv6Combo.Text) == false)
+            Clipboard.SetText(IPv6Combo.Text);
+        else
+            MessageBox.Show("No IPv6 address selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
 }

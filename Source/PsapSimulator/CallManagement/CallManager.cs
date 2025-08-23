@@ -116,11 +116,6 @@ public class CallManager
     {
         m_Settings = appSettings;
 
-        m_ELementStateSubscriptionManager = new ElementStateSubscriptionManager(m_Settings.Identity.ElementID);
-        m_ServiceStateSubscriptionManager = new ServiceStateSubscriptionManager(ServiceType.PSAP,
-            m_Settings.Identity.AgencyID);
-        m_QueueStateSubscriptionManager = new QueueStateSubscriptionManager(m_Settings.CallHandling.MaximumCalls);
-
         try
         {
             m_Certificate = X509CertificateLoader.LoadPkcs12FromFile(m_Settings.CertificateSettings.CertificateFilePath,
@@ -149,6 +144,11 @@ public class CallManager
         m_OnHoldAudioSampleData = WindowsAudioUtils.ReadWaveFile(m_Settings.CallHandling.CallHoldAudioFile!);
 
         m_I3LogEventClientMgr = new I3LogEventClientMgr();
+
+        m_ELementStateSubscriptionManager = new ElementStateSubscriptionManager(m_Settings.Identity.ElementID, m_I3LogEventClientMgr);
+        m_ServiceStateSubscriptionManager = new ServiceStateSubscriptionManager(ServiceType.PSAP,
+            m_Settings.Identity.AgencyID, m_I3LogEventClientMgr);
+        m_QueueStateSubscriptionManager = new QueueStateSubscriptionManager(m_Settings.CallHandling.MaximumCalls, m_I3LogEventClientMgr);
 
         // Setup up the TestCAllManager
         SdpAnswerSettings TestCallAnswerSettings = new SdpAnswerSettings(AudioMediaUtils.SupportedAudioCodecs, m_SupportedVideoCodecs,
@@ -219,6 +219,11 @@ public class CallManager
         m_I3LogEventClientMgr.LoggingServerError += OnLoggingServerError;
         m_I3LogEventClientMgr.LoggingServerStatusChanged += OnLoggingServerStatusChanged;
         m_I3LogEventClientMgr.Start();
+
+        m_ELementStateSubscriptionManager = new ElementStateSubscriptionManager(m_Settings.Identity.ElementID, m_I3LogEventClientMgr);
+        m_ServiceStateSubscriptionManager = new ServiceStateSubscriptionManager(ServiceType.PSAP,
+            m_Settings.Identity.AgencyID, m_I3LogEventClientMgr);
+        m_QueueStateSubscriptionManager = new QueueStateSubscriptionManager(m_Settings.CallHandling.MaximumCalls, m_I3LogEventClientMgr);
 
         NetworkSettings Ns = m_Settings.NetworkSettings;
         CallHandlingSettings Ch = m_Settings.CallHandling;

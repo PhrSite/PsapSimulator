@@ -2,9 +2,12 @@
 //  File:   QueueStateSubscriptionManager.cs                        31 Jul 25 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
+using I3SubNot;
+using I3V3.LogEvents;
+using I3V3.LoggingHelpers;
+using Ng911Lib.Utilities;
 using SipLib.Core;
 using SipLib.Transactions;
-using I3SubNot;
 
 namespace SipLib.Subscriptions;
 
@@ -18,14 +21,16 @@ public class QueueStateSubscriptionManager : SubscriptionManager
     private string m_CurrentQueueState = QueueState.Active;
     private int m_MaxQueueLength;
     private int m_QueueLength = 0;
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="maxQueueLength">Maximum number of calls that the specified queue can handle.</param>
-    public QueueStateSubscriptionManager(int maxQueueLength) : base()
+    public QueueStateSubscriptionManager(int maxQueueLength, I3LogEventClientMgr i3LogEventClientMgr) : base()
     {
         m_MaxQueueLength = maxQueueLength;
+        m_I3LogEventClientMgr = i3LogEventClientMgr;
     }
 
     /// <summary>
@@ -78,8 +83,27 @@ public class QueueStateSubscriptionManager : SubscriptionManager
     /// <param name="queueLength">Current number of calls in the call queue.</param>
     public void NotifyQueueStateChange(string queueState, int queueLength)
     {
+        bool Changed = false;
+        if (m_CurrentQueueState != queueState || m_QueueLength != queueLength)
+            Changed = true;
+
         m_CurrentQueueState = queueState;
         m_QueueLength = queueLength;
+
+        if (Changed == true)
+        {
+            QueueStateChangeLogEvent Le = new QueueStateChangeLogEvent();
+            QueueState Qs = new QueueState();
+            Qs.queueUri = "urn:servie:sos";
+            Qs.queueLength = queueLength;
+            Qs.queueMaxLength = m_MaxQueueLength;
+            Qs.state = queueState;
+
+            Le.notificationContents = JsonHelper.SerializeToString(Qs);
+            Le.queueId = "urn:service:sos";
+            Le.direction = "outgoing";
+            m_I3LogEventClientMgr.SendLogEvent(Le);
+        }
 
         IEnumerable<Subscription> subs = Subscriptions.Values.ToArray<Subscription>();
 

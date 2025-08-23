@@ -2,7 +2,7 @@
   "profiles": {
     "StateSubscriber": {
       "commandName": "Project",
-      "commandLineArgs": "192.168.1.82:5060 5090"
+      "commandLineArgs": "[2600:1700:7A40:4740:4350:AFAC:5484:4372]:5060 5090"
     }
   }
 }

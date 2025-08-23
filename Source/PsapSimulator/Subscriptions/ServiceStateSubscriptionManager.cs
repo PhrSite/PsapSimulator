@@ -3,6 +3,8 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 using I3SubNot;
+using I3V3.LogEvents;
+using I3V3.LoggingHelpers;
 using SipLib.Core;
 using SipLib.Transactions;
 
@@ -14,25 +16,28 @@ namespace SipLib.Subscriptions;
 public class ServiceStateSubscriptionManager : SubscriptionManager
 {
     private string m_ServiceName;
-    private string m_ServiceDomain;
+    private string m_ServiceId;
 
     private ServiceState m_CurrentServiceState;
+    private I3LogEventClientMgr m_I3LogEventClientMgr;
 
     /// <summary>
     /// Constructor.
     /// </summary>
     /// <param name="serviceName">Identifies the type of service that the Service State event package applies to.
     /// Must be one of the constant values defined in the ServiceType class. For example: ServiceType.PSAP.</param>
-    /// <param name="serviceDomain">Identifies the domain of the service that the service state applies to. This
-    /// should be the Service Identifier of the service. See Section 2.1.5 of NENA-STA-010.3b.</param>
-    public ServiceStateSubscriptionManager(string serviceName, string serviceDomain) : base()
+    /// <param name="serviceId">Identifies the domain of the service that the service state applies to. This
+    /// should be the Service Identifier of the service. See Section 2.1.5 of NENA-STA-010.3f.</param>
+    public ServiceStateSubscriptionManager(string serviceName, string serviceId, I3LogEventClientMgr i3LogEventClientMgr) : base()
     {
         m_ServiceName = serviceName;
-        m_ServiceDomain = serviceDomain;
+        m_ServiceId = serviceId;
+        m_I3LogEventClientMgr = i3LogEventClientMgr;
 
         m_CurrentServiceState = new ServiceState();
         m_CurrentServiceState.service.name = m_ServiceName;
-        m_CurrentServiceState.service.domain = m_ServiceDomain;
+        m_CurrentServiceState.service.domain = m_ServiceId;
+        m_CurrentServiceState.service.serviceId = m_ServiceId;
         m_CurrentServiceState.serviceState.state = ServiceStateType.Normal;
         m_CurrentServiceState.securityPosture.posture = SecurityPostureType.Green;
     }
@@ -87,10 +92,24 @@ public class ServiceStateSubscriptionManager : SubscriptionManager
     /// <param name="changeReason">Specifies the reason for the change in service state. Optional.</param>
     public void NotifyServiceStateChange(string serviceState, string securityPosture, string? changeReason)
     {
+        bool Changed = false;
+        if (m_CurrentServiceState.serviceState.state != serviceState || m_CurrentServiceState.securityPosture.posture != securityPosture)
+            Changed = true;
+
         m_CurrentServiceState.serviceState.state = serviceState;
         m_CurrentServiceState.serviceState.reason = changeReason;
         m_CurrentServiceState.securityPosture.posture = securityPosture;
         m_CurrentServiceState.securityPosture.reason = changeReason;
+
+        if (Changed == true)
+        {
+            ServiceStateChangeLogEvent Le = new ServiceStateChangeLogEvent();
+            Le.newState = serviceState;
+            Le.newSecurityPosture = securityPosture;
+            Le.affectedServiceIdentifier = m_ServiceId;
+            Le.direction = "outgoing";
+            m_I3LogEventClientMgr.SendLogEvent(Le);
+        }
 
         IEnumerable<Subscription> subs = Subscriptions.Values.ToArray<Subscription>();
 
