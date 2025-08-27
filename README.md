@@ -6,7 +6,8 @@ The PsapSimulator application is a test program. The intended uses of this appli
 
 This application is a simplified PSAP call handling functional element. It is a single call taker position application that can handle multiple calls simultaneously, but the call taker can only communicate with a single caller at a time. There is no centralized PSAP call controller so functions such as automatic call distribution, call queue pickup, call takeover, barge-in, local transfers (within the same PSAP), local conferences, administrative (non-emergency, i.e. an interface to an agency’s PBX) call handling and other functions that are normally expected in a PSAP application will not be available.
 
-
+The following block diagram shows the NG9-1-1 functional elements that the PsapSimulator application can interface to.
+![PsapSimulator Block Diagram](PsapSimulatorBlockDiagram.jpg)
 
 ## NG9-1-1 Functional Element Interface Support
 Section 4.6 of NENA-STA-010.3f specifies which functional element interfaces that the PSAP call handling functional element must support.
