@@ -12,13 +12,15 @@ The following block diagram shows the NG9-1-1 functional elements that the PsapS
 
 ![PsapSimulator Block Diagram](PsapSimulatorBlockDiagram.jpg)
 
+This application currently only handles incoming calls. All calls are treated as NG9-1-1 calls regardless of the origin of the call.
+
 ## NG9-1-1 Functional Element Interface Support
 Section 4.6 of NENA-STA-010.3f specifies which functional element interfaces that the PSAP call handling functional element must support.
 
 The following table shows which interfaces and the degree of support that this application provides. The degree of support is indicated in the “Supported?” column.
 
 | NENA-STA-010.3f Section | Supported? | Implemented? | Description |
-|-------------------------|------------|-------------|
+|-------------------------|------------|-------------|--------------|
 | 4.6.1 SIP Call Interface | Full Support | Yes |  |
 | 4.6.2 Media | Full Support | Yes | This application supports multimedia calls with any combination of audio, video, Real Time Text (RTT) and MSRP text |
 | 4.6.3 LoST Interface | Full Support | No |   |
@@ -39,9 +41,8 @@ The following table shows which interfaces and the degree of support that this a
 | 4.6.18 Testing of Policy Rules | No | No | Support for this function appears to be optional in NENA-STA-010.3f. |
 | 4.6.19 Call Diversion | Yes | No | Because De-Queue Registration will be supported. Element State, Service State and Queue state are already implemented. |
 
-
-
 # Dependancies
+
 
 ## FFMPEG Libraries
 This project depends on the FFMPEG libraries for video codecs and other video related functions. These DLL files are automatically installed in the FFMPEG directory located under the applications installation directory.
