@@ -1,13 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36221.1 d17.14
+VisualStudioVersion = 17.14.36221.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateSubscriber", "StateSubscriber.csproj", "{3AA60F63-C13B-48A3-97D2-F8BFE587D106}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ng911Lib", "..\..\..\Ng911Lib\ClassLibrary\Ng911Lib.csproj", "{A077DDAF-F623-30B3-F59D-9C2DEB0A8108}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SipLib", "..\..\..\SipLib\ClassLibrary\SipLib.csproj", "{7563F977-0111-4C3C-1BEA-6E65CD2AD553}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +15,6 @@ Global
 		{3AA60F63-C13B-48A3-97D2-F8BFE587D106}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AA60F63-C13B-48A3-97D2-F8BFE587D106}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AA60F63-C13B-48A3-97D2-F8BFE587D106}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A077DDAF-F623-30B3-F59D-9C2DEB0A8108}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A077DDAF-F623-30B3-F59D-9C2DEB0A8108}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A077DDAF-F623-30B3-F59D-9C2DEB0A8108}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A077DDAF-F623-30B3-F59D-9C2DEB0A8108}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7563F977-0111-4C3C-1BEA-6E65CD2AD553}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7563F977-0111-4C3C-1BEA-6E65CD2AD553}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7563F977-0111-4C3C-1BEA-6E65CD2AD553}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7563F977-0111-4C3C-1BEA-6E65CD2AD553}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

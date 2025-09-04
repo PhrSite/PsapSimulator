@@ -4,13 +4,11 @@
 
 using SipLib.Channels;
 using SipLib.Core;
-using SipLib.Logging;
 using SipLib.Transactions;
 using SipLib.Media;
 using SipLib.Rtp;
 using SipLib.Threading;
 
-using System.Collections.Concurrent;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using SipLib.Sdp;
@@ -18,18 +16,20 @@ using SipLib.Sdp;
 namespace SrsSimulator;
 
 /// <summary>
-/// 
+/// SIP User Agent server for the SIP Recording Server. This class manages multiple SIPREC calls from one or more SIP Recording Clients.
 /// </summary>
 internal class SrsUa : QueuedActionWorkerTask
 {
     private SipTransport m_SipTransport;
     private SIPChannel m_SipChannel;
-    private IPAddress m_localAddress;
     private string m_userName;
     private X509Certificate2 m_MyCertificate;
     private MediaPortManager m_MediaPortManager;
     private SdpAnswerSettings m_SdpAnswerSettings;
 
+    /// <summary>
+    /// List of video codecs that this application supports
+    /// </summary>
     private List<string> VideoCodecs = new List<string>() { "H264", "VP8" };
 
     private bool m_Started = false;
@@ -37,13 +37,19 @@ internal class SrsUa : QueuedActionWorkerTask
     private Dictionary<string, SrsCall> m_Calls = new Dictionary<string, SrsCall>();
     private string m_RecordingsDirectory;
 
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="sipChannel"></param>
+    /// <param name="userName"></param>
+    /// <param name="myCertificate"></param>
+    /// <param name="recordingsDirectory"></param>
     public SrsUa(SIPChannel sipChannel, string userName, X509Certificate2 myCertificate, string recordingsDirectory) : base(10)
     {
         m_SipChannel = sipChannel;
         m_SipTransport = new SipTransport(m_SipChannel);
         m_userName = userName;
         m_MyCertificate = myCertificate;
-        m_localAddress = m_SipTransport.SipChannel.SIPChannelEndPoint.GetIPEndPoint().Address;
         m_RecordingsDirectory = recordingsDirectory;
 
         MediaPortSettings PortSettings = new MediaPortSettings();
@@ -68,13 +74,15 @@ internal class SrsUa : QueuedActionWorkerTask
         return CallRecordingDirectory;
     }
 
+    /// <summary>
+    /// Starts the SipTransport and starts listening for SIP requests.
+    /// </summary>
     public new void Start()
     {
         base.Start();
 
         if (m_Started == true)
             return;
-
 
         m_SipTransport.SipRequestReceived += OnSipRequestReceived;
         m_SipTransport.Start();
@@ -118,7 +126,7 @@ internal class SrsUa : QueuedActionWorkerTask
         EnqueueWork(() => { HandleSipRequest(sipRequest, remoteEndPoint, sipTransportManager); });
     }
 
-    // Handle incoming SIP requests from SIP transport manager in the thread context of the SrsUserAgentTask
+    // Handle incoming SIP requests from SIP transport manager in the Task context of the SrsUA task.
     private void HandleSipRequest(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
     {
         switch (sipRequest.Method)
@@ -151,15 +159,15 @@ internal class SrsUa : QueuedActionWorkerTask
     {
         SrsCall? srsCall = GetCall(sipRequest.Header.CallId);
         if (srsCall != null)
-        {
+        {   // Its a re-INVITE for an existing call.
             ProcessReInviteRequest(srsCall, sipRequest, remoteEndPoint, sipTransportManager);
             return;
         }
 
         // Its a new call request
         IPEndPoint ipEndPoint = remoteEndPoint.GetIPEndPoint();
-        SrsCall call = new SrsCall(sipRequest, ipEndPoint, sipTransportManager, m_MediaPortManager,
-            m_MyCertificate, m_SdpAnswerSettings, GetCallRecordingDirectory(sipRequest.Header.CallId));
+        SrsCall call = new SrsCall(sipRequest, sipTransportManager, m_MyCertificate, m_SdpAnswerSettings,
+            GetCallRecordingDirectory(sipRequest.Header.CallId));
         SIPResponse response = call.StartCall();
         if (response.Status == SIPResponseStatusCodesEnum.Ok)
             m_Calls.Add(sipRequest.Header.CallId, call);

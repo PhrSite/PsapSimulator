@@ -2,8 +2,6 @@
 //  File:   TextFileFormat.cs                                       18 Nov 24 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Ng911Lib.Utilities;
 
 namespace SrsSimulator;
@@ -12,7 +10,6 @@ namespace SrsSimulator;
 /// Class for storing a block of text that was received via the Message Session Relay Protocol (MSRP) or the
 /// Real Time Text (RTT) protocol.
 /// </summary>
-
 public class TextLine
 {
     /// <summary>

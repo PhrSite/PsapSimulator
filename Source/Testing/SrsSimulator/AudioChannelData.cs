@@ -13,8 +13,8 @@ namespace SrsSimulator;
 /// <summary>
 /// Class for recording a single audio stream that is received on an RtpChannel from the SRC.
 /// <para>
-/// This class supports PCMU, PCMA and G.722 encoded audio and saves the encoded stream as is in a
-/// Windows WAV file.
+/// This class supports PCMU, PCMA and G.722, G.729 and AMR-WB encoded audio. For PCMU, PCMA and G.722 and this class saves the encoded stream as is in a
+/// Windows WAV file. For G.729 and AMR-WB, this class transcodes the media into PCMU for storage in the WAV file.
 /// </para>
 /// </summary>
 internal class AudioChannelData : RtpRecordingChannelData

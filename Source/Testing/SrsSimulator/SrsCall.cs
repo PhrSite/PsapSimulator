@@ -12,13 +12,12 @@ using SipLib.Media;
 using System.Security.Cryptography.X509Certificates;
 using System.Net;
 using Ng911Lib.Utilities;
-using SipLib.Body;
 using SipLib.Channels;
 
 namespace SrsSimulator;
 
 /// <summary>
-/// Class for a SIP Recording Server (SRS) incoming call from a SIPREC Recording Client (SRC).
+/// Class for a single SIP Recording Server (SRS) incoming call from a SIPREC Recording Client (SRC).
 /// </summary>
 internal class SrsCall
 {
@@ -26,15 +25,8 @@ internal class SrsCall
     /// Last INVITE request that was sent by the SRC
     /// </summary>
     private SIPRequest m_Invite;
-
-    private IPEndPoint m_RemoteEndpoint;
-
     private SipTransport m_Transport;
-
-    private MediaPortManager m_PortManager;
-
     private X509Certificate2 m_Certificate;
-
     private SdpAnswerSettings m_AnswerSettings;
 
     /// <summary>
@@ -62,26 +54,34 @@ internal class SrsCall
     private List<RtpRecordingChannelData> m_RtpRecordingChannels = new List<RtpRecordingChannelData>();
     private List<MsrpChannelData> m_MsrpRecordingChannels = new List<MsrpChannelData>();
 
-    public SrsCall(SIPRequest invite, IPEndPoint remoteEndPoint, SipTransport sipTransportManager,
-        MediaPortManager portManager, X509Certificate2 certificate, SdpAnswerSettings AnswerSettings,
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="invite">SIP INVITE request that was received from the SRC for a new call.</param>
+    /// <param name="sipTransportManager">SipTransport that the INVITE request was received on.</param>
+    /// <param name="certificate">X.509 certificate to use for secure MSRP</param>
+    /// <param name="AnswerSettings">Configuration settings that determine how to build the SDP to send in the OK response.</param>
+    /// <param name="callRecordingDirectory">Directory path to store the recordings in. Must already be created.</param>
+    public SrsCall(SIPRequest invite, SipTransport sipTransportManager, X509Certificate2 certificate, SdpAnswerSettings AnswerSettings,
         string callRecordingDirectory)
     {
         m_Invite = invite;
-        m_RemoteEndpoint = remoteEndPoint;
         m_Transport = sipTransportManager;
-        m_PortManager = portManager;
         m_Certificate = certificate;
         m_AnswerSettings = AnswerSettings;
         m_CallRecordingDirectory = callRecordingDirectory;
     }
 
+    /// <summary>
+    /// Starts the call.
+    /// </summary>
+    /// <returns>SIPResponse to send to the caller in response to the INVITE request.</returns>
     public SIPResponse StartCall()
     {
         string? strSdp = m_Invite.GetContentsOfType(SipLib.Body.ContentTypes.Sdp);
         if (strSdp == null)
         {   // Error: No SDP offered with the INVITE request
-            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, "No SDP", 
-                m_Transport.SipChannel, null);
+            return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, "No SDP", m_Transport.SipChannel, null);
         }
 
         // TODO: check other errors in the INVITE request
@@ -125,6 +125,11 @@ internal class SrsCall
             return m_OkResponse;
     }
 
+    /// <summary>
+    /// Handles a re-INVITE request.
+    /// </summary>
+    /// <param name="sipRequest"></param>
+    /// <returns>Returns the SIPResponse message to return to the caller.</returns>
     public SIPResponse HandleReInviteRequest(SIPRequest sipRequest)
     {
         SIPResponse response;
@@ -155,7 +160,7 @@ internal class SrsCall
             }
         }
 
-        string? strError = ValidateMetaData(sipRequest);
+        string? strError = ValidateAndSaveMetaData(sipRequest);
         if (strError != null)
             return SipUtils.BuildResponse(m_Invite, SIPResponseStatusCodesEnum.BadRequest, strError, m_Transport.SipChannel, null);
 
@@ -217,9 +222,15 @@ internal class SrsCall
         return m_OkResponse;
     }
 
+    /// <summary>
+    /// Handles a SIP UPDATE request that can update the SIPREC metadata.
+    /// </summary>
+    /// <param name="sipRequest"></param>
+    /// <param name="sipChannel"></param>
+    /// <returns></returns>
     public SIPResponse HandleUpdateRequest(SIPRequest sipRequest, SIPChannel sipChannel)
     {
-        string? error = ValidateMetaData(sipRequest);
+        string? error = ValidateAndSaveMetaData(sipRequest);
         SIPResponse response;
         if (error != null)
             response = SipUtils.BuildResponse(sipRequest, SIPResponseStatusCodesEnum.BadRequest, error, sipChannel,
@@ -236,6 +247,9 @@ internal class SrsCall
         OkResponse.Header.Vias.TopViaHeader!.Branch = ReInvite.Header.Vias.TopViaHeader!.Branch;
     }
 
+    /// <summary>
+    /// Terminates recording for RTP media and MSRP media when the SIPREC call ends.
+    /// </summary>
     public void EndCall()
     {
         foreach (RtpRecordingChannelData channelData in m_RtpRecordingChannels)
@@ -249,15 +263,14 @@ internal class SrsCall
         }
     }
 
-
     /// <summary>
-    /// Validates the SIPREC meta attatched to a request. If it is a valid XML document, then it save it
+    /// Validates the SIPREC meta attatched to a request. If it is a valid XML document, then it saves it
     /// to a file called MetaData.xml in the directory for the recording.
     /// </summary>
     /// <param name="request">SIPRequest object that the metadata XML document should be attached to. This
     /// can be an INVITE or an UPDATE request.</param>
     /// <returns>Returns null if the metadata is valid or a string describing the error if it is not valid.</returns>
-    private string? ValidateMetaData(SIPRequest request)
+    private string? ValidateAndSaveMetaData(SIPRequest request)
     {
         string? strRecording = request.GetContentsOfType(recording.ContentType);
         if (strRecording != null)
@@ -267,22 +280,22 @@ internal class SrsCall
                 return "Invalid SIPREC Metadata";
 
             File.WriteAllText(Path.Combine(m_CallRecordingDirectory, "MetaData.xml"), strRecording);
+
+            if (m_Recording.participants == null || m_Recording.participants.Count < 2)
+                return "Incorrect number of metadata participants";
+
+            if (m_Recording.participantstreamassocs == null || m_Recording.participantstreamassocs.Count < 2)
+                return "Incorrect participantstreamassociations";
+
+            return null;
         }
         else
             return "No SIPREC Metadata";
-
-        if (m_Recording.participants == null || m_Recording.participants.Count < 2)
-            return "Incorrect number of metadata participants";
-
-        if (m_Recording.participantstreamassocs == null || m_Recording.participantstreamassocs.Count < 2)
-            return "Incorrect participantstreamassociations";
-
-        return null;
     }
 
     private string? ValidateMetaDataAndBuildRecordingChannels()
     {
-        string? metaDataError = ValidateMetaData(m_Invite);
+        string? metaDataError = ValidateAndSaveMetaData(m_Invite);
         if (metaDataError != null)
             return metaDataError;
 

@@ -1,4 +1,6 @@
 # Introduction
+This project is a Visual Studio Windows Forms application that targets .NET 9. It may be run on Windows 10 or later.
+
 The PsapSimulator application is a test program. The intended uses of this application are:
 1. Assist in interoperability testing of Next Generation 9-1-1 (NG9-1-1) call Emergency Services IP Network (ESInet) functional elements that deliver NG9-1-1 calls to NG9-1-1 capable Public Safety Answering Points (PSAPs).
 2. Provide a way to perform integration testing of the various NG9-1-1 interfaces that have been implemented in the [SipLib](https://github.com/PhrSite/SipLib), [Ng911Lib](https://github.com/PhrSite/Ng911Lib), [EidoLib](https://github.com/PhrSite/EidoLib) and [Ng911CadIfLib](https://github.com/PhrSite/Ng911CadIfLib) open source class libraries.
@@ -7,6 +9,7 @@ The PsapSimulator application is a test program. The intended uses of this appli
 This application is a simplified PSAP call handling functional element. It is a single call taker position application that can handle multiple calls simultaneously, but the call taker can only communicate with a single caller at a time. There is no centralized PSAP call controller so functions such as automatic call distribution, call queue pickup, call takeover, barge-in, local transfers (within the same PSAP), local conferences, administrative (non-emergency, i.e. an interface to an agency’s PBX) call handling and other functions that are normally expected in a PSAP application will not be available.
 
 The following block diagram shows the NG9-1-1 functional elements that the PsapSimulator application can interface to.
+
 ![PsapSimulator Block Diagram](PsapSimulatorBlockDiagram.jpg)
 
 ## NG9-1-1 Functional Element Interface Support
@@ -20,7 +23,7 @@ The following table shows which interfaces and the degree of support that this a
 | 4.6.2 Media | Full Support | Yes | This application supports multimedia calls with any combination of audio, video, Real Time Text (RTT) and MSRP text |
 | 4.6.3 LoST Interface | Full Support | No |   |
 | 4.6.4 LIS Interfaces | Full Support | Yes |  |
-| 4.6.5 Bridge Interface | No | No | This section of NENA-STA-010.3f states that the PSAP MAY provide its own conference bridge. The application shall support call conferencing and call transfers via an external conference aware user agent (i.e. a conference bridge). |
+| 4.6.5 Bridge Interface | Yes | Yes | This section of NENA-STA-010.3f states that the PSAP MAY provide its own conference bridge. The PsapSimulator application does not provide its own conference bridge but it does support call conferencing and call transfers via an external conference aware user agent (i.e. a conference bridge). |
 | 4.6.6 Element State | Full Support | Yes |  |
 | 4.6.7 Service State | Full Support | Yes |  |
 | 4.6.8 Abandoned Call Event | No | No | Future |
@@ -36,16 +39,16 @@ The following table shows which interfaces and the degree of support that this a
 | 4.6.18 Testing of Policy Rules | No | No | Support for this function appears to be optional in NENA-STA-010.3f. |
 | 4.6.19 Call Diversion | Yes | No | Because De-Queue Registration will be supported. Element State, Service State and Queue state are already implemented. |
 
+
+
 # Dependancies
 
 ## FFMPEG Libraries
 This project depends on the FFMPEG libraries for video codecs and other video related functions. These DLL files are automatically installed in the FFMPEG directory located under the applications installation directory.
 
-This repository contains the FFMPEG DLL files.
+This project contains the FFMPEG DLL files that it needs in the FFMPEG directory. These DLL files are distrubuted automatically when the project is published.
 
-The application currently uses version 7.0.0 of FFMPEG.
-
-The version of the FFMPEG DLL files must match the version of FFMPEG.AutoGen. If FFMPEG.AutoGen is updated, the FFMPEG DLL files in this repository must also be updated.
+The application currently uses version 7.0.0 of FFMPEG. The version of the FFMPEG DLL files must match the version of FFMPEG.AutoGen. If FFMPEG.AutoGen is updated, the FFMPEG DLL files in this repository must also be updated.
 
 The best place to get the correct version of the FFMPEG DLL files is: https://github.com/Ruslan-B/FFmpeg.AutoGen/tree/master/FFmpeg/bin/x64.
 

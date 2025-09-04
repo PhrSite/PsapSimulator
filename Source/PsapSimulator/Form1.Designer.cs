@@ -56,17 +56,17 @@
             label5 = new Label();
             OnLineLbl = new Label();
             StatusLbl = new Label();
-            toolTip1 = new ToolTip(components);
             StatesBtn = new Button();
+            toolTip1 = new ToolTip(components);
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
             // CloseBtn
             // 
             CloseBtn.Dock = DockStyle.Fill;
-            CloseBtn.Location = new Point(1173, 659);
+            CloseBtn.Location = new Point(1425, 659);
             CloseBtn.Name = "CloseBtn";
-            CloseBtn.Size = new Size(124, 36);
+            CloseBtn.Size = new Size(154, 36);
             CloseBtn.TabIndex = 0;
             CloseBtn.Text = "Close";
             CloseBtn.UseVisualStyleBackColor = true;
@@ -75,9 +75,9 @@
             // SettingsBtn
             // 
             SettingsBtn.Dock = DockStyle.Fill;
-            SettingsBtn.Location = new Point(1043, 659);
+            SettingsBtn.Location = new Point(1267, 659);
             SettingsBtn.Name = "SettingsBtn";
-            SettingsBtn.Size = new Size(124, 36);
+            SettingsBtn.Size = new Size(152, 36);
             SettingsBtn.TabIndex = 1;
             SettingsBtn.Text = "Settings";
             SettingsBtn.UseVisualStyleBackColor = true;
@@ -125,7 +125,7 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
-            tableLayoutPanel1.Size = new Size(1300, 698);
+            tableLayoutPanel1.Size = new Size(1582, 698);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // CallListView
@@ -139,7 +139,7 @@
             CallListView.Location = new Point(3, 45);
             CallListView.MultiSelect = false;
             CallListView.Name = "CallListView";
-            CallListView.Size = new Size(1294, 566);
+            CallListView.Size = new Size(1576, 566);
             CallListView.TabIndex = 2;
             CallListView.UseCompatibleStateImageBehavior = false;
             CallListView.View = View.Details;
@@ -180,7 +180,7 @@
             StartBtn.Dock = DockStyle.Fill;
             StartBtn.Location = new Point(3, 659);
             StartBtn.Name = "StartBtn";
-            StartBtn.Size = new Size(124, 36);
+            StartBtn.Size = new Size(152, 36);
             StartBtn.TabIndex = 3;
             StartBtn.Text = "Start";
             toolTip1.SetToolTip(StartBtn, "Starts or stop listening for calls");
@@ -193,7 +193,7 @@
             label1.Dock = DockStyle.Fill;
             label1.Location = new Point(3, 0);
             label1.Name = "label1";
-            label1.Size = new Size(124, 42);
+            label1.Size = new Size(152, 42);
             label1.TabIndex = 4;
             label1.Text = "Total Calls";
             label1.TextAlign = ContentAlignment.MiddleCenter;
@@ -202,9 +202,9 @@
             // 
             TotalCallsLbl.BorderStyle = BorderStyle.Fixed3D;
             TotalCallsLbl.Dock = DockStyle.Fill;
-            TotalCallsLbl.Location = new Point(133, 0);
+            TotalCallsLbl.Location = new Point(161, 0);
             TotalCallsLbl.Name = "TotalCallsLbl";
-            TotalCallsLbl.Size = new Size(124, 42);
+            TotalCallsLbl.Size = new Size(152, 42);
             TotalCallsLbl.TabIndex = 5;
             TotalCallsLbl.Text = "0";
             TotalCallsLbl.TextAlign = ContentAlignment.MiddleLeft;
@@ -213,9 +213,9 @@
             // 
             label2.AutoSize = true;
             label2.Dock = DockStyle.Fill;
-            label2.Location = new Point(263, 0);
+            label2.Location = new Point(319, 0);
             label2.Name = "label2";
-            label2.Size = new Size(124, 42);
+            label2.Size = new Size(152, 42);
             label2.TabIndex = 6;
             label2.Text = "Ringing";
             label2.TextAlign = ContentAlignment.MiddleCenter;
@@ -224,9 +224,9 @@
             // 
             RingingLbl.BorderStyle = BorderStyle.Fixed3D;
             RingingLbl.Dock = DockStyle.Fill;
-            RingingLbl.Location = new Point(393, 0);
+            RingingLbl.Location = new Point(477, 0);
             RingingLbl.Name = "RingingLbl";
-            RingingLbl.Size = new Size(124, 42);
+            RingingLbl.Size = new Size(152, 42);
             RingingLbl.TabIndex = 7;
             RingingLbl.Text = "0";
             RingingLbl.TextAlign = ContentAlignment.MiddleLeft;
@@ -235,9 +235,9 @@
             // 
             label4.AutoSize = true;
             label4.Dock = DockStyle.Fill;
-            label4.Location = new Point(523, 0);
+            label4.Location = new Point(635, 0);
             label4.Name = "label4";
-            label4.Size = new Size(124, 42);
+            label4.Size = new Size(152, 42);
             label4.TabIndex = 8;
             label4.Text = "Answered";
             label4.TextAlign = ContentAlignment.MiddleCenter;
@@ -246,9 +246,9 @@
             // 
             AnsweredLbl.BorderStyle = BorderStyle.Fixed3D;
             AnsweredLbl.Dock = DockStyle.Fill;
-            AnsweredLbl.Location = new Point(653, 0);
+            AnsweredLbl.Location = new Point(793, 0);
             AnsweredLbl.Name = "AnsweredLbl";
-            AnsweredLbl.Size = new Size(124, 42);
+            AnsweredLbl.Size = new Size(152, 42);
             AnsweredLbl.TabIndex = 9;
             AnsweredLbl.Text = "0";
             AnsweredLbl.TextAlign = ContentAlignment.MiddleLeft;
@@ -257,9 +257,9 @@
             // 
             label6.AutoSize = true;
             label6.Dock = DockStyle.Fill;
-            label6.Location = new Point(1043, 0);
+            label6.Location = new Point(1267, 0);
             label6.Name = "label6";
-            label6.Size = new Size(124, 42);
+            label6.Size = new Size(152, 42);
             label6.TabIndex = 10;
             label6.Text = "Hold";
             label6.TextAlign = ContentAlignment.MiddleCenter;
@@ -268,9 +268,9 @@
             // 
             HoldLbl.BorderStyle = BorderStyle.Fixed3D;
             HoldLbl.Dock = DockStyle.Fill;
-            HoldLbl.Location = new Point(1173, 0);
+            HoldLbl.Location = new Point(1425, 0);
             HoldLbl.Name = "HoldLbl";
-            HoldLbl.Size = new Size(124, 42);
+            HoldLbl.Size = new Size(154, 42);
             HoldLbl.TabIndex = 11;
             HoldLbl.Text = "0";
             HoldLbl.TextAlign = ContentAlignment.MiddleLeft;
@@ -278,9 +278,9 @@
             // AnswerBtn
             // 
             AnswerBtn.Dock = DockStyle.Fill;
-            AnswerBtn.Location = new Point(133, 659);
+            AnswerBtn.Location = new Point(161, 659);
             AnswerBtn.Name = "AnswerBtn";
-            AnswerBtn.Size = new Size(124, 36);
+            AnswerBtn.Size = new Size(152, 36);
             AnswerBtn.TabIndex = 12;
             AnswerBtn.Text = "Answer";
             toolTip1.SetToolTip(AnswerBtn, "Answers the longest ringing call");
@@ -290,9 +290,9 @@
             // ShowBtn
             // 
             ShowBtn.Dock = DockStyle.Fill;
-            ShowBtn.Location = new Point(263, 659);
+            ShowBtn.Location = new Point(319, 659);
             ShowBtn.Name = "ShowBtn";
-            ShowBtn.Size = new Size(124, 36);
+            ShowBtn.Size = new Size(152, 36);
             ShowBtn.TabIndex = 13;
             ShowBtn.Text = "Show";
             toolTip1.SetToolTip(ShowBtn, "Shows a selected call in its current state");
@@ -302,9 +302,9 @@
             // EndCallBtn
             // 
             EndCallBtn.Dock = DockStyle.Fill;
-            EndCallBtn.Location = new Point(523, 659);
+            EndCallBtn.Location = new Point(635, 659);
             EndCallBtn.Name = "EndCallBtn";
-            EndCallBtn.Size = new Size(124, 36);
+            EndCallBtn.Size = new Size(152, 36);
             EndCallBtn.TabIndex = 14;
             EndCallBtn.Text = "End Call";
             toolTip1.SetToolTip(EndCallBtn, "Ends the selected call");
@@ -314,9 +314,9 @@
             // EndAllBtn
             // 
             EndAllBtn.Dock = DockStyle.Fill;
-            EndAllBtn.Location = new Point(653, 659);
+            EndAllBtn.Location = new Point(793, 659);
             EndAllBtn.Name = "EndAllBtn";
-            EndAllBtn.Size = new Size(124, 36);
+            EndAllBtn.Size = new Size(152, 36);
             EndAllBtn.TabIndex = 15;
             EndAllBtn.Text = "End All";
             toolTip1.SetToolTip(EndAllBtn, "Ends all calls");
@@ -326,9 +326,9 @@
             // HoldBtn
             // 
             HoldBtn.Dock = DockStyle.Fill;
-            HoldBtn.Location = new Point(393, 659);
+            HoldBtn.Location = new Point(477, 659);
             HoldBtn.Name = "HoldBtn";
-            HoldBtn.Size = new Size(124, 36);
+            HoldBtn.Size = new Size(152, 36);
             HoldBtn.TabIndex = 16;
             HoldBtn.Text = "Hold";
             toolTip1.SetToolTip(HoldBtn, "Puts the selected call on hold");
@@ -339,9 +339,9 @@
             // 
             label5.AutoSize = true;
             label5.Dock = DockStyle.Fill;
-            label5.Location = new Point(783, 0);
+            label5.Location = new Point(951, 0);
             label5.Name = "label5";
-            label5.Size = new Size(124, 42);
+            label5.Size = new Size(152, 42);
             label5.TabIndex = 18;
             label5.Text = "On Line";
             label5.TextAlign = ContentAlignment.MiddleCenter;
@@ -350,9 +350,9 @@
             // 
             OnLineLbl.AutoSize = true;
             OnLineLbl.Dock = DockStyle.Fill;
-            OnLineLbl.Location = new Point(913, 0);
+            OnLineLbl.Location = new Point(1109, 0);
             OnLineLbl.Name = "OnLineLbl";
-            OnLineLbl.Size = new Size(124, 42);
+            OnLineLbl.Size = new Size(152, 42);
             OnLineLbl.TabIndex = 19;
             OnLineLbl.Text = "0";
             OnLineLbl.TextAlign = ContentAlignment.MiddleLeft;
@@ -364,7 +364,7 @@
             StatusLbl.Dock = DockStyle.Fill;
             StatusLbl.Location = new Point(3, 614);
             StatusLbl.Name = "StatusLbl";
-            StatusLbl.Size = new Size(1294, 42);
+            StatusLbl.Size = new Size(1576, 42);
             StatusLbl.TabIndex = 20;
             StatusLbl.Text = "Not listening. Press Start";
             StatusLbl.TextAlign = ContentAlignment.MiddleLeft;
@@ -372,9 +372,9 @@
             // StatesBtn
             // 
             StatesBtn.Dock = DockStyle.Fill;
-            StatesBtn.Location = new Point(913, 659);
+            StatesBtn.Location = new Point(1109, 659);
             StatesBtn.Name = "StatesBtn";
-            StatesBtn.Size = new Size(124, 36);
+            StatesBtn.Size = new Size(152, 36);
             StatesBtn.TabIndex = 21;
             StatesBtn.Text = "States";
             StatesBtn.UseVisualStyleBackColor = true;
@@ -384,7 +384,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1300, 698);
+            ClientSize = new Size(1582, 698);
             Controls.Add(tableLayoutPanel1);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedSingle;

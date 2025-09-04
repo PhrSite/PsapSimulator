@@ -56,7 +56,6 @@ public class SubscriberUac : QueuedActionWorkerTask
         return subscribe;
     }
 
-
     private void OnSipRequestReceived(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransportManager)
     {
         EnqueueWork(() => { HandleSipRequest(sipRequest, remoteEndPoint, sipTransportManager); });
@@ -284,5 +283,4 @@ public class SubscriberUac : QueuedActionWorkerTask
 
         Mre.Set();
     }
-
 }

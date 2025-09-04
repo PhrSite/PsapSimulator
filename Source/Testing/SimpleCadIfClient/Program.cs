@@ -2,7 +2,6 @@
 //  File:   Program.cs                                              13 Feb 25 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
-using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
@@ -41,10 +40,12 @@ public class Program
 
         ClientCert = new X509Certificate2("WebSocketClient.pfx", "Wss12345");
 
-        Console.Title = "SimpleCadIfClient";
+        string strVer = System.Reflection.Assembly.GetEntryAssembly()!.GetName()!.Version!.ToString();
+        Console.Title = $"SimpleCadIfClient -- Version: {strVer}";
+
         Console.WriteLine("Press Enter to end the program.");
         Console.WriteLine("Connecting to the EIDO server...");
-        Cws = new CadIfWebSocketClient(ClientCert, RemoteCertificateValidationCallback!, args[0], 60);
+        Cws = new CadIfWebSocketClient(ClientCert, RemoteCertificateValidationCallback!, args[0], ExpiresSeconds);
         Cws.EidoReceived += OnEidoReceived;
         Cws.CadIfConnectionState += OnCadIfConnectionState;
         Cws.CadIfSubscriptionState += OnCadIfSubscriptionState;

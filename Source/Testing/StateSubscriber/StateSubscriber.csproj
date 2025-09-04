@@ -9,12 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Ng911Lib">
-      <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net9.0\Ng911Lib.dll</HintPath>
-    </Reference>
-    <Reference Include="SipLib">
-      <HintPath>..\..\..\SipLib\ClassLibrary\bin\Debug\net9.0\SipLib.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Ng911Lib" Version="2.0.0" />
+    <PackageReference Include="SipLib" Version="0.0.4" />
   </ItemGroup>
 
 </Project>

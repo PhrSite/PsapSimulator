@@ -6,7 +6,6 @@ using SipLib.Channels;
 using SipLib.Network;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.IO;
 
 namespace SrsSimulator;
 
@@ -17,6 +16,7 @@ internal class Program
 
     static async Task Main(string[] args)
     {
+        // Don't embed passwords in the source code if security is required.
         X509Certificate2 myCertificate = X509CertificateLoader.LoadPkcs12FromFile("SrsSimulator.pfx", "SrsSimulator");
 
         SIPTCPChannel Channel;
@@ -44,7 +44,6 @@ internal class Program
             Directory.CreateDirectory(RecordingsDirectory);
 
         srsUa = new SrsUa(Channel, UserName, myCertificate, RecordingsDirectory);
-
         srsUa.Start();
 
         string? strLine;
@@ -56,7 +55,6 @@ internal class Program
 
             if (strLine == "quit")
                 break;
-
         }
 
         await srsUa.Shutdown();

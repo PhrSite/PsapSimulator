@@ -16,13 +16,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="Ng911Lib" Version="1.0.3" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="SipLib">
-      <HintPath>..\..\..\SipLib\ClassLibrary\bin\Debug\net9.0\SipLib.dll</HintPath>
-    </Reference>
+    <PackageReference Include="SipLib" Version="0.0.4" />
   </ItemGroup>
 
   <ItemGroup>

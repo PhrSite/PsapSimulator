@@ -100,7 +100,8 @@ public class CallManager
 
     private SrcManager? m_SrcManager = null;
     private I3LogEventClientMgr m_I3LogEventClientMgr;
-    private Ng911CadIfServer? m_Ng911CadIfServer = null;
+    private Ng911CadIfServer? m_Ng911IPv4CadIfServer = null;
+    private Ng911CadIfServer? m_Ng911IPv6CadIfServer = null;
 
     private IncomingTestCallManager m_TestCallManager;
 
@@ -1788,13 +1789,14 @@ public class CallManager
 
     private void SendEido(Call call)
     {
-        if (m_Ng911CadIfServer != null)
-        {
-            if (call.Eido == null)
-                call.Eido = BuildCallEido(call);
+        if (call.Eido == null)
+            call.Eido = BuildCallEido(call);
 
-            m_Ng911CadIfServer.SendEido(call.Eido);
-        }
+        if (m_Ng911IPv4CadIfServer != null)
+            m_Ng911IPv4CadIfServer.SendEido(call.Eido);
+
+        if (m_Ng911IPv6CadIfServer != null)
+            m_Ng911IPv6CadIfServer.SendEido(call.Eido);
     }
 
     private async Task GetEidoByReference(string eidoRequestUri, string callID)
@@ -2556,25 +2558,45 @@ public class CallManager
             ElementId = Is.ElementID
         };
 
-        IPEndPoint ServerEndPoint = new IPEndPoint(IPAddress.Parse(GetEidoIpAddress()), EidoPort);
-        m_Ng911CadIfServer = new Ng911CadIfServer(m_Certificate, ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
-            Cls, EidoMutualAuthenticationCallback, EidoRetrievalCallback);
-        //m_Ng911CadIfServer = new Ng911CadIfServer(m_Certificate, ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
-        //    Cls, null, EidoRetrievalCallback);
-        // Hook the events
-        m_Ng911CadIfServer.NewSubscription += OnNewEidoSubscription;
-        m_Ng911CadIfServer.SubscriptionEnded += OnEidoSubscriptionEnded;
-        m_Ng911CadIfServer.Start();
+        NetworkSettings Ns = m_Settings.NetworkSettings;
+
+        if (Ns.EnableIPv4 == true)
+        {
+            IPEndPoint IPv4ServerEndPoint = new IPEndPoint(IPAddress.Parse(Ns.IPv4Address!), EidoPort);
+            m_Ng911IPv4CadIfServer = new Ng911CadIfServer(m_Certificate, IPv4ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
+                Cls, EidoMutualAuthenticationCallback, EidoRetrievalCallback);
+            m_Ng911IPv4CadIfServer.NewSubscription += OnNewEidoSubscription;
+            m_Ng911IPv4CadIfServer.SubscriptionEnded += OnEidoSubscriptionEnded;
+            m_Ng911IPv4CadIfServer.Start();
+        }
+
+        if (Ns.EnableIPv6 == true)
+        {
+            IPEndPoint IPv6ServerEndPoint = new IPEndPoint(IPAddress.Parse(Ns.IPv6Address!), EidoPort);
+            m_Ng911IPv6CadIfServer = new Ng911CadIfServer(m_Certificate, IPv6ServerEndPoint, WsEidoPath, HttpEidoPath, m_I3LogEventClientMgr,
+                Cls, EidoMutualAuthenticationCallback, EidoRetrievalCallback);
+            m_Ng911IPv6CadIfServer.NewSubscription += OnNewEidoSubscription;
+            m_Ng911IPv6CadIfServer.SubscriptionEnded += OnEidoSubscriptionEnded;
+            m_Ng911IPv6CadIfServer.Start();
+        }
     }
 
     private async Task ShutdownNg911CadIfServer()
     {
-        if (m_Ng911CadIfServer != null)
+        if (m_Ng911IPv4CadIfServer != null)
         {
-            m_Ng911CadIfServer.NewSubscription -= OnNewEidoSubscription;
-            m_Ng911CadIfServer.SubscriptionEnded -= OnEidoSubscriptionEnded;
-            await m_Ng911CadIfServer.ShutdownAsync();
-            m_Ng911CadIfServer = null;
+            m_Ng911IPv4CadIfServer.NewSubscription -= OnNewEidoSubscription;
+            m_Ng911IPv4CadIfServer.SubscriptionEnded -= OnEidoSubscriptionEnded;
+            await m_Ng911IPv4CadIfServer.ShutdownAsync();
+            m_Ng911IPv4CadIfServer = null;
+        }
+
+        if (m_Ng911IPv6CadIfServer != null)
+        {
+            m_Ng911IPv6CadIfServer.NewSubscription -= OnNewEidoSubscription;
+            m_Ng911IPv6CadIfServer.SubscriptionEnded -= OnEidoSubscriptionEnded;
+            await m_Ng911IPv6CadIfServer.ShutdownAsync();
+            m_Ng911IPv6CadIfServer = null;
         }
     }
 
@@ -2591,9 +2613,6 @@ public class CallManager
 
     private void HandleNewEidoSubscription(string strSubscriptionId, string strIdType, string strId, IPEndPoint RemIpe)
     {
-        if (m_Ng911CadIfServer == null)
-            return;
-
         SipLogger.LogInformation($"EIDO Subscription request from IPEndPoint = {RemIpe.ToString()}");
 
         List<EidoType> eidoList = new List<EidoType>();
@@ -2604,7 +2623,13 @@ public class CallManager
         }
 
         if (eidoList.Count > 0)
-            m_Ng911CadIfServer.SendEidosToSubscriber(strSubscriptionId, eidoList);
+        {
+            if (m_Ng911IPv4CadIfServer != null && RemIpe.AddressFamily == AddressFamily.InterNetwork)
+                m_Ng911IPv4CadIfServer.SendEidosToSubscriber(strSubscriptionId, eidoList);
+
+            if (m_Ng911IPv6CadIfServer != null && RemIpe.AddressFamily == AddressFamily.InterNetworkV6)
+                m_Ng911IPv6CadIfServer.SendEidosToSubscriber(strSubscriptionId, eidoList);
+        }
     }
 
     private bool EidoMutualAuthenticationCallback(X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
@@ -2640,8 +2665,7 @@ public class CallManager
 
         bool Success = Event.WaitOne(2000);
         if (Success == false)
-            SipLogger.LogError($"BuildCallEido() timed out for Call-ID = {call.CallID} for a request from " +
-                $"{remoteEndpoint}");
+            SipLogger.LogError($"BuildCallEido() timed out for Call-ID = {call.CallID} for a request from {remoteEndpoint}");
 
         if (eido != null)
         {

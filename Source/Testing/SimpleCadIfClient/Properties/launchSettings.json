@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SimpleCadIfClient": {
+      "commandName": "Project",
+      "commandLineArgs": "wss://[2600:1700:7a40:4740:4350:afac:5484:4372]:16000/IncidentData/ent"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 # Introduction
-The SimpleLoggingServer application is a Console application that implements a very simple NG9-1-1 Event Logging Server.
+The SimpleLoggingServer application is a Visual Studio Console application that implements a very simple NG9-1-1 Event Logging Server.
 
 Section 4.12.3 of the following standard describes the NG9-1-1 Event Logging protocol.
 
@@ -11,8 +11,12 @@ This program listens on the first available IPv4 address and uses a fixed port o
 
 When this application receives a log event via an HTTP POST request, it decodes the Base64Url encoded log event string into a raw JSON string and writes the raw JSON string to the console window.
 
+This program requires .NET 9 or later.
+
 Follow these steps to run this application.
 1. Open a command prompt window and change directories to the SimpleLoggingServer directory.
 2. Type: dotnet run
+
+This program writes the HTTPS URL that it is listening on to the console so that you can configure a NG9-1-1 Log Event client to send log events to it.
 
 You can press Ctrl-C to terminate the program.
