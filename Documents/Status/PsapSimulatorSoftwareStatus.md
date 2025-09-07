@@ -1,9 +1,14 @@
 # PsapSimulator Software Status
+*Last Updated: 5 Sep 2025*
+
+The software requirements specification for the PsapSimulator application is located in the Documents/Requirements directory.
+
+The following table indicates indicates the current software status for this application. The Section and Title columns refer to the sections in the SRS that contain specific software requirements.
 
 | Section | Title | Status | Description |
 |--------|--------|--------|-------------|
 | 2.1.1       |  Windows Operating System | Complete |  |
-| 2.1.2  | Minimum PC Requirements |  |  |
+| 2.1.2  | Minimum PC Requirements |  | Not determined yet |
 | 2.1.3  | Application Installation Requirements  |   |
 | 2.2    | Network Configurations | Complete |   |
 | 2.3    | SIP Transport Protocols | Complete |  |
@@ -48,7 +53,7 @@
 | 3.15.1   | Server-Side Requirements | Complete |  |
 | 3.15.2   | Client-Side Requirements | Complete |  |
 | 3.16     | EIDO Document Handling | Complete |  |
-| 4        | Call Handling Requirements | Complete |  |
+| 4        | Call Handling Requirements | Partially Complete | The add media function has not been implemented yet. |
 | 4.1      | Placing Calls on Hold | Complete |  |
 | 4.2      | Miscellaneous Special SIP Protocol Requirements | Complete |  |
 | 4.3      | Call Identifier and Incident Tracking Identifier Requirements | Complete |  |

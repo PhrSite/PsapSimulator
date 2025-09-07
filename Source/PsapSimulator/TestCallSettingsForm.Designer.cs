@@ -41,7 +41,8 @@
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(256, 301);
+            CancelBtn.AutoSize = true;
+            CancelBtn.Location = new Point(247, 301);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 45);
             CancelBtn.TabIndex = 15;
@@ -51,6 +52,7 @@
             // 
             // SaveBtn
             // 
+            SaveBtn.AutoSize = true;
             SaveBtn.Location = new Point(366, 301);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 45);
@@ -125,6 +127,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(497, 366);
             ControlBox = false;
             Controls.Add(TestCallDurationTb);

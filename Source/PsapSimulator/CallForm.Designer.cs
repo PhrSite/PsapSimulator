@@ -154,7 +154,7 @@
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
-            tableLayoutPanel1.Size = new Size(1902, 977);
+            tableLayoutPanel1.Size = new Size(1902, 1013);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // flowLayoutPanel1
@@ -166,13 +166,14 @@
             flowLayoutPanel1.Controls.Add(KeypadBtn);
             flowLayoutPanel1.Controls.Add(CloseBtn);
             flowLayoutPanel1.Dock = DockStyle.Fill;
-            flowLayoutPanel1.Location = new Point(3, 930);
+            flowLayoutPanel1.Location = new Point(3, 966);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(1896, 44);
             flowLayoutPanel1.TabIndex = 0;
             // 
             // AnswerBtn
             // 
+            AnswerBtn.AutoSize = true;
             AnswerBtn.Location = new Point(3, 3);
             AnswerBtn.Name = "AnswerBtn";
             AnswerBtn.Size = new Size(134, 41);
@@ -183,6 +184,7 @@
             // 
             // HoldBtn
             // 
+            HoldBtn.AutoSize = true;
             HoldBtn.Location = new Point(143, 3);
             HoldBtn.Name = "HoldBtn";
             HoldBtn.Size = new Size(147, 41);
@@ -193,6 +195,7 @@
             // 
             // EndBtn
             // 
+            EndBtn.AutoSize = true;
             EndBtn.Location = new Point(296, 3);
             EndBtn.Name = "EndBtn";
             EndBtn.Size = new Size(141, 41);
@@ -203,6 +206,7 @@
             // 
             // MicMuteBtn
             // 
+            MicMuteBtn.AutoSize = true;
             MicMuteBtn.Location = new Point(443, 3);
             MicMuteBtn.Name = "MicMuteBtn";
             MicMuteBtn.Size = new Size(160, 41);
@@ -213,6 +217,7 @@
             // 
             // KeypadBtn
             // 
+            KeypadBtn.AutoSize = true;
             KeypadBtn.Location = new Point(609, 3);
             KeypadBtn.Name = "KeypadBtn";
             KeypadBtn.Size = new Size(119, 41);
@@ -223,6 +228,7 @@
             // 
             // CloseBtn
             // 
+            CloseBtn.AutoSize = true;
             CloseBtn.Location = new Point(734, 3);
             CloseBtn.Name = "CloseBtn";
             CloseBtn.Size = new Size(139, 41);
@@ -259,7 +265,7 @@
             panel1.Dock = DockStyle.Fill;
             panel1.Location = new Point(3, 3);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1896, 921);
+            panel1.Size = new Size(1896, 957);
             panel1.TabIndex = 1;
             // 
             // CallInfoTabCtrl
@@ -896,16 +902,18 @@
             // 
             // CallStateLbl
             // 
+            CallStateLbl.AutoSize = true;
             CallStateLbl.BorderStyle = BorderStyle.Fixed3D;
-            CallStateLbl.Location = new Point(592, 20);
+            CallStateLbl.Location = new Point(667, 23);
             CallStateLbl.Name = "CallStateLbl";
-            CallStateLbl.Size = new Size(176, 34);
+            CallStateLbl.Size = new Size(95, 33);
             CallStateLbl.TabIndex = 21;
+            CallStateLbl.Text = "Off Line";
             // 
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(477, 23);
+            label7.Location = new Point(531, 23);
             label7.Name = "label7";
             label7.Size = new Size(109, 31);
             label7.TabIndex = 20;
@@ -945,7 +953,7 @@
             // 
             NewMessageTb.Location = new Point(877, 880);
             NewMessageTb.Name = "NewMessageTb";
-            NewMessageTb.Size = new Size(1010, 38);
+            NewMessageTb.Size = new Size(996, 38);
             NewMessageTb.TabIndex = 16;
             NewMessageTb.KeyPress += NewMessageTb_KeyPress;
             // 
@@ -984,7 +992,7 @@
             TextListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             TextListView.Location = new Point(713, 545);
             TextListView.Name = "TextListView";
-            TextListView.Size = new Size(1174, 325);
+            TextListView.Size = new Size(1160, 325);
             TextListView.TabIndex = 12;
             TextListView.UseCompatibleStateImageBehavior = false;
             TextListView.View = View.Details;
@@ -1006,15 +1014,18 @@
             // 
             // AddMediaBtn
             // 
-            AddMediaBtn.Location = new Point(477, 68);
+            AddMediaBtn.AutoSize = true;
+            AddMediaBtn.Enabled = false;
+            AddMediaBtn.Location = new Point(531, 79);
             AddMediaBtn.Name = "AddMediaBtn";
-            AddMediaBtn.Size = new Size(291, 42);
+            AddMediaBtn.Size = new Size(328, 42);
             AddMediaBtn.TabIndex = 11;
             AddMediaBtn.Text = "Add Media";
             AddMediaBtn.UseVisualStyleBackColor = true;
             // 
             // DropLastBtn
             // 
+            DropLastBtn.AutoSize = true;
             DropLastBtn.Location = new Point(377, 415);
             DropLastBtn.Name = "DropLastBtn";
             DropLastBtn.Size = new Size(157, 43);
@@ -1025,6 +1036,7 @@
             // 
             // DropBtn
             // 
+            DropBtn.AutoSize = true;
             DropBtn.Location = new Point(277, 415);
             DropBtn.Name = "DropBtn";
             DropBtn.Size = new Size(94, 43);
@@ -1035,6 +1047,7 @@
             // 
             // ReferBtn
             // 
+            ReferBtn.AutoSize = true;
             ReferBtn.Location = new Point(23, 415);
             ReferBtn.Name = "ReferBtn";
             ReferBtn.Size = new Size(248, 43);
@@ -1088,15 +1101,15 @@
             // MediaLbl
             // 
             MediaLbl.BorderStyle = BorderStyle.Fixed3D;
-            MediaLbl.Location = new Point(143, 73);
+            MediaLbl.Location = new Point(143, 87);
             MediaLbl.Name = "MediaLbl";
-            MediaLbl.Size = new Size(304, 34);
+            MediaLbl.Size = new Size(351, 46);
             MediaLbl.TabIndex = 5;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(21, 76);
+            label3.Location = new Point(25, 90);
             label3.Name = "label3";
             label3.Size = new Size(79, 31);
             label3.TabIndex = 4;
@@ -1107,7 +1120,7 @@
             FromLbl.BorderStyle = BorderStyle.Fixed3D;
             FromLbl.Location = new Point(143, 20);
             FromLbl.Name = "FromLbl";
-            FromLbl.Size = new Size(304, 34);
+            FromLbl.Size = new Size(351, 44);
             FromLbl.TabIndex = 1;
             // 
             // label1
@@ -1123,7 +1136,8 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1902, 977);
+            AutoSize = true;
+            ClientSize = new Size(1902, 1013);
             ControlBox = false;
             Controls.Add(tableLayoutPanel1);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
@@ -1137,6 +1151,7 @@
             Load += CallForm_Load;
             tableLayoutPanel1.ResumeLayout(false);
             flowLayoutPanel1.ResumeLayout(false);
+            flowLayoutPanel1.PerformLayout();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             CallInfoTabCtrl.ResumeLayout(false);

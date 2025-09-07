@@ -55,6 +55,7 @@
             // 
             // SaveBtn
             // 
+            SaveBtn.AutoSize = true;
             SaveBtn.Location = new Point(528, 564);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 45);
@@ -65,7 +66,8 @@
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(418, 564);
+            CancelBtn.AutoSize = true;
+            CancelBtn.Location = new Point(410, 564);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 45);
             CancelBtn.TabIndex = 13;
@@ -255,6 +257,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(643, 621);
             ControlBox = false;
             Controls.Add(groupBox1);
@@ -278,7 +281,7 @@
             ShowInTaskbar = false;
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "SIPREC RecorderSettings";
+            Text = "SIPREC Recorder Settings";
             Load += SipRecRecorderSettingsForm_Load;
             groupBox4.ResumeLayout(false);
             groupBox4.PerformLayout();

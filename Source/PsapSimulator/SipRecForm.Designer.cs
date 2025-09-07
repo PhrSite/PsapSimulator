@@ -43,7 +43,8 @@
             // 
             // SaveBtn
             // 
-            SaveBtn.Location = new Point(720, 413);
+            SaveBtn.AutoSize = true;
+            SaveBtn.Location = new Point(738, 413);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 42);
             SaveBtn.TabIndex = 0;
@@ -53,7 +54,8 @@
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(607, 413);
+            CancelBtn.AutoSize = true;
+            CancelBtn.Location = new Point(621, 413);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 42);
             CancelBtn.TabIndex = 3;
@@ -79,7 +81,7 @@
             RecListView.Location = new Point(27, 53);
             RecListView.MultiSelect = false;
             RecListView.Name = "RecListView";
-            RecListView.Size = new Size(787, 304);
+            RecListView.Size = new Size(805, 304);
             RecListView.TabIndex = 5;
             RecListView.UseCompatibleStateImageBehavior = false;
             RecListView.View = View.Details;
@@ -107,6 +109,7 @@
             // 
             // AddBtn
             // 
+            AddBtn.AutoSize = true;
             AddBtn.Location = new Point(27, 363);
             AddBtn.Name = "AddBtn";
             AddBtn.Size = new Size(94, 44);
@@ -117,6 +120,7 @@
             // 
             // DeleteBtn
             // 
+            DeleteBtn.AutoSize = true;
             DeleteBtn.Location = new Point(263, 363);
             DeleteBtn.Name = "DeleteBtn";
             DeleteBtn.Size = new Size(94, 44);
@@ -127,6 +131,7 @@
             // 
             // EditBtn
             // 
+            EditBtn.AutoSize = true;
             EditBtn.Location = new Point(146, 363);
             EditBtn.Name = "EditBtn";
             EditBtn.Size = new Size(94, 44);
@@ -139,7 +144,8 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(834, 467);
+            AutoSize = true;
+            ClientSize = new Size(858, 467);
             ControlBox = false;
             Controls.Add(EditBtn);
             Controls.Add(DeleteBtn);

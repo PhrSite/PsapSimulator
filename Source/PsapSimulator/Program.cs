@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 
 internal static class Program
 {
-    internal const string LoggingDirectory = @"\var\log\PsapSimulator";
+    public static string LoggingDirectory = @"\var\log\PsapSimulator";
     private const string LoggingFileName = "PsapSimulator.log";
     private static LoggingLevelSwitch m_LevelSwitch = new LoggingLevelSwitch();
     
@@ -24,16 +24,16 @@ internal static class Program
     [STAThread]
     static void Main()
     {
+        // Setup application logging using Serilog
+        LoggingDirectory = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\{AppSettings.AppName}\\Logs";
         if (Directory.Exists(LoggingDirectory) == false)
             Directory.CreateDirectory(LoggingDirectory);
-
         string LoggingPath = Path.Combine(LoggingDirectory, LoggingFileName);
         Logger log = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(m_LevelSwitch)
             .WriteTo.File(LoggingPath, fileSizeLimitBytes: 1000000, retainedFileCountLimit: 5,
             outputTemplate: "{Timestamp:yyyy-MM-ddTHH:mm:ss.ffffffzzz} [{Level}] {Message}{NewLine}{Exception}")
             .CreateLogger();
-
         SerilogLoggerFactory factory = new SerilogLoggerFactory(log);
         SipLogger.Log = factory.CreateLogger("PsapSimulator");
 

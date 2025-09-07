@@ -38,6 +38,7 @@
             // 
             // OkBtn
             // 
+            OkBtn.AutoSize = true;
             OkBtn.Location = new Point(260, 164);
             OkBtn.Name = "OkBtn";
             OkBtn.Size = new Size(94, 43);
@@ -48,9 +49,10 @@
             // 
             // CancelBtn
             // 
+            CancelBtn.AutoSize = true;
             CancelBtn.Location = new Point(382, 165);
             CancelBtn.Name = "CancelBtn";
-            CancelBtn.Size = new Size(94, 40);
+            CancelBtn.Size = new Size(94, 41);
             CancelBtn.TabIndex = 3;
             CancelBtn.Text = "Cancel";
             CancelBtn.UseVisualStyleBackColor = true;

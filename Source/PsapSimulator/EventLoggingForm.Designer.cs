@@ -42,7 +42,8 @@
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(615, 413);
+            CancelBtn.AutoSize = true;
+            CancelBtn.Location = new Point(602, 413);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 42);
             CancelBtn.TabIndex = 5;
@@ -52,6 +53,7 @@
             // 
             // SaveBtn
             // 
+            SaveBtn.AutoSize = true;
             SaveBtn.Location = new Point(728, 413);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 42);
@@ -62,6 +64,7 @@
             // 
             // EditBtn
             // 
+            EditBtn.AutoSize = true;
             EditBtn.Location = new Point(145, 358);
             EditBtn.Name = "EditBtn";
             EditBtn.Size = new Size(94, 44);
@@ -72,6 +75,7 @@
             // 
             // DeleteBtn
             // 
+            DeleteBtn.AutoSize = true;
             DeleteBtn.Location = new Point(262, 358);
             DeleteBtn.Name = "DeleteBtn";
             DeleteBtn.Size = new Size(94, 44);
@@ -82,6 +86,7 @@
             // 
             // AddBtn
             // 
+            AddBtn.AutoSize = true;
             AddBtn.Location = new Point(26, 358);
             AddBtn.Name = "AddBtn";
             AddBtn.Size = new Size(94, 44);
@@ -133,6 +138,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(834, 467);
             ControlBox = false;
             Controls.Add(EnableLoggingCheck);

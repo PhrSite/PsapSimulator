@@ -63,6 +63,7 @@
             // 
             // CloseBtn
             // 
+            CloseBtn.AutoSize = true;
             CloseBtn.Dock = DockStyle.Fill;
             CloseBtn.Location = new Point(1425, 659);
             CloseBtn.Name = "CloseBtn";
@@ -74,6 +75,7 @@
             // 
             // SettingsBtn
             // 
+            SettingsBtn.AutoSize = true;
             SettingsBtn.Dock = DockStyle.Fill;
             SettingsBtn.Location = new Point(1267, 659);
             SettingsBtn.Name = "SettingsBtn";
@@ -177,6 +179,7 @@
             // 
             // StartBtn
             // 
+            StartBtn.AutoSize = true;
             StartBtn.Dock = DockStyle.Fill;
             StartBtn.Location = new Point(3, 659);
             StartBtn.Name = "StartBtn";
@@ -277,6 +280,7 @@
             // 
             // AnswerBtn
             // 
+            AnswerBtn.AutoSize = true;
             AnswerBtn.Dock = DockStyle.Fill;
             AnswerBtn.Location = new Point(161, 659);
             AnswerBtn.Name = "AnswerBtn";
@@ -289,6 +293,7 @@
             // 
             // ShowBtn
             // 
+            ShowBtn.AutoSize = true;
             ShowBtn.Dock = DockStyle.Fill;
             ShowBtn.Location = new Point(319, 659);
             ShowBtn.Name = "ShowBtn";
@@ -301,6 +306,7 @@
             // 
             // EndCallBtn
             // 
+            EndCallBtn.AutoSize = true;
             EndCallBtn.Dock = DockStyle.Fill;
             EndCallBtn.Location = new Point(635, 659);
             EndCallBtn.Name = "EndCallBtn";
@@ -313,6 +319,7 @@
             // 
             // EndAllBtn
             // 
+            EndAllBtn.AutoSize = true;
             EndAllBtn.Dock = DockStyle.Fill;
             EndAllBtn.Location = new Point(793, 659);
             EndAllBtn.Name = "EndAllBtn";
@@ -325,6 +332,7 @@
             // 
             // HoldBtn
             // 
+            HoldBtn.AutoSize = true;
             HoldBtn.Dock = DockStyle.Fill;
             HoldBtn.Location = new Point(477, 659);
             HoldBtn.Name = "HoldBtn";
@@ -371,6 +379,7 @@
             // 
             // StatesBtn
             // 
+            StatesBtn.AutoSize = true;
             StatesBtn.Dock = DockStyle.Fill;
             StatesBtn.Location = new Point(1109, 659);
             StatesBtn.Name = "StatesBtn";
@@ -384,6 +393,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(1582, 698);
             Controls.Add(tableLayoutPanel1);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);

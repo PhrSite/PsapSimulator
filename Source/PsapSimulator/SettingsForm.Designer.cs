@@ -327,10 +327,11 @@
             // 
             // CopyIpV6Btn
             // 
+            CopyIpV6Btn.AutoSize = true;
             CopyIpV6Btn.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             CopyIpV6Btn.Location = new Point(305, 92);
             CopyIpV6Btn.Name = "CopyIpV6Btn";
-            CopyIpV6Btn.Size = new Size(94, 29);
+            CopyIpV6Btn.Size = new Size(94, 33);
             CopyIpV6Btn.TabIndex = 4;
             CopyIpV6Btn.Text = "Copy";
             CopyIpV6Btn.UseVisualStyleBackColor = true;
@@ -379,10 +380,11 @@
             // 
             // CopyIpV4Btn
             // 
+            CopyIpV4Btn.AutoSize = true;
             CopyIpV4Btn.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             CopyIpV4Btn.Location = new Point(307, 96);
             CopyIpV4Btn.Name = "CopyIpV4Btn";
-            CopyIpV4Btn.Size = new Size(94, 29);
+            CopyIpV4Btn.Size = new Size(94, 33);
             CopyIpV4Btn.TabIndex = 3;
             CopyIpV4Btn.Text = "Copy";
             CopyIpV4Btn.UseVisualStyleBackColor = true;
@@ -462,6 +464,7 @@
             // 
             // CertFileBrowseBtn
             // 
+            CertFileBrowseBtn.AutoSize = true;
             CertFileBrowseBtn.Location = new Point(690, 107);
             CertFileBrowseBtn.Name = "CertFileBrowseBtn";
             CertFileBrowseBtn.Size = new Size(107, 42);
@@ -514,6 +517,7 @@
             // 
             // RestoreIdentityBtn
             // 
+            RestoreIdentityBtn.AutoSize = true;
             RestoreIdentityBtn.Location = new Point(18, 206);
             RestoreIdentityBtn.Name = "RestoreIdentityBtn";
             RestoreIdentityBtn.Size = new Size(210, 44);
@@ -589,9 +593,10 @@
             // 
             // ConfSettingsBtn
             // 
+            ConfSettingsBtn.AutoSize = true;
             ConfSettingsBtn.Location = new Point(26, 386);
             ConfSettingsBtn.Name = "ConfSettingsBtn";
-            ConfSettingsBtn.Size = new Size(331, 39);
+            ConfSettingsBtn.Size = new Size(331, 41);
             ConfSettingsBtn.TabIndex = 9;
             ConfSettingsBtn.Text = "Conference/Transfer Settings";
             ConfSettingsBtn.UseVisualStyleBackColor = true;
@@ -763,9 +768,9 @@
             MediaSourcesPage.AutoScroll = true;
             MediaSourcesPage.Controls.Add(groupBox6);
             MediaSourcesPage.Controls.Add(groupBox5);
-            MediaSourcesPage.Location = new Point(4, 29);
+            MediaSourcesPage.Location = new Point(4, 40);
             MediaSourcesPage.Name = "MediaSourcesPage";
-            MediaSourcesPage.Size = new Size(839, 591);
+            MediaSourcesPage.Size = new Size(839, 580);
             MediaSourcesPage.TabIndex = 3;
             MediaSourcesPage.Text = " Media Sources ";
             MediaSourcesPage.UseVisualStyleBackColor = true;
@@ -793,9 +798,10 @@
             // 
             // RestoreAutoAnswerDefaultsBtn
             // 
+            RestoreAutoAnswerDefaultsBtn.AutoSize = true;
             RestoreAutoAnswerDefaultsBtn.Location = new Point(402, 212);
             RestoreAutoAnswerDefaultsBtn.Name = "RestoreAutoAnswerDefaultsBtn";
-            RestoreAutoAnswerDefaultsBtn.Size = new Size(232, 38);
+            RestoreAutoAnswerDefaultsBtn.Size = new Size(232, 41);
             RestoreAutoAnswerDefaultsBtn.TabIndex = 18;
             RestoreAutoAnswerDefaultsBtn.Text = "Restore Defaults";
             RestoreAutoAnswerDefaultsBtn.UseVisualStyleBackColor = true;
@@ -803,9 +809,10 @@
             // 
             // AutoAnswerVideoSelectBtn
             // 
+            AutoAnswerVideoSelectBtn.AutoSize = true;
             AutoAnswerVideoSelectBtn.Location = new Point(640, 90);
             AutoAnswerVideoSelectBtn.Name = "AutoAnswerVideoSelectBtn";
-            AutoAnswerVideoSelectBtn.Size = new Size(125, 40);
+            AutoAnswerVideoSelectBtn.Size = new Size(125, 41);
             AutoAnswerVideoSelectBtn.TabIndex = 17;
             AutoAnswerVideoSelectBtn.Text = "Select";
             AutoAnswerVideoSelectBtn.UseVisualStyleBackColor = true;
@@ -813,9 +820,10 @@
             // 
             // AutoAnswerAudioSelectBtn
             // 
+            AutoAnswerAudioSelectBtn.AutoSize = true;
             AutoAnswerAudioSelectBtn.Location = new Point(640, 45);
             AutoAnswerAudioSelectBtn.Name = "AutoAnswerAudioSelectBtn";
-            AutoAnswerAudioSelectBtn.Size = new Size(125, 40);
+            AutoAnswerAudioSelectBtn.Size = new Size(125, 41);
             AutoAnswerAudioSelectBtn.TabIndex = 16;
             AutoAnswerAudioSelectBtn.Text = "Select";
             AutoAnswerAudioSelectBtn.UseVisualStyleBackColor = true;
@@ -864,10 +872,10 @@
             // AutoAnswerTextTb
             // 
             AutoAnswerTextTb.Location = new Point(180, 144);
-            AutoAnswerTextTb.Multiline = true;
             AutoAnswerTextTb.Name = "AutoAnswerTextTb";
-            AutoAnswerTextTb.Size = new Size(469, 62);
+            AutoAnswerTextTb.Size = new Size(469, 38);
             AutoAnswerTextTb.TabIndex = 10;
+            AutoAnswerTextTb.WordWrap = false;
             // 
             // label22
             // 
@@ -958,10 +966,10 @@
             // HoldTextTb
             // 
             HoldTextTb.Location = new Point(180, 185);
-            HoldTextTb.Multiline = true;
             HoldTextTb.Name = "HoldTextTb";
-            HoldTextTb.Size = new Size(454, 62);
+            HoldTextTb.Size = new Size(454, 38);
             HoldTextTb.TabIndex = 9;
+            HoldTextTb.WordWrap = false;
             // 
             // label17
             // 
@@ -974,9 +982,10 @@
             // 
             // HoldVideoSelectBtn
             // 
+            HoldVideoSelectBtn.AutoSize = true;
             HoldVideoSelectBtn.Location = new Point(640, 133);
             HoldVideoSelectBtn.Name = "HoldVideoSelectBtn";
-            HoldVideoSelectBtn.Size = new Size(125, 40);
+            HoldVideoSelectBtn.Size = new Size(125, 41);
             HoldVideoSelectBtn.TabIndex = 7;
             HoldVideoSelectBtn.Text = "Select";
             HoldVideoSelectBtn.UseVisualStyleBackColor = true;
@@ -1000,9 +1009,10 @@
             // 
             // HoldAudioSelectBtn
             // 
+            HoldAudioSelectBtn.AutoSize = true;
             HoldAudioSelectBtn.Location = new Point(640, 88);
             HoldAudioSelectBtn.Name = "HoldAudioSelectBtn";
-            HoldAudioSelectBtn.Size = new Size(125, 39);
+            HoldAudioSelectBtn.Size = new Size(125, 41);
             HoldAudioSelectBtn.TabIndex = 4;
             HoldAudioSelectBtn.Text = "Select";
             HoldAudioSelectBtn.UseVisualStyleBackColor = true;
@@ -1168,18 +1178,20 @@
             // 
             // TestCallsEnabledLbl
             // 
+            TestCallsEnabledLbl.AutoSize = true;
             TestCallsEnabledLbl.BorderStyle = BorderStyle.Fixed3D;
-            TestCallsEnabledLbl.Location = new Point(335, 184);
+            TestCallsEnabledLbl.Location = new Point(346, 184);
             TestCallsEnabledLbl.Name = "TestCallsEnabledLbl";
-            TestCallsEnabledLbl.Size = new Size(106, 39);
+            TestCallsEnabledLbl.Size = new Size(99, 33);
             TestCallsEnabledLbl.TabIndex = 5;
             TestCallsEnabledLbl.Text = "Enabled";
             // 
             // TestCallSettingsBtn
             // 
+            TestCallSettingsBtn.AutoSize = true;
             TestCallSettingsBtn.Location = new Point(22, 184);
             TestCallSettingsBtn.Name = "TestCallSettingsBtn";
-            TestCallSettingsBtn.Size = new Size(291, 39);
+            TestCallSettingsBtn.Size = new Size(291, 41);
             TestCallSettingsBtn.TabIndex = 4;
             TestCallSettingsBtn.Text = "Test Call Settings";
             TestCallSettingsBtn.UseVisualStyleBackColor = true;
@@ -1189,7 +1201,7 @@
             // 
             EventLoggingLbl.AutoSize = true;
             EventLoggingLbl.BorderStyle = BorderStyle.Fixed3D;
-            EventLoggingLbl.Location = new Point(335, 110);
+            EventLoggingLbl.Location = new Point(346, 110);
             EventLoggingLbl.Name = "EventLoggingLbl";
             EventLoggingLbl.Size = new Size(106, 33);
             EventLoggingLbl.TabIndex = 3;
@@ -1199,7 +1211,7 @@
             // 
             SipRecLbl.AutoSize = true;
             SipRecLbl.BorderStyle = BorderStyle.Fixed3D;
-            SipRecLbl.Location = new Point(335, 31);
+            SipRecLbl.Location = new Point(346, 31);
             SipRecLbl.Name = "SipRecLbl";
             SipRecLbl.Size = new Size(106, 33);
             SipRecLbl.TabIndex = 2;
@@ -1207,6 +1219,7 @@
             // 
             // EventLoggingBtn
             // 
+            EventLoggingBtn.AutoSize = true;
             EventLoggingBtn.Location = new Point(22, 105);
             EventLoggingBtn.Name = "EventLoggingBtn";
             EventLoggingBtn.Size = new Size(291, 41);
@@ -1217,6 +1230,7 @@
             // 
             // SipRecBtn
             // 
+            SipRecBtn.AutoSize = true;
             SipRecBtn.Location = new Point(22, 31);
             SipRecBtn.Name = "SipRecBtn";
             SipRecBtn.Size = new Size(291, 41);
@@ -1227,6 +1241,7 @@
             // 
             // SaveBtn
             // 
+            SaveBtn.AutoSize = true;
             SaveBtn.Location = new Point(782, 642);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 44);
@@ -1237,6 +1252,7 @@
             // 
             // CancelBtn
             // 
+            CancelBtn.AutoSize = true;
             CancelBtn.Location = new Point(671, 642);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 44);
@@ -1249,6 +1265,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(908, 698);
             ControlBox = false;
             Controls.Add(CancelBtn);
@@ -1297,6 +1314,7 @@
             InterfacesPage.ResumeLayout(false);
             InterfacesPage.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

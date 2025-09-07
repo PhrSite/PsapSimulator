@@ -103,6 +103,7 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(590, 342);
             ControlBox = false;
             Controls.Add(LoggerUriTb);
