@@ -57,6 +57,7 @@
             OnLineLbl = new Label();
             StatusLbl = new Label();
             StatesBtn = new Button();
+            HelpBtn = new Button();
             toolTip1 = new ToolTip(components);
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
@@ -65,9 +66,9 @@
             // 
             CloseBtn.AutoSize = true;
             CloseBtn.Dock = DockStyle.Fill;
-            CloseBtn.Location = new Point(1425, 659);
+            CloseBtn.Location = new Point(1425, 655);
             CloseBtn.Name = "CloseBtn";
-            CloseBtn.Size = new Size(154, 36);
+            CloseBtn.Size = new Size(154, 40);
             CloseBtn.TabIndex = 0;
             CloseBtn.Text = "Close";
             CloseBtn.UseVisualStyleBackColor = true;
@@ -77,11 +78,12 @@
             // 
             SettingsBtn.AutoSize = true;
             SettingsBtn.Dock = DockStyle.Fill;
-            SettingsBtn.Location = new Point(1267, 659);
+            SettingsBtn.Location = new Point(1267, 655);
             SettingsBtn.Name = "SettingsBtn";
-            SettingsBtn.Size = new Size(152, 36);
+            SettingsBtn.Size = new Size(152, 40);
             SettingsBtn.TabIndex = 1;
             SettingsBtn.Text = "Settings";
+            toolTip1.SetToolTip(SettingsBtn, "Displays the configuration settings");
             SettingsBtn.UseVisualStyleBackColor = true;
             SettingsBtn.Click += SettingsBtn_Click;
             // 
@@ -98,10 +100,10 @@
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
-            tableLayoutPanel1.Controls.Add(CloseBtn, 9, 3);
-            tableLayoutPanel1.Controls.Add(SettingsBtn, 8, 3);
+            tableLayoutPanel1.Controls.Add(CloseBtn, 9, 4);
+            tableLayoutPanel1.Controls.Add(SettingsBtn, 8, 4);
             tableLayoutPanel1.Controls.Add(CallListView, 0, 1);
-            tableLayoutPanel1.Controls.Add(StartBtn, 0, 3);
+            tableLayoutPanel1.Controls.Add(StartBtn, 7, 4);
             tableLayoutPanel1.Controls.Add(label1, 0, 0);
             tableLayoutPanel1.Controls.Add(TotalCallsLbl, 1, 0);
             tableLayoutPanel1.Controls.Add(label2, 2, 0);
@@ -110,23 +112,25 @@
             tableLayoutPanel1.Controls.Add(AnsweredLbl, 5, 0);
             tableLayoutPanel1.Controls.Add(label6, 8, 0);
             tableLayoutPanel1.Controls.Add(HoldLbl, 9, 0);
-            tableLayoutPanel1.Controls.Add(AnswerBtn, 1, 3);
-            tableLayoutPanel1.Controls.Add(ShowBtn, 2, 3);
-            tableLayoutPanel1.Controls.Add(EndCallBtn, 4, 3);
-            tableLayoutPanel1.Controls.Add(EndAllBtn, 5, 3);
-            tableLayoutPanel1.Controls.Add(HoldBtn, 3, 3);
+            tableLayoutPanel1.Controls.Add(AnswerBtn, 0, 3);
+            tableLayoutPanel1.Controls.Add(ShowBtn, 1, 3);
+            tableLayoutPanel1.Controls.Add(EndCallBtn, 3, 3);
+            tableLayoutPanel1.Controls.Add(EndAllBtn, 4, 3);
+            tableLayoutPanel1.Controls.Add(HoldBtn, 2, 3);
             tableLayoutPanel1.Controls.Add(label5, 6, 0);
             tableLayoutPanel1.Controls.Add(OnLineLbl, 7, 0);
             tableLayoutPanel1.Controls.Add(StatusLbl, 0, 2);
-            tableLayoutPanel1.Controls.Add(StatesBtn, 7, 3);
+            tableLayoutPanel1.Controls.Add(StatesBtn, 5, 3);
+            tableLayoutPanel1.Controls.Add(HelpBtn, 6, 4);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 4;
+            tableLayoutPanel1.RowCount = 5;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F));
             tableLayoutPanel1.Size = new Size(1582, 698);
             tableLayoutPanel1.TabIndex = 2;
             // 
@@ -141,7 +145,7 @@
             CallListView.Location = new Point(3, 45);
             CallListView.MultiSelect = false;
             CallListView.Name = "CallListView";
-            CallListView.Size = new Size(1576, 566);
+            CallListView.Size = new Size(1576, 516);
             CallListView.TabIndex = 2;
             CallListView.UseCompatibleStateImageBehavior = false;
             CallListView.View = View.Details;
@@ -181,9 +185,9 @@
             // 
             StartBtn.AutoSize = true;
             StartBtn.Dock = DockStyle.Fill;
-            StartBtn.Location = new Point(3, 659);
+            StartBtn.Location = new Point(1109, 655);
             StartBtn.Name = "StartBtn";
-            StartBtn.Size = new Size(152, 36);
+            StartBtn.Size = new Size(152, 40);
             StartBtn.TabIndex = 3;
             StartBtn.Text = "Start";
             toolTip1.SetToolTip(StartBtn, "Starts or stop listening for calls");
@@ -282,9 +286,9 @@
             // 
             AnswerBtn.AutoSize = true;
             AnswerBtn.Dock = DockStyle.Fill;
-            AnswerBtn.Location = new Point(161, 659);
+            AnswerBtn.Location = new Point(3, 609);
             AnswerBtn.Name = "AnswerBtn";
-            AnswerBtn.Size = new Size(152, 36);
+            AnswerBtn.Size = new Size(152, 40);
             AnswerBtn.TabIndex = 12;
             AnswerBtn.Text = "Answer";
             toolTip1.SetToolTip(AnswerBtn, "Answers the longest ringing call");
@@ -295,9 +299,9 @@
             // 
             ShowBtn.AutoSize = true;
             ShowBtn.Dock = DockStyle.Fill;
-            ShowBtn.Location = new Point(319, 659);
+            ShowBtn.Location = new Point(161, 609);
             ShowBtn.Name = "ShowBtn";
-            ShowBtn.Size = new Size(152, 36);
+            ShowBtn.Size = new Size(152, 40);
             ShowBtn.TabIndex = 13;
             ShowBtn.Text = "Show";
             toolTip1.SetToolTip(ShowBtn, "Shows a selected call in its current state");
@@ -308,9 +312,9 @@
             // 
             EndCallBtn.AutoSize = true;
             EndCallBtn.Dock = DockStyle.Fill;
-            EndCallBtn.Location = new Point(635, 659);
+            EndCallBtn.Location = new Point(477, 609);
             EndCallBtn.Name = "EndCallBtn";
-            EndCallBtn.Size = new Size(152, 36);
+            EndCallBtn.Size = new Size(152, 40);
             EndCallBtn.TabIndex = 14;
             EndCallBtn.Text = "End Call";
             toolTip1.SetToolTip(EndCallBtn, "Ends the selected call");
@@ -321,9 +325,9 @@
             // 
             EndAllBtn.AutoSize = true;
             EndAllBtn.Dock = DockStyle.Fill;
-            EndAllBtn.Location = new Point(793, 659);
+            EndAllBtn.Location = new Point(635, 609);
             EndAllBtn.Name = "EndAllBtn";
-            EndAllBtn.Size = new Size(152, 36);
+            EndAllBtn.Size = new Size(152, 40);
             EndAllBtn.TabIndex = 15;
             EndAllBtn.Text = "End All";
             toolTip1.SetToolTip(EndAllBtn, "Ends all calls");
@@ -334,9 +338,9 @@
             // 
             HoldBtn.AutoSize = true;
             HoldBtn.Dock = DockStyle.Fill;
-            HoldBtn.Location = new Point(477, 659);
+            HoldBtn.Location = new Point(319, 609);
             HoldBtn.Name = "HoldBtn";
-            HoldBtn.Size = new Size(152, 36);
+            HoldBtn.Size = new Size(152, 40);
             HoldBtn.TabIndex = 16;
             HoldBtn.Text = "Hold";
             toolTip1.SetToolTip(HoldBtn, "Puts the selected call on hold");
@@ -370,7 +374,7 @@
             StatusLbl.AutoSize = true;
             tableLayoutPanel1.SetColumnSpan(StatusLbl, 10);
             StatusLbl.Dock = DockStyle.Fill;
-            StatusLbl.Location = new Point(3, 614);
+            StatusLbl.Location = new Point(3, 564);
             StatusLbl.Name = "StatusLbl";
             StatusLbl.Size = new Size(1576, 42);
             StatusLbl.TabIndex = 20;
@@ -381,13 +385,25 @@
             // 
             StatesBtn.AutoSize = true;
             StatesBtn.Dock = DockStyle.Fill;
-            StatesBtn.Location = new Point(1109, 659);
+            StatesBtn.Location = new Point(793, 609);
             StatesBtn.Name = "StatesBtn";
-            StatesBtn.Size = new Size(152, 36);
+            StatesBtn.Size = new Size(152, 40);
             StatesBtn.TabIndex = 21;
             StatesBtn.Text = "States";
+            toolTip1.SetToolTip(StatesBtn, "Displays a dialog box that allows you to change Element State, Service State and Queue State");
             StatesBtn.UseVisualStyleBackColor = true;
             StatesBtn.Click += StatesBtn_Click;
+            // 
+            // HelpBtn
+            // 
+            HelpBtn.Dock = DockStyle.Fill;
+            HelpBtn.Location = new Point(951, 655);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(152, 40);
+            HelpBtn.TabIndex = 22;
+            HelpBtn.Text = "Help";
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
             // 
             // Form1
             // 
@@ -444,5 +460,6 @@
         private ToolTip toolTip1;
         private Label StatusLbl;
         private Button StatesBtn;
+        private Button HelpBtn;
     }
 }

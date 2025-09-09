@@ -9,7 +9,7 @@ The following table indicates indicates the current software status for this app
 |--------|--------|--------|-------------|
 | 2.1.1       |  Windows Operating System | Complete |  |
 | 2.1.2  | Minimum PC Requirements |  | Not determined yet |
-| 2.1.3  | Application Installation Requirements  |   |
+| 2.1.3  | Application Installation Requirements  | Complete  |
 | 2.2    | Network Configurations | Complete |   |
 | 2.3    | SIP Transport Protocols | Complete |  |
 | 2.4    | Media Requirements | Complete |   |

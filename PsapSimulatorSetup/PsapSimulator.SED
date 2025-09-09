@@ -24,7 +24,7 @@ SourceFiles=SourceFiles
 InstallPrompt=
 DisplayLicense=
 FinishMessage=
-TargetName=C:\_MyProjects\PsapSimulator\PsapSimulatorSetup\Publish\PsapSimulator.exe
+TargetName=C:\_MyProjects\PsapSimulator\InstallationPackages\PsapSimulator1.0.0.exe
 FriendlyName=PsapSimulator
 AppLaunched=setup.exe
 PostInstallCmd=<None>
@@ -33,7 +33,7 @@ UserQuietInstCmd=
 FILE0="PsapSimulatorSetup.msi"
 FILE1="setup.exe"
 [SourceFiles]
-SourceFiles0=C:\_MyProjects\PsapSimulator\PsapSimulatorSetup\Debug\
+SourceFiles0=C:\_MyProjects\PsapSimulator\PsapSimulatorSetup\Release\
 [SourceFiles0]
 %FILE0%=
 %FILE1%=

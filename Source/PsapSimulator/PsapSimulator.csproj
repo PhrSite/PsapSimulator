@@ -27,26 +27,15 @@
     <PackageReference Include="EidoLib" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Ng911CadIfLib" Version="1.2.0" />
+    <PackageReference Include="Ng911Lib" Version="2.0.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="SipLib" Version="0.0.4" />
+    <PackageReference Include="SipRecClient" Version="1.0.0" />
     <PackageReference Include="SIPSorceryMedia.FFmpeg" Version="8.0.10" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Ng911CadIfLib">
-      <HintPath>..\..\..\Ng911CadIfLib\ClassLibrary\bin\Debug\net9.0\Ng911CadIfLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Ng911Lib">
-      <HintPath>..\..\..\Ng911Lib\ClassLibrary\bin\Debug\net9.0\Ng911Lib.dll</HintPath>
-    </Reference>
-    <Reference Include="SipLib">
-      <HintPath>..\..\..\SipLib\ClassLibrary\bin\Debug\net9.0\SipLib.dll</HintPath>
-    </Reference>
-    <Reference Include="SipRecClient">
-      <HintPath>..\..\..\SipRecClient\ClassLibrary\bin\Release\net9.0\SipRecClient.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -135,6 +124,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Recordings\DisabledCamera.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Recordings\HoldBeepSound.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Recordings\OnHold.jpg">

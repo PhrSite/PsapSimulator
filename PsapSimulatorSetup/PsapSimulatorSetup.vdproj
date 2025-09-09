@@ -75,12 +75,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_1775ADD6F4BD4BB9B3C85A14F0C62160"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_1DA76461602F638BEEB9D3376ED3CEF1"
         "OwnerKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
         "MsmSig" = "8:_UNDEFINED"
@@ -100,12 +94,6 @@
         "Entry"
         {
         "MsmKey" = "8:_25A71C227AD84BE3B346F44A33B9CFAC"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_26A5CF35E2F14A3EB2BD032BE055D1DE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -143,12 +131,6 @@
         {
         "MsmKey" = "8:_304BE95DC6CEA083DFB3677814957403"
         "OwnerKey" = "8:_35C141BB526C156763E3400DA278AD46"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_3520FDC418264359BDEF835A47FC5CD4"
-        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -257,12 +239,6 @@
         {
         "MsmKey" = "8:_7531C626A734584696D322EF7BD0BF9E"
         "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_777E5F13FDB44E988A4529F26CCBC6C2"
-        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -389,6 +365,12 @@
         {
         "MsmKey" = "8:_90126429657743587597B2893C915148"
         "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_958885AA751441878DBEC8DC743FA59F"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -693,18 +675,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_CE21C4D77104400C9D1F2233DF20D482"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_DF72C28D98744AA08DB79CBCA7E78D82"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_DFD28BF22F3E891D9E6DACC5F995E71F"
         "OwnerKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
         "MsmSig" = "8:_UNDEFINED"
@@ -730,12 +700,6 @@
         "Entry"
         {
         "MsmKey" = "8:_EFB9A8260852431985DBDAD0FBB5D15C"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_F1AAC1D7F1894892823CB95691C4E151"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1006,7 +970,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SipRecClient, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SipRecClient, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_0233B2CE90DF835C4DEE4A83B547EFA5"
@@ -1161,7 +1125,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Ng911CadIfLib, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:Ng911CadIfLib, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_0A52A32A79554F8283AC6C30E0A30183"
@@ -1254,26 +1218,6 @@
                 }
             "SourcePath" = "8:..\\Publish\\NAudio.dll"
             "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1775ADD6F4BD4BB9B3C85A14F0C62160"
-            {
-            "SourcePath" = "8:..\\Publish\\Ng911CadIfLib.pdb"
-            "TargetName" = "8:Ng911CadIfLib.pdb"
             "Tag" = "8:"
             "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
             "Condition" = "8:"
@@ -1414,26 +1358,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26A5CF35E2F14A3EB2BD032BE055D1DE"
-            {
-            "SourcePath" = "8:..\\Publish\\Ng911CadIfLib.xml"
-            "TargetName" = "8:Ng911CadIfLib.xml"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_2735C02374B349849D5FFFAA9AED2C6E"
             {
             "AssemblyRegister" = "3:1"
@@ -1565,26 +1489,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3520FDC418264359BDEF835A47FC5CD4"
-            {
-            "SourcePath" = "8:..\\Publish\\Ng911Lib.pdb"
-            "TargetName" = "8:Ng911Lib.pdb"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_35C141BB526C156763E3400DA278AD46"
@@ -1806,7 +1710,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Ng911CadIfLib, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:Ng911CadIfLib, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_5FDDFAE4FE3FF117C73246F357E9539D"
@@ -1837,7 +1741,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SipRecClient, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SipRecClient, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_6284D42B8A5A466C89122ECB9D274675"
@@ -2050,26 +1954,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_777E5F13FDB44E988A4529F26CCBC6C2"
-            {
-            "SourcePath" = "8:..\\Publish\\SipLib.xml"
-            "TargetName" = "8:SipLib.xml"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_77BFD20CD3652CAC0E075CDF3129DDB3"
             {
             "AssemblyRegister" = "3:1"
@@ -2260,7 +2144,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Ng911Lib, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:Ng911Lib, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_8A73DAFEEC0F4D5F069465AAC1C8BA1F"
@@ -2367,6 +2251,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_958885AA751441878DBEC8DC743FA59F"
+            {
+            "SourcePath" = "8:..\\Source\\PsapSimulator\\Recordings\\HoldBeepSound.wav"
+            "TargetName" = "8:HoldBeepSound.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_6A4C6C7DB0A143A99BEA0B1E03A4330E"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_97568A4C72314834BD0C7E7E230238B3"
@@ -3060,7 +2964,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Ng911Lib, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:Ng911Lib, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_CC25E002592C4D0FBE7A256FCCCE2FC1"
@@ -3093,46 +2997,6 @@
             "TargetName" = "8:avfilter-10.dll"
             "Tag" = "8:"
             "Folder" = "8:_E188A43D217C411FBB50951EA696991C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CE21C4D77104400C9D1F2233DF20D482"
-            {
-            "SourcePath" = "8:..\\Publish\\SipRecClient.pdb"
-            "TargetName" = "8:SipRecClient.pdb"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DF72C28D98744AA08DB79CBCA7E78D82"
-            {
-            "SourcePath" = "8:..\\Publish\\Ng911Lib.xml"
-            "TargetName" = "8:Ng911Lib.xml"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -3213,26 +3077,6 @@
             {
             "SourcePath" = "8:..\\Publish\\PsapSimulator.pfx"
             "TargetName" = "8:PsapSimulator.pfx"
-            "Tag" = "8:"
-            "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F1AAC1D7F1894892823CB95691C4E151"
-            {
-            "SourcePath" = "8:..\\Publish\\SipLib.pdb"
-            "TargetName" = "8:SipLib.pdb"
             "Tag" = "8:"
             "Folder" = "8:_8C3AF8915D9E47CB956BBA72352AFF17"
             "Condition" = "8:"

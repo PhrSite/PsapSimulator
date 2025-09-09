@@ -42,12 +42,13 @@ The following table shows which interfaces and the degree of support that this a
 | 4.6.19 Call Diversion | Yes | No | Because De-Queue Registration will be supported. Element State, Service State and Queue state are already implemented. |
 
 # Documentation
-The GitHub documentation pages for this application are located at [https://phrsite.github.io/PsapSimulater](https://phrsite/github.io/PsapSimulator). This site contains the operator's manual for this application.
+The GitHub documentation pages for this application are located at [https://phrsite.github.io/PsapSimulator](https://phrsite/github.io/PsapSimulator). This site contains the operator's manual for this application.
 
 The software requirements specification for this application is located in the Documents/Requirements directory.
 
 A document that describes the current software status is located in the Documents/Status directory.
 
+# Installation
 
 
 # Dependancies
@@ -55,8 +56,8 @@ The PsapSimulator project uses the following NG9-1-1 related NuGet packages.
 
 1. SipLib (0.0.4)
 2. Ng911Lib (2.0.0)
-3. Ng911CadIfLib
-4. SipRecClient
+3. Ng911CadIfLib (1.2.0)
+4. SipRecClient (1.0.0)
 5. EidoLib (1.0.1)
 
 The PsapSimulator project uses the following general purpose NuGet packages.
@@ -84,6 +85,7 @@ The best place to get the correct version of the FFMPEG DLL files is: https://gi
 | Documentation | Markdown and YML source files used by docfx to generate the documentation file in the docs directory |
 | Documents/Requirements | Contains the software requirement specification for the PsapSimulator application. |
 | Documents/Status | Contains a document that describes the current status of the software for the PsapSimulator. This document indicates which functionality has been completed and which requirements have yet to be implemented and tested. |
+| PsapSimulatorSetup | This directory contains a Visual Studio Setup project that can be used to build an MSI package for installation of the PsapSimulator application. |
 | Source | All source code is located in subdirectories  |
 | Source/PsapSimulator | Source code and Visual Studio project files for the PsapSimulator applicaton |
 | Source/Testing | Contains various projects that can be used to test the PsapSimulator  |

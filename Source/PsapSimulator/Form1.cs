@@ -490,4 +490,14 @@ public partial class Form1 : Form
         PsapStatesForm form = new PsapStatesForm(m_CallManager);
         form.ShowDialog();
     }
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        // TODO: Fix the URL
+        ProcessStartInfo psi = new ProcessStartInfo("https://phrsite.github.io/SipLib")
+        {
+            UseShellExecute = true
+        };
+        Process.Start(psi);
+    }
 }

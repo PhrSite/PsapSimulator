@@ -91,6 +91,10 @@ public class CallManager
 
     private AudioSampleData m_AutoAnswerAudioSampleData;
     private AudioSampleData m_OnHoldAudioSampleData;
+
+    private const string ON_HOLD_BEEP_SOUND_FILE = @".\Recordings\HoldBeepSound.wav";
+    private AudioSampleData m_OnHoldBeepSoundSampleData;
+
     private Call? m_OnLineCall = null;
 
     /// <summary>
@@ -139,10 +143,10 @@ public class CallManager
         m_AnswerSettings.EnableMsrp = m_AnswerSettings.EnableMsrp;
 
         // Set up the media source for auto answer
-        m_AutoAnswerAudioSampleData = WindowsAudioUtils.ReadWaveFile(m_Settings.CallHandling.AutoAnswerAudioFile!);
-
+        m_AutoAnswerAudioSampleData = LoadAudioSampleData(m_Settings.CallHandling.AutoAnswerAudioFile);
         // Set up the media sources for hold
-        m_OnHoldAudioSampleData = WindowsAudioUtils.ReadWaveFile(m_Settings.CallHandling.CallHoldAudioFile!);
+        m_OnHoldAudioSampleData = LoadAudioSampleData(m_Settings.CallHandling.CallHoldAudioFile);
+        m_OnHoldBeepSoundSampleData = LoadAudioSampleData(ON_HOLD_BEEP_SOUND_FILE);
 
         m_I3LogEventClientMgr = new I3LogEventClientMgr();
 
@@ -160,6 +164,21 @@ public class CallManager
         TestCallAnswerSettings.EnableRtt = true;
         TestCallAnswerSettings.EnableMsrp = false;      // Not used for test calls.
         m_TestCallManager = new IncomingTestCallManager(TestCallAnswerSettings, m_Settings.TestCallSettings, UserName);
+    }
+
+    private AudioSampleData LoadAudioSampleData(string? filePath)
+    {
+        AudioSampleData audioSampleData;
+        if (string.IsNullOrEmpty(filePath) == false && File.Exists(filePath) == true)
+            audioSampleData = WindowsAudioUtils.ReadWaveFile(filePath);
+        else
+        {   // Error condition. Log an error and return silence so the application can at least run.
+            SipLogger.LogError($"The audio file: '{filePath}' could not be found. Loading silence.");
+            short[] silenceSamples = new short[8000];
+            audioSampleData = new AudioSampleData(silenceSamples, 8000);
+        }
+
+        return audioSampleData;
     }
 
     /// <summary>
@@ -713,7 +732,14 @@ public class CallManager
 
         if (call.AudioSampleSource != null && call.CurrentAudioSampleSource != null && call.AudioDestination != null)
         {
-            call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
+            if (m_Settings.CallHandling.CallHoldAudio == CallHoldAudioSource.CallHoldRecording)
+                call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
+            else if (m_Settings.CallHandling.CallHoldAudio == CallHoldAudioSource.CallHoldBeepSound)
+                call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldBeepSoundSampleData, null!);
+            else
+                // The setting is silence
+                call.CurrentAudioSampleSource = new SilenceAudioSampleSource();
+
             call.AudioSampleSource.SetAudioSampleSource(call.CurrentAudioSampleSource);
             call.CurrentAudioSampleSource.Start();
             call.AudioDestination.SetDestinationHandler(null);
