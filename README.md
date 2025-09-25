@@ -18,7 +18,7 @@ This application currently only handles incoming calls. All calls are treated as
 The InstallationPackages directory contains a self-extracting EXE file for the most recent released version of the PsapSimulator. This file can be used to install the application on Windows 10 or Windows 11 computers.
 
 ## Documentation
-The GitHub documentation pages for this application are located at [https://phrsite.github.io/PsapSimulator](https://phrsite/github.io/PsapSimulator). This site contains the operator's manual for this application.
+The GitHub documentation pages for this application are located at [https://phrsite.github.io/PsapSimulator](https://phrsite.github.io/PsapSimulator). This site contains the operator's manual for this application.
 
 The software requirements specification for this application is located in the Documents/Requirements directory.
 
