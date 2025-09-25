@@ -1,5 +1,5 @@
 # PsapSimulator Software Status
-*Last Updated: 5 Sep 2025*
+*Last Updated: 25 Sep 2025*
 
 The software requirements specification for the PsapSimulator application is located in the Documents/Requirements directory.
 
@@ -22,7 +22,7 @@ The following table indicates indicates the current software status for this app
 | 2.4.4    | Quality of Service DSCP Requirements for Media | Complete |  |
 | 2.4.5    | Language Support |  |  |
 | 3.1      | SIP Call Interface | Complete |  |
-| 3.1.1    | Support for re-INVITE Requests |  |  |
+| 3.1.1    | Support for re-INVITE Requests | Partially Complete | The ability to change the media destinations during a re-INVITE for conferencing/transfer operations is complete. The ability to add new media to a call has not been implemented yet. |
 | 3.1.2    | Offer-Less INVITE Requests | Complete |  |
 | 3.1.3    | Outbound Call Interface |  |  |
 | 3.1.3.1  | Callback Call Requirements |  |  |

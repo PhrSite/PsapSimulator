@@ -10,7 +10,6 @@ using System.Net;
 using System.Diagnostics;
 using PsapSimulator.WindowsVideo;
 using System.Text;
-using System.Threading;
 
 namespace PsapSimulator;
 
@@ -213,23 +212,51 @@ public partial class Form1 : Form
 
     private bool OkToStart(AppSettings appSettings)
     {
+        bool SaveSettings = false;
         NetworkSettings Ns = appSettings.NetworkSettings;
         if (Ns.EnableIPv4 == true)
         {   // Make sure that the configured IPv4 address is available
-            if (IpAddressExists(Ns.IPv4Address!, IpUtils.GetIPv4Addresses(), "IPv4") == false)
-                return false;
+            List<IPAddress> IPv4Addresses = IpUtils.GetIPv4Addresses();
+            if (string.IsNullOrEmpty(Ns.IPv4Address) == true || IpAddressExists(Ns.IPv4Address, IPv4Addresses) == false)
+            {
+                if (IPv4Addresses.Count == 0)
+                {   // No IPv4 addresses available
+                    ShowNetworkError("IPv4", Ns.IPv4Address!);
+                    return false;
+                }
+                else
+                {   // Pick the first available address and use it.
+                    Ns.IPv4Address = IPv4Addresses[0].ToString();
+                    SaveSettings = true;
+                }
+            }
         }
 
         if (Ns.EnableIPv6 == true)
         {   // Make sure that the configured IPv6 address is available
-            if (IpAddressExists(Ns.IPv6Address!, IpUtils.GetIPv6Addresses(), "IPv6") == false)
-                return false;
+            List<IPAddress> IPv6Addresses = IpUtils.GetIPv6Addresses();
+            if (string.IsNullOrEmpty(Ns.IPv6Address) == true || IpAddressExists(Ns.IPv6Address, IPv6Addresses) == false)
+            {
+                if (IPv6Addresses.Count == 0)
+                {   // No IPv6 addresses available
+                    ShowNetworkError(Ns.IPv6Address!, "IPv6");
+                    return false;
+                }
+                else
+                {   // Pick the first available address and use it
+                    Ns.IPv6Address = IPv6Addresses[0].ToString();
+                    SaveSettings = true;
+                }
+            }
         }
+
+        if (SaveSettings == true)
+            AppSettings.SaveAppSettings(appSettings);
 
         return true;
     }
 
-    private bool IpAddressExists(string ipAddress, List<IPAddress> addresses, string networkType)
+    private bool IpAddressExists(string ipAddress, List<IPAddress> addresses)
     {
         foreach (IPAddress ip in addresses)
         {
@@ -237,11 +264,15 @@ public partial class Form1 : Form
                 return true;
         }
 
+        return false;
+    }
+
+    private void ShowNetworkError(string networkType, string ipAddress)
+    {
         SipLogger.LogError($"Unable to start because the {networkType} address '{ipAddress}' is not available.");
         MessageBox.Show($"The {networkType} address: {ipAddress} is not available. Select an available " +
             $"{networkType} address in the Network tab in the Settings dialog box", "Error", MessageBoxButtons.OK,
             MessageBoxIcon.Error);
-        return false;
     }
 
     private void OnNewCall(CallSummary callSummary)
@@ -493,11 +524,6 @@ public partial class Form1 : Form
 
     private void HelpBtn_Click(object sender, EventArgs e)
     {
-        // TODO: Fix the URL
-        ProcessStartInfo psi = new ProcessStartInfo("https://phrsite.github.io/SipLib")
-        {
-            UseShellExecute = true
-        };
-        Process.Start(psi);
+        HelpUtils.ShowHelpTopic(HelpUtils.MAIN_WINDOW_HELP_URL);
     }
 }

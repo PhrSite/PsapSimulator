@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Call Handling Settings | PsapSimulator Documentation </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Call Handling Settings | PsapSimulator Documentation ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PsapSimulator Documentation">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="call-handling-settings">Call Handling Settings</h1>
+
+<h2 id="maximum-calls">Maximum Calls</h2>
+<p>This setting specifies how many calls the PsapSimulator will handle simultaneously. When the PsapSimulator application is currently handling the maximum number of calls and receives an INVITE for a new call, then it will reject the call with a 486 Busy Here response.</p>
+<p>The default setting is 10.</p>
+<h2 id="maximum-non-interactive-calls">Maximum Non-Interactive Calls</h2>
+<p>Specifies the maximum number of non-interactive calls that the PsapSimulator application will handle.</p>
+<p>This feature is not implemented yet.</p>
+<h2 id="enable-auto-answer">Enable Auto Answer</h2>
+<p>This checkbox enables the Auto Answer function of the PsapSimulator application.</p>
+<p>If Auto Answer is enabled then the PsapSimulator application will automatically answer all incoming calls and send pre-recorded media to the caller. Auto answered calls are also recorded if SIPREC recording is enabled. The user can pick up any call that has been auto answered. Calls remain in the auto answered state until the caller ends the call or the PsapSimulator user either picks up the call or it.</p>
+<p>This application provides auto-answer media recordings for audio, video, RTT and MSRP. The <a href="MediaSourceSettings.html">Media</a> tab contains the configuration settings for the auto-answer media.</p>
+<p>The default setting is un-checked (auto-answer is disabled).</p>
+<h2 id="enabled-media-settings">Enabled Media Settings</h2>
+<p>Each media type (audio, video, RTT and MSRP) can be enabled or disabled. If a media type is disabled then the PsapSimulator will reject that media type in its response to an incoming INVITE request. At least one media type must be enabled.</p>
+<p>The default setting is enabled for all media types.</p>
+<h3 id="enable-transmit-video">Enable Transmit Video</h3>
+<p>This setting enables or disables transmit video to the caller. If enabled (checked) then video from the local camera will be sent to a caller when that call is on-line. If disabled then a static image file that indicates that the camera is disabled will be sent to the caller.</p>
+<p>The default setting is enabled.</p>
+<h2 id="outgoing-call-encryption-settings">Outgoing Call Encryption Settings</h2>
+<p>These settings determine which type of media encryption will be offered when the PsapSimulator makes an outgoing call.</p>
+<p><strong>Note:</strong> The outgoing call feature has not been implemented yet.</p>
+<p>The choices for RTP type media (audio, video and RTT) are:</p>
+<ol>
+<li>None</li>
+<li>SDES-SRTP</li>
+<li>DTLS-SRTP</li>
+</ol>
+<p>The default setting is None.</p>
+<p>The choices for MSRP media are:</p>
+<ol>
+<li>None</li>
+<li>MSRP over TLS (MSRPS)</li>
+</ol>
+<p>The default setting is None.</p>
+<h2 id="conferencetransfer-settings-button">Conference/Transfer Settings Button</h2>
+<p>This button displays a dialog box that allows the user to pre-configure a list of transfer targets that can be used when setting up a transfer/conference for a call.</p>
+<p>The user can add, edit or delete transfer targets.</p>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PhrSite/PsapSimulator/blob/master/Documentation/docs/CallHandlingSettings.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

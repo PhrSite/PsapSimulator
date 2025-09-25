@@ -24,6 +24,9 @@
       "default",
       "staticdoc"
     ],
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
     "globalMetadata": {
       "_appName": "PsapSimulator Documentation",
       "_appTitle": "PsapSimulator Documentation",

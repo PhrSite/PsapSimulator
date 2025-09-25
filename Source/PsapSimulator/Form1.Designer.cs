@@ -120,7 +120,7 @@
             tableLayoutPanel1.Controls.Add(label5, 6, 0);
             tableLayoutPanel1.Controls.Add(OnLineLbl, 7, 0);
             tableLayoutPanel1.Controls.Add(StatusLbl, 0, 2);
-            tableLayoutPanel1.Controls.Add(StatesBtn, 5, 3);
+            tableLayoutPanel1.Controls.Add(StatesBtn, 0, 4);
             tableLayoutPanel1.Controls.Add(HelpBtn, 6, 4);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
@@ -190,7 +190,7 @@
             StartBtn.Size = new Size(152, 40);
             StartBtn.TabIndex = 3;
             StartBtn.Text = "Start";
-            toolTip1.SetToolTip(StartBtn, "Starts or stop listening for calls");
+            toolTip1.SetToolTip(StartBtn, "Starts or stops listening for calls");
             StartBtn.UseVisualStyleBackColor = true;
             StartBtn.Click += StartBtn_Click;
             // 
@@ -385,11 +385,11 @@
             // 
             StatesBtn.AutoSize = true;
             StatesBtn.Dock = DockStyle.Fill;
-            StatesBtn.Location = new Point(793, 609);
+            StatesBtn.Location = new Point(3, 655);
             StatesBtn.Name = "StatesBtn";
             StatesBtn.Size = new Size(152, 40);
             StatesBtn.TabIndex = 21;
-            StatesBtn.Text = "States";
+            StatesBtn.Text = "PSAP States";
             toolTip1.SetToolTip(StatesBtn, "Displays a dialog box that allows you to change Element State, Service State and Queue State");
             StatesBtn.UseVisualStyleBackColor = true;
             StatesBtn.Click += StatesBtn_Click;

@@ -37,9 +37,10 @@
             // 
             // OkBtn
             // 
-            OkBtn.Location = new Point(201, 97);
+            OkBtn.AutoSize = true;
+            OkBtn.Location = new Point(346, 93);
             OkBtn.Name = "OkBtn";
-            OkBtn.Size = new Size(94, 37);
+            OkBtn.Size = new Size(94, 41);
             OkBtn.TabIndex = 1;
             OkBtn.Text = "OK";
             OkBtn.UseVisualStyleBackColor = true;
@@ -47,7 +48,8 @@
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(345, 97);
+            CancelBtn.AutoEllipsis = true;
+            CancelBtn.Location = new Point(200, 95);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 37);
             CancelBtn.TabIndex = 2;
@@ -77,9 +79,10 @@
             // 
             // AddBtn
             // 
+            AddBtn.AutoSize = true;
             AddBtn.Location = new Point(517, 25);
             AddBtn.Name = "AddBtn";
-            AddBtn.Size = new Size(94, 35);
+            AddBtn.Size = new Size(94, 41);
             AddBtn.TabIndex = 3;
             AddBtn.Text = "Add";
             AddBtn.UseVisualStyleBackColor = true;

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Identity Settings | PsapSimulator Documentation </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Identity Settings | PsapSimulator Documentation ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PsapSimulator Documentation">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="identity-settings">Identity Settings</h1>
+
+<p>The Identity tab of the Settings dialog box allows you to set the NG9-1-1 identity of the PsapSimulator application and to configure the X.509 certificate that the application will use for SIPS, WSS and HTTPS.</p>
+<h2 id="ng9-1-1-identity">NG9-1-1 Identity</h2>
+<p>The application provides settings for Agency ID, Agent ID and Element ID. These identification settings are used primarily for NG9-1-1 event logging.</p>
+<h3 id="agency-id">Agency ID</h3>
+<p>The Agency ID identifies the agency to which a PSAP belongs to. Section 2.1.1 of NENA-STA-010.3f describes the Agency ID.</p>
+<p>The default setting is: ng911test.net</p>
+<h3 id="agent-id">Agent ID</h3>
+<p>The Agent ID identifies an agent (call taker) within an agency. Section 2.1.2 of NENA-STA-010.3f describes the Agent ID.</p>
+<p>The default setting is:  psapsimulator1@ng911test.net.</p>
+<h3 id="element-id">Element ID</h3>
+<p>The Element ID is a logical name used to represent a physical implementation of a functional element. Section 2.1.3 of NENA-STA-010.3f describes the Element ID.</p>
+<p>The default setting is: psapsimulator1.ng911test.net.</p>
+<h2 id="x509-certificate">X.509 Certificate</h2>
+<p>The application requires an X.509 certificate so that it can act as a server for SIP TLS and HTTPS requests. A certificate is also required if the application needs to authenticate itself as a client.</p>
+<p>The application ships with a default self-signed X.509 certificate. The name of the certificate is PsapSimulator.pfx. This file contains a private key. A certificate file called PsapSimulator.cer is also distributed with the application. This file can be added to the trusted root if it is necessay to trust the PsapSimulator application.</p>
+<p>If the Use Default Certificate checkbox is checked then the application will use the default certificate regardless of the Certificate File and Password settings in the Identity tab.</p>
+<p>It is possible to use your own X.509 certificate. To do this, uncheck the Use Default Certificate checkbox and provide the certificate file path and password for your certificate.</p>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PhrSite/PsapSimulator/blob/master/Documentation/docs/IdentitySettings.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

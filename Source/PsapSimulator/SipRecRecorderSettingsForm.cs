@@ -27,7 +27,12 @@ public partial class SipRecRecorderSettingsForm : Form
         InitializeComponent();
     }
 
-    private void SaveBtn_Click(object sender, EventArgs e)
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        HelpUtils.ShowHelpTopic(HelpUtils.SIPREC_RECORDER_SETTINGS_HELP_URI);
+    }
+
+    private void OkBtn_Click(object sender, EventArgs e)
     {
         if (ValidateSettings() == false)
             return;
@@ -36,9 +41,9 @@ public partial class SipRecRecorderSettingsForm : Form
         m_Settings.Enabled = EnabledCb.Checked;
         m_Settings.SrsIpEndpoint = IPEndpointTb.Text;
         m_Settings.LocalIpEndpoint = LocalIpEndpointTb.Text;
-        m_Settings.SipTransportProtocol = (SIPProtocolsEnum) (SipTransportCombo.SelectedIndex  + 1);
+        m_Settings.SipTransportProtocol = (SIPProtocolsEnum)(SipTransportCombo.SelectedIndex + 1);
         m_Settings.RtpEncryption = (RtpEncryptionEnum)RtpEncryptionCombo.SelectedIndex;
-        m_Settings.MsrpEncryption = (MsrpEncryptionEnum) MsrpEncryptionCombo.SelectedIndex;
+        m_Settings.MsrpEncryption = (MsrpEncryptionEnum)MsrpEncryptionCombo.SelectedIndex;
         m_Settings.Enabled = EnabledCb.Checked;
         m_Settings.OptionsIntervalSeconds = int.Parse(OptionsIntervalTb.Text);
 

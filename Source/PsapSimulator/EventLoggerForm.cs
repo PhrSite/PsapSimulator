@@ -24,7 +24,7 @@ public partial class EventLoggerForm : Form
         InitializeComponent();
     }
 
-    private void SaveBtn_Click(object sender, EventArgs e)
+    private void OkBtn_Click(object sender, EventArgs e)
     {
         if (ValidateSettings() == false)
             return;
@@ -74,7 +74,6 @@ public partial class EventLoggerForm : Form
 
         SIPURI? sipUri = SIPURI.ParseSIPURI(LoggerUriTb.Text);
         if (SIPURI.TryParse(LoggerUriTb.Text, out sipUri) == false)
-        //if (sipUri == null!)
         {
             MessageBox.Show("The Logger URI is not valid", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             LoggerUriTb.Focus();
@@ -84,7 +83,7 @@ public partial class EventLoggerForm : Form
         {
             if (sipUri!.Scheme != SIPSchemesEnum.http && sipUri.Scheme != SIPSchemesEnum.https)
             {
-                MessageBox.Show("The Logger URI must be a HTTP or a HTTPS URI", "Error", 
+                MessageBox.Show("The Logger URI must be a HTTP or a HTTPS URI", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LoggerUriTb.Focus();
                 return false;
@@ -108,5 +107,10 @@ public partial class EventLoggerForm : Form
 
         if (m_IsForEdit == true)
             NameTb.ReadOnly = true;
+    }
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        HelpUtils.ShowHelpTopic(HelpUtils.EVENT_LOGGER_SETTINGS_HELP_URI);
     }
 }

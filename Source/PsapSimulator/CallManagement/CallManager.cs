@@ -8,7 +8,6 @@ using System.Net;
 using System.Drawing;
 
 using SipLib.Channels;
-using SipLib.Body;
 using PsapSimulator.Settings;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Concurrent;
@@ -121,14 +120,26 @@ public class CallManager
     {
         m_Settings = appSettings;
 
+        string strCertificateFilePath;
+        string strCertificatePassword;
+        if (m_Settings.CertificateSettings.UseDefaultCertificate == true)
+        {
+            strCertificateFilePath = @".\PsapSimulator.pfx";
+            strCertificatePassword = "PsapSimulator";
+        }
+        else
+        {
+            strCertificateFilePath = m_Settings.CertificateSettings.CertificateFilePath;
+            strCertificatePassword = m_Settings.CertificateSettings.CertificatePassword;
+        }
+
         try
         {
-            m_Certificate = X509CertificateLoader.LoadPkcs12FromFile(m_Settings.CertificateSettings.CertificateFilePath,
-                m_Settings.CertificateSettings.CertificatePassword);
+            m_Certificate = X509CertificateLoader.LoadPkcs12FromFile(strCertificateFilePath, strCertificatePassword);
         }
         catch (Exception certEx)
         {
-            SipLogger.LogCritical(certEx, "Unable to load the X.509 Certificate");
+            SipLogger.LogCritical(certEx, $"Unable to load the X.509 Certificate from: {strCertificateFilePath}");
             throw;
         }
 
@@ -2569,9 +2580,9 @@ public class CallManager
         }
     }
 
-    private const int EidoPort = 16000;
+    public const int EidoPort = 16000;
     private const string HttpEidoPath = "/incidents/eido";
-    private const string WsEidoPath = "/IncidentData/ent";
+    public const string WsEidoPath = "/IncidentData/ent";
 
     private void StartNg911CadIfServer()
     {
@@ -2956,6 +2967,7 @@ public class CallManager
         }
     }
 
+    // Default PSAP states
     private string m_CurrentElementState = "Normal";
     private string m_CurrentServiceState = "Normal";
     private string m_CurrentSecurityPosture = "Green";

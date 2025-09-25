@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             tableLayoutPanel1 = new TableLayoutPanel();
             flowLayoutPanel1 = new FlowLayoutPanel();
             AnswerBtn = new Button();
@@ -35,6 +36,7 @@
             EndBtn = new Button();
             MicMuteBtn = new Button();
             KeypadBtn = new Button();
+            HelpBtn = new Button();
             CloseBtn = new Button();
             panel1 = new Panel();
             CallInfoTabCtrl = new TabControl();
@@ -85,6 +87,12 @@
             CommentsTab = new TabPage();
             CommentsTb = new TextBox();
             ServiceTab = new TabPage();
+            DeviceIdLbl = new Label();
+            label35 = new Label();
+            ModelLbl = new Label();
+            label34 = new Label();
+            ManufacturerLbl = new Label();
+            label33 = new Label();
             label29 = new Label();
             DeviceDataProviderLbl = new Label();
             label31 = new Label();
@@ -129,6 +137,7 @@
             label3 = new Label();
             FromLbl = new Label();
             label1 = new Label();
+            toolTip1 = new ToolTip(components);
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             panel1.SuspendLayout();
@@ -164,6 +173,7 @@
             flowLayoutPanel1.Controls.Add(EndBtn);
             flowLayoutPanel1.Controls.Add(MicMuteBtn);
             flowLayoutPanel1.Controls.Add(KeypadBtn);
+            flowLayoutPanel1.Controls.Add(HelpBtn);
             flowLayoutPanel1.Controls.Add(CloseBtn);
             flowLayoutPanel1.Dock = DockStyle.Fill;
             flowLayoutPanel1.Location = new Point(3, 966);
@@ -179,6 +189,7 @@
             AnswerBtn.Size = new Size(134, 41);
             AnswerBtn.TabIndex = 0;
             AnswerBtn.Text = "Answer";
+            toolTip1.SetToolTip(AnswerBtn, "Answers or picks up the call if it is in the Ringing,  On-Hold or Auto-Answer states");
             AnswerBtn.UseVisualStyleBackColor = true;
             AnswerBtn.Click += AnswerBtn_Click;
             // 
@@ -190,6 +201,7 @@
             HoldBtn.Size = new Size(147, 41);
             HoldBtn.TabIndex = 1;
             HoldBtn.Text = "Hold";
+            toolTip1.SetToolTip(HoldBtn, "Puts the call On-Hold if it is in the On-Line or Auto-Answer states");
             HoldBtn.UseVisualStyleBackColor = true;
             HoldBtn.Click += HoldBtn_Click;
             // 
@@ -201,6 +213,7 @@
             EndBtn.Size = new Size(141, 41);
             EndBtn.TabIndex = 2;
             EndBtn.Text = "End Call";
+            toolTip1.SetToolTip(EndBtn, "Ends the call and closes this window");
             EndBtn.UseVisualStyleBackColor = true;
             EndBtn.Click += EndBtn_Click;
             // 
@@ -212,6 +225,7 @@
             MicMuteBtn.Size = new Size(160, 41);
             MicMuteBtn.TabIndex = 5;
             MicMuteBtn.Text = "Mic Mute Off";
+            toolTip1.SetToolTip(MicMuteBtn, "Turns Mic-Mute On or Off");
             MicMuteBtn.UseVisualStyleBackColor = true;
             MicMuteBtn.Click += MicMuteBtn_Click;
             // 
@@ -223,17 +237,31 @@
             KeypadBtn.Size = new Size(119, 41);
             KeypadBtn.TabIndex = 4;
             KeypadBtn.Text = "Keypad";
+            toolTip1.SetToolTip(KeypadBtn, "Dispays a keypad dialog box to send DTMF digits");
             KeypadBtn.UseVisualStyleBackColor = true;
             KeypadBtn.Click += KeypadBtn_Click;
+            // 
+            // HelpBtn
+            // 
+            HelpBtn.AutoSize = true;
+            HelpBtn.Location = new Point(734, 3);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(94, 41);
+            HelpBtn.TabIndex = 6;
+            HelpBtn.Text = "Help";
+            toolTip1.SetToolTip(HelpBtn, "Display the help topic for this form");
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
             // 
             // CloseBtn
             // 
             CloseBtn.AutoSize = true;
-            CloseBtn.Location = new Point(734, 3);
+            CloseBtn.Location = new Point(834, 3);
             CloseBtn.Name = "CloseBtn";
             CloseBtn.Size = new Size(139, 41);
             CloseBtn.TabIndex = 3;
             CloseBtn.Text = "Close";
+            toolTip1.SetToolTip(CloseBtn, "Closes this form. The call state is not changed");
             CloseBtn.UseVisualStyleBackColor = true;
             CloseBtn.Click += CloseBtn_Click;
             // 
@@ -276,10 +304,10 @@
             CallInfoTabCtrl.Controls.Add(ServiceTab);
             CallInfoTabCtrl.Controls.Add(ProvidersTab);
             CallInfoTabCtrl.Controls.Add(AACN);
-            CallInfoTabCtrl.Location = new Point(21, 481);
+            CallInfoTabCtrl.Location = new Point(25, 606);
             CallInfoTabCtrl.Name = "CallInfoTabCtrl";
             CallInfoTabCtrl.SelectedIndex = 0;
-            CallInfoTabCtrl.Size = new Size(649, 430);
+            CallInfoTabCtrl.Size = new Size(1217, 339);
             CallInfoTabCtrl.TabIndex = 24;
             // 
             // LocationTab
@@ -312,7 +340,7 @@
             LocationTab.Location = new Point(4, 40);
             LocationTab.Name = "LocationTab";
             LocationTab.Padding = new Padding(3);
-            LocationTab.Size = new Size(641, 386);
+            LocationTab.Size = new Size(1209, 295);
             LocationTab.TabIndex = 0;
             LocationTab.Text = "Location";
             LocationTab.UseVisualStyleBackColor = true;
@@ -320,7 +348,7 @@
             // LocTimeLbl
             // 
             LocTimeLbl.AutoSize = true;
-            LocTimeLbl.Location = new Point(493, 60);
+            LocTimeLbl.Location = new Point(826, 227);
             LocTimeLbl.Name = "LocTimeLbl";
             LocTimeLbl.Size = new Size(122, 31);
             LocTimeLbl.TabIndex = 23;
@@ -329,24 +357,24 @@
             // ProvidedByLbl
             // 
             ProvidedByLbl.BorderStyle = BorderStyle.Fixed3D;
-            ProvidedByLbl.Location = new Point(92, 316);
+            ProvidedByLbl.Location = new Point(210, 232);
             ProvidedByLbl.Name = "ProvidedByLbl";
-            ProvidedByLbl.Size = new Size(534, 38);
+            ProvidedByLbl.Size = new Size(442, 38);
             ProvidedByLbl.TabIndex = 22;
             // 
             // label27
             // 
             label27.AutoSize = true;
-            label27.Location = new Point(12, 316);
+            label27.Location = new Point(12, 233);
             label27.Name = "label27";
-            label27.Size = new Size(64, 31);
+            label27.Size = new Size(192, 31);
             label27.TabIndex = 21;
-            label27.Text = "Prov.";
+            label27.Text = "Location Provider";
             // 
             // CountyLbl
             // 
             CountyLbl.BorderStyle = BorderStyle.Fixed3D;
-            CountyLbl.Location = new Point(416, 269);
+            CountyLbl.Location = new Point(910, 159);
             CountyLbl.Name = "CountyLbl";
             CountyLbl.Size = new Size(210, 38);
             CountyLbl.TabIndex = 20;
@@ -354,7 +382,7 @@
             // label17
             // 
             label17.AutoSize = true;
-            label17.Location = new Point(324, 269);
+            label17.Location = new Point(694, 160);
             label17.Name = "label17";
             label17.Size = new Size(86, 31);
             label17.TabIndex = 19;
@@ -363,7 +391,7 @@
             // StateLbl
             // 
             StateLbl.BorderStyle = BorderStyle.Fixed3D;
-            StateLbl.Location = new Point(92, 269);
+            StateLbl.Location = new Point(910, 110);
             StateLbl.Name = "StateLbl";
             StateLbl.Size = new Size(213, 38);
             StateLbl.TabIndex = 18;
@@ -371,7 +399,7 @@
             // label15
             // 
             label15.AutoSize = true;
-            label15.Location = new Point(12, 269);
+            label15.Location = new Point(694, 111);
             label15.Name = "label15";
             label15.Size = new Size(65, 31);
             label15.TabIndex = 17;
@@ -380,7 +408,7 @@
             // CityLbl
             // 
             CityLbl.BorderStyle = BorderStyle.Fixed3D;
-            CityLbl.Location = new Point(92, 214);
+            CityLbl.Location = new Point(118, 175);
             CityLbl.Name = "CityLbl";
             CityLbl.Size = new Size(534, 38);
             CityLbl.TabIndex = 16;
@@ -388,7 +416,7 @@
             // label16
             // 
             label16.AutoSize = true;
-            label16.Location = new Point(12, 215);
+            label16.Location = new Point(12, 175);
             label16.Name = "label16";
             label16.Size = new Size(53, 31);
             label16.TabIndex = 15;
@@ -397,7 +425,7 @@
             // StreetLbl
             // 
             StreetLbl.BorderStyle = BorderStyle.Fixed3D;
-            StreetLbl.Location = new Point(92, 164);
+            StreetLbl.Location = new Point(118, 124);
             StreetLbl.Name = "StreetLbl";
             StreetLbl.Size = new Size(534, 38);
             StreetLbl.TabIndex = 14;
@@ -405,7 +433,7 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(6, 165);
+            label14.Location = new Point(12, 124);
             label14.Name = "label14";
             label14.Size = new Size(73, 31);
             label14.TabIndex = 13;
@@ -414,7 +442,7 @@
             // ConfidenceLbl
             // 
             ConfidenceLbl.BorderStyle = BorderStyle.Fixed3D;
-            ConfidenceLbl.Location = new Point(337, 110);
+            ConfidenceLbl.Location = new Point(910, 66);
             ConfidenceLbl.Name = "ConfidenceLbl";
             ConfidenceLbl.Size = new Size(132, 38);
             ConfidenceLbl.TabIndex = 12;
@@ -422,16 +450,16 @@
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(245, 111);
+            label13.Location = new Point(694, 67);
             label13.Name = "label13";
-            label13.Size = new Size(66, 31);
+            label13.Size = new Size(129, 31);
             label13.TabIndex = 11;
-            label13.Text = "Conf.";
+            label13.Text = "Confidence";
             // 
             // MethodLbl
             // 
             MethodLbl.BorderStyle = BorderStyle.Fixed3D;
-            MethodLbl.Location = new Point(92, 111);
+            MethodLbl.Location = new Point(910, 13);
             MethodLbl.Name = "MethodLbl";
             MethodLbl.Size = new Size(132, 38);
             MethodLbl.TabIndex = 10;
@@ -439,35 +467,35 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(6, 112);
+            label12.Location = new Point(694, 13);
             label12.Name = "label12";
-            label12.Size = new Size(73, 31);
+            label12.Size = new Size(188, 31);
             label12.TabIndex = 9;
-            label12.Text = "Meth.";
+            label12.Text = "Location Method";
             // 
             // ElevationLbl
             // 
             ElevationLbl.BorderStyle = BorderStyle.Fixed3D;
-            ElevationLbl.Location = new Point(337, 59);
+            ElevationLbl.Location = new Point(435, 58);
             ElevationLbl.Name = "ElevationLbl";
-            ElevationLbl.Size = new Size(132, 38);
+            ElevationLbl.Size = new Size(143, 38);
             ElevationLbl.TabIndex = 8;
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(245, 66);
+            label11.Location = new Point(296, 65);
             label11.Name = "label11";
-            label11.Size = new Size(60, 31);
+            label11.Size = new Size(107, 31);
             label11.TabIndex = 7;
-            label11.Text = "Elev.";
+            label11.Text = "Elevation";
             // 
             // RadiusLbl
             // 
             RadiusLbl.BorderStyle = BorderStyle.Fixed3D;
-            RadiusLbl.Location = new Point(92, 59);
+            RadiusLbl.Location = new Point(118, 59);
             RadiusLbl.Name = "RadiusLbl";
-            RadiusLbl.Size = new Size(132, 38);
+            RadiusLbl.Size = new Size(143, 38);
             RadiusLbl.TabIndex = 6;
             // 
             // label10
@@ -475,15 +503,16 @@
             label10.AutoSize = true;
             label10.Location = new Point(6, 66);
             label10.Name = "label10";
-            label10.Size = new Size(59, 31);
+            label10.Size = new Size(83, 31);
             label10.TabIndex = 5;
-            label10.Text = "Rad.";
+            label10.Text = "Radius";
             // 
             // LocRefreshBtn
             // 
-            LocRefreshBtn.Location = new Point(487, 16);
+            LocRefreshBtn.AutoSize = true;
+            LocRefreshBtn.Location = new Point(694, 227);
             LocRefreshBtn.Name = "LocRefreshBtn";
-            LocRefreshBtn.Size = new Size(114, 36);
+            LocRefreshBtn.Size = new Size(114, 43);
             LocRefreshBtn.TabIndex = 4;
             LocRefreshBtn.Text = "Refresh";
             LocRefreshBtn.UseVisualStyleBackColor = true;
@@ -492,26 +521,26 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(245, 14);
+            label9.Location = new Point(296, 14);
             label9.Name = "label9";
-            label9.Size = new Size(70, 31);
+            label9.Size = new Size(118, 31);
             label9.TabIndex = 3;
-            label9.Text = "Long.";
+            label9.Text = "Longitude";
             // 
             // LongitudeLbl
             // 
             LongitudeLbl.BorderStyle = BorderStyle.Fixed3D;
-            LongitudeLbl.Location = new Point(337, 13);
+            LongitudeLbl.Location = new Point(435, 14);
             LongitudeLbl.Name = "LongitudeLbl";
-            LongitudeLbl.Size = new Size(132, 38);
+            LongitudeLbl.Size = new Size(143, 38);
             LongitudeLbl.TabIndex = 2;
             // 
             // LatitudeLbl
             // 
             LatitudeLbl.BorderStyle = BorderStyle.Fixed3D;
-            LatitudeLbl.Location = new Point(92, 14);
+            LatitudeLbl.Location = new Point(118, 13);
             LatitudeLbl.Name = "LatitudeLbl";
-            LatitudeLbl.Size = new Size(132, 38);
+            LatitudeLbl.Size = new Size(143, 38);
             LatitudeLbl.TabIndex = 1;
             // 
             // label2
@@ -519,9 +548,9 @@
             label2.AutoSize = true;
             label2.Location = new Point(6, 14);
             label2.Name = "label2";
-            label2.Size = new Size(50, 31);
+            label2.Size = new Size(98, 31);
             label2.TabIndex = 0;
-            label2.Text = "Lat.";
+            label2.Text = "Latitude";
             // 
             // SubscriberTab
             // 
@@ -546,7 +575,7 @@
             SubscriberTab.Location = new Point(4, 29);
             SubscriberTab.Name = "SubscriberTab";
             SubscriberTab.Padding = new Padding(3);
-            SubscriberTab.Size = new Size(641, 397);
+            SubscriberTab.Size = new Size(1209, 306);
             SubscriberTab.TabIndex = 1;
             SubscriberTab.Text = "Subscriber";
             SubscriberTab.UseVisualStyleBackColor = true;
@@ -571,7 +600,7 @@
             // SubCountryLbl
             // 
             SubCountryLbl.BorderStyle = BorderStyle.Fixed3D;
-            SubCountryLbl.Location = new Point(424, 266);
+            SubCountryLbl.Location = new Point(781, 224);
             SubCountryLbl.Name = "SubCountryLbl";
             SubCountryLbl.Size = new Size(202, 38);
             SubCountryLbl.TabIndex = 28;
@@ -579,7 +608,7 @@
             // label24
             // 
             label24.AutoSize = true;
-            label24.Location = new Point(324, 267);
+            label24.Location = new Point(672, 224);
             label24.Name = "label24";
             label24.Size = new Size(94, 31);
             label24.TabIndex = 27;
@@ -588,7 +617,7 @@
             // SubStateLbl
             // 
             SubStateLbl.BorderStyle = BorderStyle.Fixed3D;
-            SubStateLbl.Location = new Point(92, 266);
+            SubStateLbl.Location = new Point(781, 169);
             SubStateLbl.Name = "SubStateLbl";
             SubStateLbl.Size = new Size(213, 38);
             SubStateLbl.TabIndex = 26;
@@ -596,7 +625,7 @@
             // label26
             // 
             label26.AutoSize = true;
-            label26.Location = new Point(6, 267);
+            label26.Location = new Point(672, 170);
             label26.Name = "label26";
             label26.Size = new Size(65, 31);
             label26.TabIndex = 25;
@@ -709,7 +738,7 @@
             CommentsTab.Controls.Add(CommentsTb);
             CommentsTab.Location = new Point(4, 29);
             CommentsTab.Name = "CommentsTab";
-            CommentsTab.Size = new Size(641, 397);
+            CommentsTab.Size = new Size(1209, 306);
             CommentsTab.TabIndex = 2;
             CommentsTab.Text = "Comments";
             CommentsTab.UseVisualStyleBackColor = true;
@@ -722,11 +751,17 @@
             CommentsTb.Name = "CommentsTb";
             CommentsTb.ReadOnly = true;
             CommentsTb.ScrollBars = ScrollBars.Vertical;
-            CommentsTb.Size = new Size(596, 332);
+            CommentsTb.Size = new Size(1171, 262);
             CommentsTb.TabIndex = 0;
             // 
             // ServiceTab
             // 
+            ServiceTab.Controls.Add(DeviceIdLbl);
+            ServiceTab.Controls.Add(label35);
+            ServiceTab.Controls.Add(ModelLbl);
+            ServiceTab.Controls.Add(label34);
+            ServiceTab.Controls.Add(ManufacturerLbl);
+            ServiceTab.Controls.Add(label33);
             ServiceTab.Controls.Add(label29);
             ServiceTab.Controls.Add(DeviceDataProviderLbl);
             ServiceTab.Controls.Add(label31);
@@ -741,26 +776,77 @@
             ServiceTab.Controls.Add(label8);
             ServiceTab.Location = new Point(4, 29);
             ServiceTab.Name = "ServiceTab";
-            ServiceTab.Size = new Size(641, 397);
+            ServiceTab.Size = new Size(1209, 306);
             ServiceTab.TabIndex = 3;
             ServiceTab.Text = "Service";
             ServiceTab.UseVisualStyleBackColor = true;
             // 
+            // DeviceIdLbl
+            // 
+            DeviceIdLbl.BorderStyle = BorderStyle.Fixed3D;
+            DeviceIdLbl.Location = new Point(822, 175);
+            DeviceIdLbl.Name = "DeviceIdLbl";
+            DeviceIdLbl.Size = new Size(352, 38);
+            DeviceIdLbl.TabIndex = 17;
+            // 
+            // label35
+            // 
+            label35.AutoSize = true;
+            label35.Location = new Point(627, 183);
+            label35.Name = "label35";
+            label35.Size = new Size(110, 31);
+            label35.TabIndex = 16;
+            label35.Text = "Device ID";
+            // 
+            // ModelLbl
+            // 
+            ModelLbl.BorderStyle = BorderStyle.Fixed3D;
+            ModelLbl.Location = new Point(822, 127);
+            ModelLbl.Name = "ModelLbl";
+            ModelLbl.Size = new Size(352, 38);
+            ModelLbl.TabIndex = 15;
+            // 
+            // label34
+            // 
+            label34.AutoSize = true;
+            label34.Location = new Point(627, 129);
+            label34.Name = "label34";
+            label34.Size = new Size(80, 31);
+            label34.TabIndex = 14;
+            label34.Text = "Model";
+            // 
+            // ManufacturerLbl
+            // 
+            ManufacturerLbl.BorderStyle = BorderStyle.Fixed3D;
+            ManufacturerLbl.Location = new Point(822, 76);
+            ManufacturerLbl.Name = "ManufacturerLbl";
+            ManufacturerLbl.Size = new Size(352, 38);
+            ManufacturerLbl.TabIndex = 13;
+            // 
+            // label33
+            // 
+            label33.AutoSize = true;
+            label33.Location = new Point(627, 77);
+            label33.Name = "label33";
+            label33.Size = new Size(152, 31);
+            label33.TabIndex = 12;
+            label33.Text = "Manufacturer";
+            // 
             // label29
             // 
             label29.AutoSize = true;
-            label29.Location = new Point(14, 297);
+            label29.Location = new Point(627, 231);
             label29.Name = "label29";
-            label29.Size = new Size(99, 31);
+            label29.Size = new Size(173, 31);
             label29.TabIndex = 11;
-            label29.Text = "Provider";
+            label29.Text = "Device Provider";
             // 
             // DeviceDataProviderLbl
             // 
             DeviceDataProviderLbl.BorderStyle = BorderStyle.Fixed3D;
-            DeviceDataProviderLbl.Location = new Point(177, 297);
+            DeviceDataProviderLbl.Location = new Point(822, 230);
             DeviceDataProviderLbl.Name = "DeviceDataProviderLbl";
-            DeviceDataProviderLbl.Size = new Size(401, 38);
+            DeviceDataProviderLbl.Size = new Size(352, 38);
             DeviceDataProviderLbl.TabIndex = 10;
             // 
             // label31
@@ -783,15 +869,15 @@
             // DeviceClassLbl
             // 
             DeviceClassLbl.BorderStyle = BorderStyle.Fixed3D;
-            DeviceClassLbl.Location = new Point(177, 249);
+            DeviceClassLbl.Location = new Point(822, 19);
             DeviceClassLbl.Name = "DeviceClassLbl";
-            DeviceClassLbl.Size = new Size(401, 38);
+            DeviceClassLbl.Size = new Size(352, 38);
             DeviceClassLbl.TabIndex = 7;
             // 
             // label22
             // 
             label22.AutoSize = true;
-            label22.Location = new Point(14, 249);
+            label22.Location = new Point(627, 19);
             label22.Name = "label22";
             label22.Size = new Size(140, 31);
             label22.TabIndex = 6;
@@ -853,7 +939,7 @@
             ProvidersTab.Controls.Add(ProvidersTb);
             ProvidersTab.Location = new Point(4, 29);
             ProvidersTab.Name = "ProvidersTab";
-            ProvidersTab.Size = new Size(641, 397);
+            ProvidersTab.Size = new Size(1209, 306);
             ProvidersTab.TabIndex = 5;
             ProvidersTab.Text = "Providers";
             ProvidersTab.UseVisualStyleBackColor = true;
@@ -866,14 +952,14 @@
             ProvidersTb.Name = "ProvidersTb";
             ProvidersTb.ReadOnly = true;
             ProvidersTb.ScrollBars = ScrollBars.Both;
-            ProvidersTb.Size = new Size(599, 335);
+            ProvidersTb.Size = new Size(1179, 264);
             ProvidersTb.TabIndex = 0;
             // 
             // AACN
             // 
             AACN.Location = new Point(4, 29);
             AACN.Name = "AACN";
-            AACN.Size = new Size(641, 397);
+            AACN.Size = new Size(1209, 306);
             AACN.TabIndex = 4;
             AACN.Text = "AACN";
             AACN.UseVisualStyleBackColor = true;
@@ -921,9 +1007,9 @@
             // 
             // SendBtn
             // 
-            SendBtn.Location = new Point(1350, 502);
+            SendBtn.Location = new Point(1123, 523);
             SendBtn.Name = "SendBtn";
-            SendBtn.Size = new Size(94, 40);
+            SendBtn.Size = new Size(115, 40);
             SendBtn.TabIndex = 19;
             SendBtn.Text = "Send";
             SendBtn.UseVisualStyleBackColor = true;
@@ -932,17 +1018,18 @@
             // PrivateMsgCheck
             // 
             PrivateMsgCheck.AutoSize = true;
-            PrivateMsgCheck.Location = new Point(1141, 501);
+            PrivateMsgCheck.Location = new Point(423, 180);
             PrivateMsgCheck.Name = "PrivateMsgCheck";
             PrivateMsgCheck.Size = new Size(203, 35);
             PrivateMsgCheck.TabIndex = 18;
             PrivateMsgCheck.Text = "Private Message";
             PrivateMsgCheck.UseVisualStyleBackColor = true;
+            PrivateMsgCheck.Visible = false;
             // 
             // UseCpimCheck
             // 
             UseCpimCheck.AutoSize = true;
-            UseCpimCheck.Location = new Point(967, 501);
+            UseCpimCheck.Location = new Point(270, 178);
             UseCpimCheck.Name = "UseCpimCheck";
             UseCpimCheck.Size = new Size(134, 35);
             UseCpimCheck.TabIndex = 17;
@@ -951,16 +1038,16 @@
             // 
             // NewMessageTb
             // 
-            NewMessageTb.Location = new Point(877, 880);
+            NewMessageTb.Location = new Point(196, 525);
             NewMessageTb.Name = "NewMessageTb";
-            NewMessageTb.Size = new Size(996, 38);
+            NewMessageTb.Size = new Size(910, 38);
             NewMessageTb.TabIndex = 16;
             NewMessageTb.KeyPress += NewMessageTb_KeyPress;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(708, 880);
+            label6.Location = new Point(21, 532);
             label6.Name = "label6";
             label6.Size = new Size(157, 31);
             label6.TabIndex = 15;
@@ -970,7 +1057,7 @@
             // 
             TextTypeLbl.AutoSize = true;
             TextTypeLbl.BorderStyle = BorderStyle.Fixed3D;
-            TextTypeLbl.Location = new Point(831, 502);
+            TextTypeLbl.Location = new Point(143, 180);
             TextTypeLbl.Name = "TextTypeLbl";
             TextTypeLbl.Size = new Size(71, 33);
             TextTypeLbl.TabIndex = 14;
@@ -979,7 +1066,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(713, 502);
+            label5.Location = new Point(21, 181);
             label5.Name = "label5";
             label5.Size = new Size(109, 31);
             label5.TabIndex = 13;
@@ -990,9 +1077,9 @@
             TextListView.Columns.AddRange(new ColumnHeader[] { FromHeader, MessageHeader, TimeHeader });
             TextListView.GridLines = true;
             TextListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            TextListView.Location = new Point(713, 545);
+            TextListView.Location = new Point(21, 230);
             TextListView.Name = "TextListView";
-            TextListView.Size = new Size(1160, 325);
+            TextListView.Size = new Size(1213, 287);
             TextListView.TabIndex = 12;
             TextListView.UseCompatibleStateImageBehavior = false;
             TextListView.View = View.Details;
@@ -1015,18 +1102,18 @@
             // AddMediaBtn
             // 
             AddMediaBtn.AutoSize = true;
-            AddMediaBtn.Enabled = false;
             AddMediaBtn.Location = new Point(531, 79);
             AddMediaBtn.Name = "AddMediaBtn";
             AddMediaBtn.Size = new Size(328, 42);
             AddMediaBtn.TabIndex = 11;
             AddMediaBtn.Text = "Add Media";
             AddMediaBtn.UseVisualStyleBackColor = true;
+            AddMediaBtn.Visible = false;
             // 
             // DropLastBtn
             // 
             DropLastBtn.AutoSize = true;
-            DropLastBtn.Location = new Point(377, 415);
+            DropLastBtn.Location = new Point(1637, 888);
             DropLastBtn.Name = "DropLastBtn";
             DropLastBtn.Size = new Size(157, 43);
             DropLastBtn.TabIndex = 10;
@@ -1037,7 +1124,7 @@
             // DropBtn
             // 
             DropBtn.AutoSize = true;
-            DropBtn.Location = new Point(277, 415);
+            DropBtn.Location = new Point(1524, 888);
             DropBtn.Name = "DropBtn";
             DropBtn.Size = new Size(94, 43);
             DropBtn.TabIndex = 9;
@@ -1048,7 +1135,7 @@
             // ReferBtn
             // 
             ReferBtn.AutoSize = true;
-            ReferBtn.Location = new Point(23, 415);
+            ReferBtn.Location = new Point(1247, 888);
             ReferBtn.Name = "ReferBtn";
             ReferBtn.Size = new Size(248, 43);
             ReferBtn.TabIndex = 8;
@@ -1059,11 +1146,11 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(21, 160);
+            label4.Location = new Point(1247, 606);
             label4.Name = "label4";
-            label4.Size = new Size(178, 31);
+            label4.Size = new Size(255, 31);
             label4.TabIndex = 7;
-            label4.Text = "Call Participants";
+            label4.Text = "Conference Participants";
             // 
             // ConfListView
             // 
@@ -1071,9 +1158,9 @@
             ConfListView.Columns.AddRange(new ColumnHeader[] { UriHeader, MediaHeader, StatusHeader, RolesHeader });
             ConfListView.FullRowSelect = true;
             ConfListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            ConfListView.Location = new Point(21, 194);
+            ConfListView.Location = new Point(1247, 650);
             ConfListView.Name = "ConfListView";
-            ConfListView.Size = new Size(1220, 215);
+            ConfListView.Size = new Size(629, 215);
             ConfListView.TabIndex = 6;
             ConfListView.UseCompatibleStateImageBehavior = false;
             ConfListView.View = View.Details;
@@ -1273,5 +1360,13 @@
         private TextBox ProvidersTb;
         private Label LocTimeLbl;
         private Button MicMuteBtn;
+        private Button HelpBtn;
+        private Label ModelLbl;
+        private Label label34;
+        private Label ManufacturerLbl;
+        private Label label33;
+        private Label DeviceIdLbl;
+        private Label label35;
+        private ToolTip toolTip1;
     }
 }

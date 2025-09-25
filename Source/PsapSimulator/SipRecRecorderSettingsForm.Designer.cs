@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            SaveBtn = new Button();
             CancelBtn = new Button();
             label1 = new Label();
             NameTb = new TextBox();
@@ -49,25 +48,16 @@
             label5 = new Label();
             OptionsIntervalTb = new TextBox();
             OptionsCheck = new CheckBox();
+            HelpBtn = new Button();
+            OkBtn = new Button();
             groupBox4.SuspendLayout();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
-            // SaveBtn
-            // 
-            SaveBtn.AutoSize = true;
-            SaveBtn.Location = new Point(528, 564);
-            SaveBtn.Name = "SaveBtn";
-            SaveBtn.Size = new Size(94, 45);
-            SaveBtn.TabIndex = 12;
-            SaveBtn.Text = "Save";
-            SaveBtn.UseVisualStyleBackColor = true;
-            SaveBtn.Click += SaveBtn_Click;
-            // 
             // CancelBtn
             // 
             CancelBtn.AutoSize = true;
-            CancelBtn.Location = new Point(410, 564);
+            CancelBtn.Location = new Point(383, 564);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 45);
             CancelBtn.TabIndex = 13;
@@ -253,6 +243,28 @@
             OptionsCheck.Text = "Enable";
             OptionsCheck.UseVisualStyleBackColor = true;
             // 
+            // HelpBtn
+            // 
+            HelpBtn.AutoSize = true;
+            HelpBtn.Location = new Point(242, 564);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(94, 45);
+            HelpBtn.TabIndex = 14;
+            HelpBtn.Text = "Help";
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
+            // 
+            // OkBtn
+            // 
+            OkBtn.AutoSize = true;
+            OkBtn.Location = new Point(524, 564);
+            OkBtn.Name = "OkBtn";
+            OkBtn.Size = new Size(94, 45);
+            OkBtn.TabIndex = 15;
+            OkBtn.Text = "OK";
+            OkBtn.UseVisualStyleBackColor = true;
+            OkBtn.Click += OkBtn_Click;
+            // 
             // SipRecRecorderSettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -260,6 +272,8 @@
             AutoSize = true;
             ClientSize = new Size(643, 621);
             ControlBox = false;
+            Controls.Add(OkBtn);
+            Controls.Add(HelpBtn);
             Controls.Add(groupBox1);
             Controls.Add(label4);
             Controls.Add(LocalIpEndpointTb);
@@ -272,7 +286,6 @@
             Controls.Add(NameTb);
             Controls.Add(label1);
             Controls.Add(CancelBtn);
-            Controls.Add(SaveBtn);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Margin = new Padding(5);
@@ -292,8 +305,6 @@
         }
 
         #endregion
-
-        private Button SaveBtn;
         private Button CancelBtn;
         private Label label1;
         private TextBox NameTb;
@@ -314,5 +325,7 @@
         private Label label5;
         private TextBox OptionsIntervalTb;
         private CheckBox OptionsCheck;
+        private Button HelpBtn;
+        private Button OkBtn;
     }
 }

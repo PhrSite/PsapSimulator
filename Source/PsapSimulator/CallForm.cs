@@ -11,8 +11,7 @@ using System.Text;
 using ConferenceEvent;
 using SipLib.Core;
 using System.Diagnostics;
-using Ng911Lib.Utilities;
-using SipLib.Media;
+using System.Reflection;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -22,7 +21,6 @@ public partial class CallForm : Form
     private CallManager m_CallManager;
     private Call m_Call;
     private TextMessagesCollection m_TextMessages;
-
     private bool m_IsClosing = false;
 
     public CallForm(CallManager callManager, Call call)
@@ -69,7 +67,12 @@ public partial class CallForm : Form
             SendBtn.Visible = false;
         }
         else
+        {
             TextTypeLbl.Text = "None";
+            UseCpimCheck.Visible = false;
+            PrivateMsgCheck.Visible = false;
+            SendBtn.Visible = false;
+        }
 
         m_TextMessages.MessageAdded += OnMessageAdded;
         m_TextMessages.MessageUpdated += OnMessageUpdated;
@@ -99,7 +102,12 @@ public partial class CallForm : Form
 
         if (m_Call.ConferenceInfo != null)
             DisplayConferenceInfo(m_Call.ConferenceInfo);
+
+        // Hide the AACN tab in the Location/Additional Data tab control because AACN calls have not been implemented yet
+        CallInfoTabCtrl.TabPages.RemoveAt(AACN_TAB_INDEX);
     }
+
+    private const int AACN_TAB_INDEX = 5;
 
     private void OnReferNotifyStatus(SIPResponseStatusCodesEnum responseEnum, string reason)
     {
@@ -121,8 +129,53 @@ public partial class CallForm : Form
         }
     }
 
+    private void ClearServiceInfo()
+    {
+        EnvironmentLbl.Text = string.Empty;
+        ServiceTypeLbl.Text = string.Empty;
+        MobilityLbl.Text = string.Empty;
+        ServiceDataProviderLbl.Text = string.Empty;
+    }
+
+    private void ClearSubscriberInfo()
+    {
+        LastNameLbl.Text = string.Empty;
+        FirstNameLbl.Text = string.Empty;
+        MiddleNameLbl.Text = string.Empty;
+        LanguagesLbl.Text = string.Empty;
+        SubStreetLbl.Text = string.Empty;
+        SubCityLbl.Text = string.Empty;
+        SubStreetLbl.Text = string.Empty;
+        SubCountryLbl.Text = string.Empty;
+    }
+
+    private void ClearDeviceInfo()
+    {
+        DeviceClassLbl.Text = string.Empty;
+        ManufacturerLbl.Text = string.Empty;
+        ModelLbl.Text = string.Empty;
+        DeviceIdLbl.Text = string.Empty;
+        DeviceDataProviderLbl.Text = string.Empty;
+    }
+
+    private void ClearComments()
+    {
+        CommentsTb.Text = string.Empty;
+    }
+
+    private void ClearProviders()
+    {
+        ProvidersTb.Text = string.Empty;
+    }
+
     private void DisplayAdditionalData()
     {
+        ClearServiceInfo();
+        ClearSubscriberInfo();
+        ClearDeviceInfo();
+        ClearComments();
+        ClearProviders();
+
         if (m_Call.ServiceInfo != null)
             DisplayServiceInfo(m_Call.ServiceInfo);
 
@@ -375,6 +428,15 @@ public partial class CallForm : Form
         DeviceClassLbl.Text = deviceInfoType.DeviceClassification;
         if (deviceInfoType.DataProviderReference != null)
             DeviceDataProviderLbl.Text = GetProviderName(deviceInfoType.DataProviderReference);
+
+        if (deviceInfoType.DeviceMfgr != null)
+            ManufacturerLbl.Text = deviceInfoType.DeviceMfgr;
+
+        if (deviceInfoType.DeviceModelNr != null)
+            ModelLbl.Text = deviceInfoType.DeviceModelNr;
+
+        if (deviceInfoType.UniqueDeviceID != null && deviceInfoType.UniqueDeviceID.Length > 0)
+            DeviceIdLbl.Text = deviceInfoType.UniqueDeviceID[0].Value;
     }
 
     private void DisplaySubscriberInfo(SubscriberInfoType SubscriberInfo)
@@ -715,6 +777,13 @@ public partial class CallForm : Form
             return;
         }
 
+        if (m_Call.CallerUserAgentIsConferenceAware == false)
+        {
+            MessageBox.Show("Cannot transfer or conference this call because no conference bridge is available " +
+                "for this call", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         SelectTransferTargetForm form = new SelectTransferTargetForm();
         DialogResult Dr = form.ShowDialog();
         if (Dr == DialogResult.OK)
@@ -728,9 +797,16 @@ public partial class CallForm : Form
 
     private void DropBtn_Click(object sender, EventArgs e)
     {
+        if (m_Call.IsConferenced == false)
+        {
+            MessageBox.Show("Cannot drop a conference member because the call is not conferenced",
+                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         if (m_Call.CallState != CallStateEnum.OnLine)
         {
-            MessageBox.Show("Cannot conference or transfer the call because it is not on-line.\nPlease answer " +
+            MessageBox.Show("Cannot drop a conference member because the call is not on-line.\nPlease answer " +
                 "the call and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -771,10 +847,17 @@ public partial class CallForm : Form
 
     private void DropLastBtn_Click(object sender, EventArgs e)
     {
+        if (m_Call.IsConferenced == false)
+        {
+            MessageBox.Show("Cannot drop the last added conference member because the call is not conferenced",
+                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         if (m_Call.CallState != CallStateEnum.OnLine)
         {
-            MessageBox.Show("Cannot conference or transfer the call because it is not on-line.\nPlease answer " +
-                "the call and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Cannot drop the last added conference member for the call because it is not on-line.\nPlease answer " +
+                "the call and try again.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -814,5 +897,10 @@ public partial class CallForm : Form
 
         KeypadForm form = new KeypadForm(m_Call, m_Call.AudioSampleSource);
         form.ShowDialog();
+    }
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        HelpUtils.ShowHelpTopic(HelpUtils.CALL_FORM_HELP_URI);
     }
 }

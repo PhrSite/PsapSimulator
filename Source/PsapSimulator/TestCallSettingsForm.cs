@@ -59,7 +59,7 @@ public partial class TestCallSettingsForm : Form
 
         TestCallDurationUnitsEnum units = (TestCallDurationUnitsEnum)TestCallDurationUnitsCombo.SelectedIndex;
         if (units == TestCallDurationUnitsEnum.DurationUnitsPackets)
-        { 
+        {
             if (duration < 3)
             {
                 MessageBox.Show("The Test Call Duration setting must be at least 3 RTP Packets.", "Error", MessageBoxButtons.OK,
@@ -82,7 +82,7 @@ public partial class TestCallSettingsForm : Form
         return true;
     }
 
-    private void SaveBtn_Click(object sender, EventArgs e)
+    private void OkBtn_Click(object sender, EventArgs e)
     {
         if (VerifySettings() == false)
             return;     // Error message already displayed.
@@ -109,10 +109,15 @@ public partial class TestCallSettingsForm : Form
 
     private void TestCallDurationUnitsCombo_SelectedIndexChanged(object sender, EventArgs e)
     {
-        TestCallDurationUnitsEnum units = (TestCallDurationUnitsEnum) TestCallDurationUnitsCombo.SelectedIndex;
+        TestCallDurationUnitsEnum units = (TestCallDurationUnitsEnum)TestCallDurationUnitsCombo.SelectedIndex;
         if (units == TestCallDurationUnitsEnum.DurationUnitsPackets)
             TestCallDurationTb.Text = m_Settings.DurationPackets.ToString();
         else
             TestCallDurationTb.Text = m_Settings.DurationMinutes.ToString();
+    }
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        HelpUtils.ShowHelpTopic(HelpUtils.TEST_CALL_SETTINGS_HELP_URI);
     }
 }

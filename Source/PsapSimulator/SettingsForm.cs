@@ -10,7 +10,6 @@ using System.Net;
 using WindowsWaveAudio;
 using SipRecClient;
 
-using PsapSimulator.WindowsVideo;
 using System.Windows.Forms;
 using System.Collections.Generic;
 
@@ -833,5 +832,44 @@ public partial class SettingsForm : Form
             Clipboard.SetText(IPv6Combo.Text);
         else
             MessageBox.Show("No IPv6 address selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+
+    // Index for the tab pages of the tab control.
+    private const int NetworkPageIndex = 0;
+    private const int IdentityPageIndex = 1;
+    private const int CallHandlingPageIndex = 2;
+    private const int MediaSourcesPageIndex = 3;
+    private const int DevicesPageIndex = 4;
+    private const int InterfacesPageIndex = 5;
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        switch (tabControl1.SelectedIndex)
+        {
+            case NetworkPageIndex:
+                HelpUtils.ShowHelpTopic(HelpUtils.NETWORK_PAGE_HELP_URL);
+                break;
+            case IdentityPageIndex:
+                HelpUtils.ShowHelpTopic(HelpUtils.IDENTITY_PAGE_HELP_URL);
+                break;
+            case CallHandlingPageIndex:
+                HelpUtils.ShowHelpTopic(HelpUtils.CALL_HANDLING_PAGE_HELP_URI);
+                break;
+            case MediaSourcesPageIndex:
+                HelpUtils.ShowHelpTopic(HelpUtils.MEDIA_SOURCE_PAGE_HELP_URI);
+                break;
+            case DevicesPageIndex:
+                HelpUtils.ShowHelpTopic(HelpUtils.DEVICE_SETTINGS_PAGE_HELP_URI);
+                break;
+            case InterfacesPageIndex:
+                HelpUtils.ShowHelpTopic(HelpUtils.INTERFACE_SETTINGS_PAGE_HELP_URI);
+                break;
+        }
+    }
+
+    private void CadIfBtn_Click(object sender, EventArgs e)
+    {
+        CadIfSettingsForm Csf = new CadIfSettingsForm(m_AppSettings);
+        Csf.ShowDialog();
     }
 }

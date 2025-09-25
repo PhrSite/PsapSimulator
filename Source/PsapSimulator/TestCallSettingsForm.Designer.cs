@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             CancelBtn = new Button();
-            SaveBtn = new Button();
             EnableTestCallsCheck = new CheckBox();
             label1 = new Label();
             MaxTestCallsTb = new TextBox();
@@ -37,29 +36,20 @@
             TestCallDurationUnitsCombo = new ComboBox();
             label3 = new Label();
             TestCallDurationTb = new TextBox();
+            OkBtn = new Button();
+            HelpBtn = new Button();
             SuspendLayout();
             // 
             // CancelBtn
             // 
             CancelBtn.AutoSize = true;
-            CancelBtn.Location = new Point(247, 301);
+            CancelBtn.Location = new Point(233, 301);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 45);
             CancelBtn.TabIndex = 15;
             CancelBtn.Text = "Cancel";
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
-            // 
-            // SaveBtn
-            // 
-            SaveBtn.AutoSize = true;
-            SaveBtn.Location = new Point(366, 301);
-            SaveBtn.Name = "SaveBtn";
-            SaveBtn.Size = new Size(94, 45);
-            SaveBtn.TabIndex = 14;
-            SaveBtn.Text = "Save";
-            SaveBtn.UseVisualStyleBackColor = true;
-            SaveBtn.Click += SaveBtn_Click;
             // 
             // EnableTestCallsCheck
             // 
@@ -123,6 +113,28 @@
             TestCallDurationTb.Size = new Size(125, 38);
             TestCallDurationTb.TabIndex = 22;
             // 
+            // OkBtn
+            // 
+            OkBtn.AutoSize = true;
+            OkBtn.Location = new Point(366, 301);
+            OkBtn.Name = "OkBtn";
+            OkBtn.Size = new Size(94, 45);
+            OkBtn.TabIndex = 23;
+            OkBtn.Text = "OK";
+            OkBtn.UseVisualStyleBackColor = true;
+            OkBtn.Click += OkBtn_Click;
+            // 
+            // HelpBtn
+            // 
+            HelpBtn.AutoSize = true;
+            HelpBtn.Location = new Point(100, 301);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(94, 45);
+            HelpBtn.TabIndex = 24;
+            HelpBtn.Text = "Help";
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
+            // 
             // TestCallSettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -130,6 +142,8 @@
             AutoSize = true;
             ClientSize = new Size(497, 366);
             ControlBox = false;
+            Controls.Add(HelpBtn);
+            Controls.Add(OkBtn);
             Controls.Add(TestCallDurationTb);
             Controls.Add(label3);
             Controls.Add(TestCallDurationUnitsCombo);
@@ -138,7 +152,6 @@
             Controls.Add(label1);
             Controls.Add(EnableTestCallsCheck);
             Controls.Add(CancelBtn);
-            Controls.Add(SaveBtn);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             Margin = new Padding(5);
             Name = "TestCallSettingsForm";
@@ -155,7 +168,6 @@
         #endregion
 
         private Button CancelBtn;
-        private Button SaveBtn;
         private CheckBox EnableTestCallsCheck;
         private Label label1;
         private TextBox MaxTestCallsTb;
@@ -163,5 +175,7 @@
         private ComboBox TestCallDurationUnitsCombo;
         private Label label3;
         private TextBox TestCallDurationTb;
+        private Button OkBtn;
+        private Button HelpBtn;
     }
 }

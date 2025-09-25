@@ -21,6 +21,13 @@
     <!-- 16 Dec 24 PHR Ignore MSB3270 because the AmrWbCppLib DLL is a C++/CLI project and targets the AMD64 architecture.
     This project is for Windows only using the x64 architecture so there should not be a problem. -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <Description>An application for testing various NG9-1-1 interfaces with various NG9-1-1 functional elements.</Description>
+    <Copyright>2025, Philip Reichl</Copyright>
+    <PackageProjectUrl>https://phrsite.github.io/PsapSimulator</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https: //github.com/PhrSite/PsapSimulator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>1.0.0 - Initial version</PackageReleaseNotes>
   </PropertyGroup>
   
   <ItemGroup>
@@ -111,6 +118,9 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Update="PsapSimulator.cer">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="PsapSimulator.pfx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -141,5 +151,12 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>  
 </Project>

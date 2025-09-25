@@ -1,2 +1,27 @@
-- name: Introduction
-  href: introduction.md
+- name: Getting Started
+  href: GettingStarted.md
+- name: Main Application Window
+  href: MainWindow.md
+- name: The Call Control Window
+  href: CallForm.md
+- name: Configuration Settings
+  items:
+  - name: Network Settings
+    href: NetworkSettings.md
+  - name: Identity Settings
+    href: IdentitySettings.md
+  - name: Call Handling Settings
+    href: CallHandlingSettings.md
+  - name: Media Source Settings
+    href: MediaSourceSettings.md
+  - name: Device Settings
+    href: DeviceSettings.md
+  - name: Interfaces
+    href: InterfaceSettings.md
+    items:
+    - name: SIPREC Settings
+      href: SipRecSettings.md
+    - name: NG9-1-1 Event Logging
+      href: EventLoggingSettings.md
+    - name: Test Call Settings.md
+      href: TestCallSettings.md

@@ -38,6 +38,17 @@ public partial class EventLoggingForm : Form
         }
     }
 
+    private void OkBtn_Click(object sender, EventArgs e)
+    {
+        m_Settings.EnableLogging = EnableLoggingCheck.Checked;
+        m_Settings.Loggers.Clear();
+        for (int i = 0; i < LoggerListView.Items.Count; i++)
+            m_Settings.Loggers.Add((EventLoggerSettings)LoggerListView.Items[i].Tag!);
+
+        DialogResult = DialogResult.OK;
+        Close();
+    }
+
     private void SaveBtn_Click(object sender, EventArgs e)
     {
         m_Settings.EnableLogging = EnableLoggingCheck.Checked;
@@ -110,5 +121,10 @@ public partial class EventLoggingForm : Form
     private void LoggerListView_DoubleClick(object sender, EventArgs e)
     {
         EditBtn_Click(sender, e);
+    }
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        HelpUtils.ShowHelpTopic(HelpUtils.EVENT_LOGGING_SETTINGS_HELP_URI);
     }
 }

@@ -136,6 +136,8 @@
             SipRecBtn = new Button();
             SaveBtn = new Button();
             CancelBtn = new Button();
+            HelpBtn = new Button();
+            CadIfBtn = new Button();
             tabControl1.SuspendLayout();
             NetworkPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PortsGridView).BeginInit();
@@ -167,7 +169,7 @@
             tabControl1.Location = new Point(16, 12);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(847, 624);
+            tabControl1.Size = new Size(869, 666);
             tabControl1.TabIndex = 0;
             // 
             // NetworkPage
@@ -186,7 +188,7 @@
             NetworkPage.Location = new Point(4, 40);
             NetworkPage.Name = "NetworkPage";
             NetworkPage.Padding = new Padding(3);
-            NetworkPage.Size = new Size(839, 580);
+            NetworkPage.Size = new Size(861, 622);
             NetworkPage.TabIndex = 0;
             NetworkPage.Text = " Network ";
             NetworkPage.UseVisualStyleBackColor = true;
@@ -194,7 +196,7 @@
             // MutualAuthCheck
             // 
             MutualAuthCheck.AutoSize = true;
-            MutualAuthCheck.Location = new Point(311, 523);
+            MutualAuthCheck.Location = new Point(311, 545);
             MutualAuthCheck.Name = "MutualAuthCheck";
             MutualAuthCheck.Size = new Size(388, 35);
             MutualAuthCheck.TabIndex = 12;
@@ -266,12 +268,12 @@
             PortsGridView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             PortsGridView.ScrollBars = ScrollBars.None;
             PortsGridView.SelectionMode = DataGridViewSelectionMode.CellSelect;
-            PortsGridView.Size = new Size(495, 174);
+            PortsGridView.Size = new Size(495, 183);
             PortsGridView.TabIndex = 6;
             // 
             // MediaCol
             // 
-            MediaCol.HeaderText = "MediaType";
+            MediaCol.HeaderText = "Media Type";
             MediaCol.MinimumWidth = 6;
             MediaCol.Name = "MediaCol";
             MediaCol.ReadOnly = true;
@@ -425,7 +427,7 @@
             IdentityPage.Location = new Point(4, 29);
             IdentityPage.Name = "IdentityPage";
             IdentityPage.Padding = new Padding(3);
-            IdentityPage.Size = new Size(839, 591);
+            IdentityPage.Size = new Size(861, 633);
             IdentityPage.TabIndex = 1;
             IdentityPage.Text = " Identity ";
             IdentityPage.UseVisualStyleBackColor = true;
@@ -586,7 +588,7 @@
             CallHandlingPage.Controls.Add(label10);
             CallHandlingPage.Location = new Point(4, 29);
             CallHandlingPage.Name = "CallHandlingPage";
-            CallHandlingPage.Size = new Size(839, 591);
+            CallHandlingPage.Size = new Size(861, 633);
             CallHandlingPage.TabIndex = 2;
             CallHandlingPage.Text = " Call Handling ";
             CallHandlingPage.UseVisualStyleBackColor = true;
@@ -768,9 +770,9 @@
             MediaSourcesPage.AutoScroll = true;
             MediaSourcesPage.Controls.Add(groupBox6);
             MediaSourcesPage.Controls.Add(groupBox5);
-            MediaSourcesPage.Location = new Point(4, 40);
+            MediaSourcesPage.Location = new Point(4, 29);
             MediaSourcesPage.Name = "MediaSourcesPage";
-            MediaSourcesPage.Size = new Size(839, 580);
+            MediaSourcesPage.Size = new Size(861, 633);
             MediaSourcesPage.TabIndex = 3;
             MediaSourcesPage.Text = " Media Sources ";
             MediaSourcesPage.UseVisualStyleBackColor = true;
@@ -1057,9 +1059,9 @@
             // 
             DevicesPage.Controls.Add(groupBox8);
             DevicesPage.Controls.Add(groupBox7);
-            DevicesPage.Location = new Point(4, 29);
+            DevicesPage.Location = new Point(4, 40);
             DevicesPage.Name = "DevicesPage";
-            DevicesPage.Size = new Size(839, 591);
+            DevicesPage.Size = new Size(861, 622);
             DevicesPage.TabIndex = 4;
             DevicesPage.Text = " Devices ";
             DevicesPage.UseVisualStyleBackColor = true;
@@ -1091,9 +1093,9 @@
             label26.AutoSize = true;
             label26.Location = new Point(25, 52);
             label26.Name = "label26";
-            label26.Size = new Size(157, 31);
+            label26.Size = new Size(147, 31);
             label26.TabIndex = 1;
-            label26.Text = "Video Devices";
+            label26.Text = "Video Device";
             // 
             // VideoListView
             // 
@@ -1163,15 +1165,16 @@
             // 
             // InterfacesPage
             // 
+            InterfacesPage.Controls.Add(CadIfBtn);
             InterfacesPage.Controls.Add(TestCallsEnabledLbl);
             InterfacesPage.Controls.Add(TestCallSettingsBtn);
             InterfacesPage.Controls.Add(EventLoggingLbl);
             InterfacesPage.Controls.Add(SipRecLbl);
             InterfacesPage.Controls.Add(EventLoggingBtn);
             InterfacesPage.Controls.Add(SipRecBtn);
-            InterfacesPage.Location = new Point(4, 29);
+            InterfacesPage.Location = new Point(4, 40);
             InterfacesPage.Name = "InterfacesPage";
-            InterfacesPage.Size = new Size(839, 591);
+            InterfacesPage.Size = new Size(861, 622);
             InterfacesPage.TabIndex = 5;
             InterfacesPage.Text = " Interfaces ";
             InterfacesPage.UseVisualStyleBackColor = true;
@@ -1242,7 +1245,7 @@
             // SaveBtn
             // 
             SaveBtn.AutoSize = true;
-            SaveBtn.Location = new Point(782, 642);
+            SaveBtn.Location = new Point(789, 684);
             SaveBtn.Name = "SaveBtn";
             SaveBtn.Size = new Size(94, 44);
             SaveBtn.TabIndex = 1;
@@ -1253,7 +1256,7 @@
             // CancelBtn
             // 
             CancelBtn.AutoSize = true;
-            CancelBtn.Location = new Point(671, 642);
+            CancelBtn.Location = new Point(675, 684);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 44);
             CancelBtn.TabIndex = 2;
@@ -1261,13 +1264,36 @@
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
             // 
+            // HelpBtn
+            // 
+            HelpBtn.AutoSize = true;
+            HelpBtn.Location = new Point(566, 687);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(94, 41);
+            HelpBtn.TabIndex = 3;
+            HelpBtn.Text = "Help";
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
+            // 
+            // CadIfBtn
+            // 
+            CadIfBtn.AutoSize = true;
+            CadIfBtn.Location = new Point(22, 258);
+            CadIfBtn.Name = "CadIfBtn";
+            CadIfBtn.Size = new Size(423, 41);
+            CadIfBtn.TabIndex = 6;
+            CadIfBtn.Text = "CAD IF/EIDO Server Settings";
+            CadIfBtn.UseVisualStyleBackColor = true;
+            CadIfBtn.Click += CadIfBtn_Click;
+            // 
             // SettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSize = true;
-            ClientSize = new Size(908, 698);
+            ClientSize = new Size(908, 740);
             ControlBox = false;
+            Controls.Add(HelpBtn);
             Controls.Add(CancelBtn);
             Controls.Add(SaveBtn);
             Controls.Add(tabControl1);
@@ -1335,9 +1361,6 @@
         private Label label4;
         private Label label3;
         private DataGridView PortsGridView;
-        private DataGridViewTextBoxColumn MediaCol;
-        private DataGridViewTextBoxColumn StartPortCol;
-        private DataGridViewTextBoxColumn PortCountCol;
         private GroupBox groupBox1;
         private TextBox AgentIDTb;
         private TextBox AgencyIDTb;
@@ -1427,5 +1450,10 @@
         private Label TestCallsEnabledLbl;
         private Button CopyIpV4Btn;
         private Button CopyIpV6Btn;
+        private Button HelpBtn;
+        private DataGridViewTextBoxColumn MediaCol;
+        private DataGridViewTextBoxColumn StartPortCol;
+        private DataGridViewTextBoxColumn PortCountCol;
+        private Button CadIfBtn;
     }
 }

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Test Call Settings | PsapSimulator Documentation </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Test Call Settings | PsapSimulator Documentation ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PsapSimulator Documentation">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="test-call-settings">Test Call Settings</h1>
+
+<p>The PsapSimulator can handle NG9-1-1 test calls from a functional element that generates test calls.. This dialog box allows you to configure how test calls are handled.</p>
+<h2 id="enable-test-calls">Enable Test Calls</h2>
+<p>If enabled (checked) the PsapSimulator shall except test calls. If disabled, then the PsapSimulator will respond with a SIP response of 503 Service Not Available if it receives an INVITE request for a test call.</p>
+<h2 id="maximum-test-calls">Maximum Test Calls</h2>
+<p>This setting specifies the maximum number of concurrent test calls that the PsapSimulator application will handle. If an INVITE request for a test call arrives when the application is handling the maximum number of test calls then it will respond with a SIP 486 Busy Here response.</p>
+<p>The default setting is 10.</p>
+<h2 id="test-call-duration-units">Test Call Duration Units</h2>
+<p>This setting specifies the criteria that the PsapSimulator application will use to terminate a test call. The available choices are:</p>
+<ol>
+<li>RTP Packets</li>
+<li>Minutes</li>
+</ol>
+<p>The RTP Packets setting means that the application will automatically end a test call after it receives and echoes back a specified number of RTP packets. The Test Call Duration setting determines the number of RTP Packets.</p>
+<p>The Minutes setting means that the application will automatically terminate a test call after a specified number of minutes. The Test Call Duration setting determines the number of minutes.</p>
+<p>The default setting is RTP Packets.</p>
+<h2 id="test-call-duration">Test Call Duration</h2>
+<p>If the Test Call Duration Units setting is RTP Packets then this setting specifies the number of RTP packets that the application will echo back before automatically ending the test call. The default number of RTP packets is 3.</p>
+<p>If the Test Call Duration Units setting is Minutes, then this setting specifies the number of minutes after which the application will automatically end the test call. The default number of minutes is 1.</p>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PhrSite/PsapSimulator/blob/master/Documentation/docs/TestCallSettings.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

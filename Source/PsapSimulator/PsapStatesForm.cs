@@ -51,27 +51,26 @@ public partial class PsapStatesForm : Form
 
     private void ElementStateCombo_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if (m_IsLoading == true)
-            return;
+        if (m_IsLoading == false)
+            m_CallManager.CurrentElementState = ElementStateCombo.Text;
     }
 
     private void ServiceStateCombo_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if (m_IsLoading == true)
-            return;
+        if (m_IsLoading == false)
+            m_CallManager.CurrentServiceState = ServiceStateCombo.Text;
     }
 
     private void SecurityPostureCombo_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if (m_IsLoading == true)
-            return;
+        if (m_IsLoading == false)
+            m_CallManager.CurrentSecurityPosture = SecurityPostureCombo.Text;
     }
 
     private void QueueStateCombo_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if (m_IsLoading == true)
-            return;
-
+        if (m_IsLoading == false)
+            m_CallManager.CurrentQueueState = QueueStateCombo.Text;
     }
 
     private void NotifyBtn_Click(object sender, EventArgs e)

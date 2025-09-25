@@ -26,17 +26,17 @@ public partial class SipRecForm : Form
         Close();
     }
 
-    private void SaveBtn_Click(object sender, EventArgs e)
+    private void OkBtn_Click(object sender, EventArgs e)
     {
         m_Settings.EnableSipRec = EnableSipRecCheck.Checked;
         m_Settings.SipRecRecorders.Clear();
-        if (RecListView.Items.Count > 0 )
+        if (RecListView.Items.Count > 0)
         {
-            for (int i = 0; i < RecListView.Items.Count; i++ )
+            for (int i = 0; i < RecListView.Items.Count; i++)
                 m_Settings.SipRecRecorders.Add((SipRecRecorderSettings)RecListView.Items[i].Tag!);
         }
 
-        DialogResult= DialogResult.OK;
+        DialogResult = DialogResult.OK;
         Close();
     }
 
@@ -110,7 +110,7 @@ public partial class SipRecForm : Form
             return;
 
         SipRecRecorderSettings? recSettings = RecListView.Items[index].Tag as SipRecRecorderSettings;
-        SipRecRecorderSettings temp = (SipRecRecorderSettings) Utils.CopyObject(recSettings!);
+        SipRecRecorderSettings temp = (SipRecRecorderSettings)Utils.CopyObject(recSettings!);
         SipRecRecorderSettingsForm SrsForm = new SipRecRecorderSettingsForm(temp, true,
             m_Settings.SipRecRecorders);
         DialogResult result = SrsForm.ShowDialog();
@@ -137,5 +137,10 @@ public partial class SipRecForm : Form
     private void RecListView_DoubleClick(object sender, EventArgs e)
     {
         EditBtn_Click(sender, e);
+    }
+
+    private void HelpBtn_Click(object sender, EventArgs e)
+    {
+        HelpUtils.ShowHelpTopic(HelpUtils.SIPREC_RECORDING_SETTINGS_HELP_URI);
     }
 }

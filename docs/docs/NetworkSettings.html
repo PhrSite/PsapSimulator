@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Network Settings | PsapSimulator Documentation </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Network Settings | PsapSimulator Documentation ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PsapSimulator Documentation">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="network-settings">Network Settings</h1>
+
+<p>The Network settings determine which IP transport protocols are enabled and which addresses and ports to use.</p>
+<h2 id="internet-protocol-ip-settings">Internet Protocol (IP) Settings</h2>
+<p>The PsapSimulator application is capable of listening on IPv4 and IPv6.</p>
+<p>Both IPv4 and IPv6 may be enabled. At least one of these must be enabled.</p>
+<p>The drop down combo box contains a list of addresses for each protocol type. The displayed address is the current selection.</p>
+<p><strong>Note:</strong> Some networks may not support IPv6. In that case IPv6 must be disabled.</p>
+<h2 id="sip-port-settings">SIP Port Settings</h2>
+<p>The SIP Port setting specifies the port number that the PsapSimulator application will listen on for SIP. This setting applies to the UDP and TCP transport protocols.</p>
+<p>The SIPS Port setting specifies the port number that the PsapSimulator application will listen on for SIP over TLS. This setting applies to the Transport Layer Security (TLS) transport protocol.</p>
+<p>The SIP Port and SIPS Port settings must not be the same.</p>
+<p>The default setting for the SIP Port setting is 5060. The default setting for the SIPS Port is 5061.</p>
+<h2 id="enabled-transport-protocols-udp-tcp-tls">Enabled Transport Protocols (UDP, TCP, TLS)</h2>
+<p>The PsapSimulator application is capable of using any combination of the UDP, TCP and TLS transport protocols for SIP. At least one of these protocols must be enabled.</p>
+<h2 id="media-port-settings">Media Port Settings</h2>
+<p>This application allocates media ports within separate ranges for each type of media. A port range is defined by a starting port number and a number of ports.</p>
+<p>For audio, video and RTT, the application increments the port number by 2 each time a new port is required. This allows the odd port number to be used for RTCP. This means that the actual number of media connections is 1/2 of the specified number of ports.</p>
+<p>For MSRP, the application increments the port number by one because MSRP does have the equivalent of the RTCP protocol.</p>
+<p>When the last port number in a port range is used, the application wraps around the next allocated port number to the first port number in the range.</p>
+<p>The following table shows the default media port settings.</p>
+<table>
+<thead>
+<tr>
+<th>Media Type</th>
+<th>Start Port</th>
+<th>Number of Ports</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audio</td>
+<td>6000</td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Video</td>
+<td>7000</td>
+<td>1000</td>
+</tr>
+<tr>
+<td>RTT</td>
+<td>8000</td>
+<td>1000</td>
+</tr>
+<tr>
+<td>MSRP</td>
+<td>9000</td>
+<td>1000</td>
+</tr>
+</tbody>
+</table>
+<p>The port ranges for audio, video and RTT may not overlap.</p>
+<p>The port range for MSRP may overlap the port ranges for audio, video and RTT because MSRP uses TCP and audio, video and RTT use RTP over UDP.</p>
+<h2 id="use-mutual-sip-tls-authentication">Use Mutual SIP TLS Authentication</h2>
+<p>This checkbox determines how the application handles authentication for SIP over TLS (SIPS).</p>
+<p>If this checkbox is checked, then the application will require that clients provide an X.509 certificate when the client attempts to connect using TLS. If the client does not provide an X.509 certificate then the connection request will be denied.</p>
+<p><strong>Note:</strong> This application does not validate a client's certificate.</p>
+<p>When the application makes an outgoing connection request, it will offer its X.509 certificate when it makes a connection request over TLS if this checkbox is checked.</p>
+<p><strong>Note:</strong> This application does not validate a server's certificate.</p>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/PhrSite/PsapSimulator/blob/master/Documentation/docs/NetworkSettings.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

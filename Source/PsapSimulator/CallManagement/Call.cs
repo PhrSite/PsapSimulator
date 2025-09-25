@@ -361,7 +361,7 @@ public class Call
     public conferencetype? ConferenceInfo { get; set; } = null;
 
     // Will be set to true if at least one other party was successfully added to the call.
-    internal bool IsConferenced { get; set; } = false;
+    public bool IsConferenced { get; set; } = false;
 
     /// <summary>
     /// Request URI for the EIDO for this call that was passed to this application in a Call-Info header from a conference
@@ -422,9 +422,19 @@ public class Call
         call.RemoteTag = invite.Header.From?.FromTag;
 
         call.RemoteContactHeader = invite.Header.Contact![0];
-
+        if (call.RemoteContactHeader.ContactParameters.Has("isfocus") == true)
+            call.CallerUserAgentIsConferenceAware = true;
+        else
+            call.CallerUserAgentIsConferenceAware = false;
+            
         return call;
     }
+
+    /// <summary>
+    /// If true, then the caller's user agent is conference aware and supports the REFER method for transfering
+    /// or conferencing calls.
+    /// </summary>
+    public bool CallerUserAgentIsConferenceAware { get; set; } = false;
 
     /// <summary>
     /// Call this method when the call has ended. This method sends the MediaEndLogEvent to the logging server

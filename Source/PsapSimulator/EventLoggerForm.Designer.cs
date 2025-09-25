@@ -29,33 +29,24 @@
         private void InitializeComponent()
         {
             CancelBtn = new Button();
-            SaveBtn = new Button();
             EnabledCb = new CheckBox();
             NameTb = new TextBox();
             label1 = new Label();
             label2 = new Label();
             LoggerUriTb = new TextBox();
+            OkBtn = new Button();
+            HelpBtn = new Button();
             SuspendLayout();
             // 
             // CancelBtn
             // 
-            CancelBtn.Location = new Point(369, 272);
+            CancelBtn.Location = new Point(349, 272);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 45);
             CancelBtn.TabIndex = 5;
             CancelBtn.Text = "Cancel";
             CancelBtn.UseVisualStyleBackColor = true;
             CancelBtn.Click += CancelBtn_Click;
-            // 
-            // SaveBtn
-            // 
-            SaveBtn.Location = new Point(484, 272);
-            SaveBtn.Name = "SaveBtn";
-            SaveBtn.Size = new Size(94, 45);
-            SaveBtn.TabIndex = 4;
-            SaveBtn.Text = "Save";
-            SaveBtn.UseVisualStyleBackColor = true;
-            SaveBtn.Click += SaveBtn_Click;
             // 
             // EnabledCb
             // 
@@ -99,6 +90,28 @@
             LoggerUriTb.Size = new Size(563, 38);
             LoggerUriTb.TabIndex = 3;
             // 
+            // OkBtn
+            // 
+            OkBtn.AutoSize = true;
+            OkBtn.Location = new Point(483, 272);
+            OkBtn.Name = "OkBtn";
+            OkBtn.Size = new Size(94, 45);
+            OkBtn.TabIndex = 16;
+            OkBtn.Text = "OK";
+            OkBtn.UseVisualStyleBackColor = true;
+            OkBtn.Click += OkBtn_Click;
+            // 
+            // HelpBtn
+            // 
+            HelpBtn.AutoSize = true;
+            HelpBtn.Location = new Point(215, 272);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(94, 45);
+            HelpBtn.TabIndex = 17;
+            HelpBtn.Text = "Help";
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
+            // 
             // EventLoggerForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -106,19 +119,21 @@
             AutoSize = true;
             ClientSize = new Size(590, 342);
             ControlBox = false;
+            Controls.Add(HelpBtn);
+            Controls.Add(OkBtn);
             Controls.Add(LoggerUriTb);
             Controls.Add(label2);
             Controls.Add(EnabledCb);
             Controls.Add(NameTb);
             Controls.Add(label1);
             Controls.Add(CancelBtn);
-            Controls.Add(SaveBtn);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Margin = new Padding(5);
             Name = "EventLoggerForm";
             ShowIcon = false;
             ShowInTaskbar = false;
+            SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "NG9-1-1 Event Logger Settings";
             Load += EventLoggerForm_Load;
@@ -129,11 +144,12 @@
         #endregion
 
         private Button CancelBtn;
-        private Button SaveBtn;
         private CheckBox EnabledCb;
         private TextBox NameTb;
         private Label label1;
         private Label label2;
         private TextBox LoggerUriTb;
+        private Button OkBtn;
+        private Button HelpBtn;
     }
 }

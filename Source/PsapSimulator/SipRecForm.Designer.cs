@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            SaveBtn = new Button();
             CancelBtn = new Button();
             EnableSipRecCheck = new CheckBox();
             RecListView = new ListView();
@@ -39,23 +38,14 @@
             AddBtn = new Button();
             DeleteBtn = new Button();
             EditBtn = new Button();
+            OkBtn = new Button();
+            HelpBtn = new Button();
             SuspendLayout();
-            // 
-            // SaveBtn
-            // 
-            SaveBtn.AutoSize = true;
-            SaveBtn.Location = new Point(738, 413);
-            SaveBtn.Name = "SaveBtn";
-            SaveBtn.Size = new Size(94, 42);
-            SaveBtn.TabIndex = 0;
-            SaveBtn.Text = "Save";
-            SaveBtn.UseVisualStyleBackColor = true;
-            SaveBtn.Click += SaveBtn_Click;
             // 
             // CancelBtn
             // 
             CancelBtn.AutoSize = true;
-            CancelBtn.Location = new Point(621, 413);
+            CancelBtn.Location = new Point(596, 413);
             CancelBtn.Name = "CancelBtn";
             CancelBtn.Size = new Size(94, 42);
             CancelBtn.TabIndex = 3;
@@ -140,6 +130,27 @@
             EditBtn.UseVisualStyleBackColor = true;
             EditBtn.Click += EditBtn_Click;
             // 
+            // OkBtn
+            // 
+            OkBtn.AutoSize = true;
+            OkBtn.Location = new Point(738, 413);
+            OkBtn.Name = "OkBtn";
+            OkBtn.Size = new Size(94, 41);
+            OkBtn.TabIndex = 9;
+            OkBtn.Text = "OK";
+            OkBtn.UseVisualStyleBackColor = true;
+            OkBtn.Click += OkBtn_Click;
+            // 
+            // HelpBtn
+            // 
+            HelpBtn.Location = new Point(454, 412);
+            HelpBtn.Name = "HelpBtn";
+            HelpBtn.Size = new Size(94, 42);
+            HelpBtn.TabIndex = 10;
+            HelpBtn.Text = "Help";
+            HelpBtn.UseVisualStyleBackColor = true;
+            HelpBtn.Click += HelpBtn_Click;
+            // 
             // SipRecForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -147,13 +158,14 @@
             AutoSize = true;
             ClientSize = new Size(858, 467);
             ControlBox = false;
+            Controls.Add(HelpBtn);
+            Controls.Add(OkBtn);
             Controls.Add(EditBtn);
             Controls.Add(DeleteBtn);
             Controls.Add(AddBtn);
             Controls.Add(RecListView);
             Controls.Add(EnableSipRecCheck);
             Controls.Add(CancelBtn);
-            Controls.Add(SaveBtn);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Margin = new Padding(5);
@@ -161,15 +173,13 @@
             ShowIcon = false;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "SIPREC Recording";
+            Text = "SIPREC Recording Settings";
             Load += SipRecForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
-        private Button SaveBtn;
         private Button CancelBtn;
         private CheckBox EnableSipRecCheck;
         private ListView RecListView;
@@ -180,5 +190,7 @@
         private Button AddBtn;
         private Button DeleteBtn;
         private Button EditBtn;
+        private Button OkBtn;
+        private Button HelpBtn;
     }
 }
