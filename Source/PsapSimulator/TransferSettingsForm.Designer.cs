@@ -31,20 +31,21 @@
             OkBtn = new Button();
             CloseBtn = new Button();
             groupBox1 = new GroupBox();
+            DeleteBtn = new Button();
+            EditBtn = new Button();
+            AddBtn = new Button();
             TargetsListView = new ListView();
             NameColumn = new ColumnHeader();
             UriColumn = new ColumnHeader();
-            AddBtn = new Button();
-            EditBtn = new Button();
-            DeleteBtn = new Button();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // OkBtn
             // 
+            OkBtn.AutoSize = true;
             OkBtn.Location = new Point(355, 464);
             OkBtn.Name = "OkBtn";
-            OkBtn.Size = new Size(94, 39);
+            OkBtn.Size = new Size(94, 41);
             OkBtn.TabIndex = 0;
             OkBtn.Text = "OK";
             OkBtn.UseVisualStyleBackColor = true;
@@ -52,9 +53,10 @@
             // 
             // CloseBtn
             // 
+            CloseBtn.AutoSize = true;
             CloseBtn.Location = new Point(496, 464);
             CloseBtn.Name = "CloseBtn";
-            CloseBtn.Size = new Size(94, 39);
+            CloseBtn.Size = new Size(94, 41);
             CloseBtn.TabIndex = 1;
             CloseBtn.Text = "Cancel";
             CloseBtn.UseVisualStyleBackColor = true;
@@ -72,6 +74,39 @@
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
             groupBox1.Text = "Transfer Targets";
+            // 
+            // DeleteBtn
+            // 
+            DeleteBtn.AutoSize = true;
+            DeleteBtn.Location = new Point(245, 291);
+            DeleteBtn.Name = "DeleteBtn";
+            DeleteBtn.Size = new Size(94, 41);
+            DeleteBtn.TabIndex = 3;
+            DeleteBtn.Text = "Delete";
+            DeleteBtn.UseVisualStyleBackColor = true;
+            DeleteBtn.Click += DeleteBtn_Click;
+            // 
+            // EditBtn
+            // 
+            EditBtn.AutoSize = true;
+            EditBtn.Location = new Point(135, 291);
+            EditBtn.Name = "EditBtn";
+            EditBtn.Size = new Size(94, 41);
+            EditBtn.TabIndex = 2;
+            EditBtn.Text = "Edit";
+            EditBtn.UseVisualStyleBackColor = true;
+            EditBtn.Click += EditBtn_Click;
+            // 
+            // AddBtn
+            // 
+            AddBtn.AutoSize = true;
+            AddBtn.Location = new Point(23, 289);
+            AddBtn.Name = "AddBtn";
+            AddBtn.Size = new Size(94, 41);
+            AddBtn.TabIndex = 1;
+            AddBtn.Text = "Add";
+            AddBtn.UseVisualStyleBackColor = true;
+            AddBtn.Click += AddBtn_Click;
             // 
             // TargetsListView
             // 
@@ -98,36 +133,6 @@
             UriColumn.Text = "SIP URI";
             UriColumn.Width = 500;
             // 
-            // AddBtn
-            // 
-            AddBtn.Location = new Point(23, 289);
-            AddBtn.Name = "AddBtn";
-            AddBtn.Size = new Size(94, 39);
-            AddBtn.TabIndex = 1;
-            AddBtn.Text = "Add";
-            AddBtn.UseVisualStyleBackColor = true;
-            AddBtn.Click += AddBtn_Click;
-            // 
-            // EditBtn
-            // 
-            EditBtn.Location = new Point(135, 291);
-            EditBtn.Name = "EditBtn";
-            EditBtn.Size = new Size(94, 37);
-            EditBtn.TabIndex = 2;
-            EditBtn.Text = "Edit";
-            EditBtn.UseVisualStyleBackColor = true;
-            EditBtn.Click += EditBtn_Click;
-            // 
-            // DeleteBtn
-            // 
-            DeleteBtn.Location = new Point(245, 291);
-            DeleteBtn.Name = "DeleteBtn";
-            DeleteBtn.Size = new Size(94, 37);
-            DeleteBtn.TabIndex = 3;
-            DeleteBtn.Text = "Delete";
-            DeleteBtn.UseVisualStyleBackColor = true;
-            DeleteBtn.Click += DeleteBtn_Click;
-            // 
             // TransferSettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -148,7 +153,9 @@
             Text = "Conference/Transfer Settings";
             Load += TransferSettingsForm_Load;
             groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

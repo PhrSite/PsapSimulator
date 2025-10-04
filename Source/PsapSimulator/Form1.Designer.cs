@@ -384,10 +384,11 @@
             // StatesBtn
             // 
             StatesBtn.AutoSize = true;
+            tableLayoutPanel1.SetColumnSpan(StatesBtn, 2);
             StatesBtn.Dock = DockStyle.Fill;
             StatesBtn.Location = new Point(3, 655);
             StatesBtn.Name = "StatesBtn";
-            StatesBtn.Size = new Size(152, 40);
+            StatesBtn.Size = new Size(310, 40);
             StatesBtn.TabIndex = 21;
             StatesBtn.Text = "PSAP States";
             toolTip1.SetToolTip(StatesBtn, "Displays a dialog box that allows you to change Element State, Service State and Queue State");

@@ -48,10 +48,10 @@
             // 
             // CancelBtn
             // 
-            CancelBtn.AutoEllipsis = true;
+            CancelBtn.AutoSize = true;
             CancelBtn.Location = new Point(200, 95);
             CancelBtn.Name = "CancelBtn";
-            CancelBtn.Size = new Size(94, 37);
+            CancelBtn.Size = new Size(94, 41);
             CancelBtn.TabIndex = 2;
             CancelBtn.Text = "Cancel";
             CancelBtn.UseVisualStyleBackColor = true;
