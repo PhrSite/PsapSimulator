@@ -1,9 +1,9 @@
 # Getting Started
 
 # Installation
-The InstallationPackages directory located below the PsapSimulator GitHub repository contains a self-extracting EXE file called PsapSimulatorX.X.X.exe. "X.X.X" indicates the software version of the application.
+You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/EcHCBi1-8dpHqDhgk5LoWMwBnngg9k_bj6qoFo6bHEPK3w?e=xaStvg).
 
-The installation file is downloaded when you clone or get the PsapSimulator GitHub repository. You can also download just this EXE file from the GitHub repository by using GitHub's file download function.
+**Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
 
 Once the self-extracting EXE file is downloaded to your computer, you can install the application by running the EXE file.
 

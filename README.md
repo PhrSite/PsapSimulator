@@ -15,7 +15,9 @@ The following block diagram shows the NG9-1-1 functional elements that the PsapS
 This application currently only handles incoming calls. All calls are treated as NG9-1-1 calls regardless of the origin of the call.
 
 ## Installation
-The InstallationPackages directory contains a self-extracting EXE file for the most recently released version of the PsapSimulator application. This file can be used to install the application on Windows 10 or Windows 11 computers.
+You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/EcHCBi1-8dpHqDhgk5LoWMwBnngg9k_bj6qoFo6bHEPK3w?e=xaStvg).
+
+**Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
 
 ## Documentation
 The GitHub documentation pages for this application are located at [https://phrsite.github.io/PsapSimulator](https://phrsite.github.io/PsapSimulator). This site contains the operator's manual for this application.
@@ -85,7 +87,6 @@ The best place to get the correct version of the FFMPEG DLL files is: https://gi
 | Documentation | Markdown and YML source files used by docfx to generate the documentation file in the docs directory |
 | Documents/Requirements | Contains the software requirement specification for the PsapSimulator application. |
 | Documents/Status | Contains a document that describes the current status of the software for the PsapSimulator. This document indicates which functionality has been completed and which requirements have yet to be implemented and tested. |
-| InstallationPackages | Contains a self-extracting EXE file for the most recently released version of the PsapSimulator application. |
 | PsapSimulatorSetup | This directory contains a Visual Studio Setup project that can be used to build an MSI package for installation of the PsapSimulator application. |
 | Source | All source code is located in subdirectories  |
 | Source/PsapSimulator | Source code and Visual Studio project files for the PsapSimulator applicaton |
