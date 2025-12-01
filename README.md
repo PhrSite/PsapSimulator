@@ -6,7 +6,7 @@ The PsapSimulator application is a test program. The intended uses of this appli
 2. Provide a way to perform integration testing of the various NG9-1-1 interfaces that have been implemented in the [SipLib](https://github.com/PhrSite/SipLib), [Ng911Lib](https://github.com/PhrSite/Ng911Lib), [EidoLib](https://github.com/PhrSite/EidoLib) and [Ng911CadIfLib](https://github.com/PhrSite/Ng911CadIfLib) open source class libraries.
 3. Provide a proof of concept implementation of the less commonly implemented interfaces specified in the most recent version of the NENA i3 Standard for Next Generation 9-1-1 Standard (NENA-STA-010.3f).
 
-This application is a simplified PSAP call handling functional element. It is a single call taker position application that can handle multiple calls simultaneously, but the call taker can only communicate with a single caller at a time. There is no centralized PSAP call controller so functions such as automatic call distribution, call queue pickup, call takeover, barge-in, local transfers (within the same PSAP), local conferences, administrative (non-emergency, i.e. an interface to an agency’s PBX) call handling and other functions that are normally expected in a PSAP application will not be available.
+This application is a simplified PSAP call handling functional element. It is a single call taker position application that can handle multiple calls simultaneously, but the call taker can only communicate with a single caller at a time. There is no centralized PSAP call controller so functions such as automatic call distribution, call queue pickup, call takeover, barge-in, local transfers (within the same PSAP), local conferences, administrative (non-emergency, i.e. an interface to an agencyï¿½s PBX) call handling and other functions that are normally expected in a PSAP application will not be available.
 
 The following block diagram shows the NG9-1-1 functional elements that the PsapSimulator application can interface to.
 
@@ -29,7 +29,7 @@ A document that describes the current software status is located in the Document
 # NG9-1-1 Functional Element Interface Support
 Section 4.6 of NENA-STA-010.3f specifies which functional element interfaces that the PSAP call handling functional element must support.
 
-The following table shows which interfaces and the degree of support that this application provides. The degree of support is indicated in the “Supported?” column. The "Implemented?" column indicates if the interface has been implemented in the current version of the software.
+The following table shows which interfaces and the degree of support that this application provides. The degree of support is indicated in the ï¿½Supported?ï¿½ column. The "Implemented?" column indicates if the interface has been implemented in the current version of the software.
 
 | NENA-STA-010.3f Section | Supported? | Implemented? | Description |
 |-------------------------|------------|-------------|--------------|
@@ -53,7 +53,7 @@ The following table shows which interfaces and the degree of support that this a
 | 4.6.18 Testing of Policy Rules | No | No | Support for this function is optional in NENA-STA-010.3f. |
 | 4.6.19 Call Diversion | Yes | No | Because De-Queue Registration will be supported. Element State, Service State and Queue state are already implemented. |
 
-# Dependancies
+# Dependencies
 The PsapSimulator project uses the following NG9-1-1 related NuGet packages.
 
 1. SipLib (0.0.4)

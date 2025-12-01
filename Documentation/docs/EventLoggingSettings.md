@@ -17,4 +17,4 @@ Specifies the name of the event logging server. Each server must have a unique n
 If checked then the PsapSimulator application will send NG9-1-1 events to the event logging server.
 
 ### Logger URI
-Specifies the HTTP or HTTPS URI for the event logging server. Only the host portion of the URI should be specified here.
+Specifies the HTTP or HTTPS URI for the event logging server. Only the scheme and the host portion of the URI should be specified here. For example: `https://192.168.1.76:11000`.

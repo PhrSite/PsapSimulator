@@ -85,6 +85,12 @@
 <p>The From field displays the user part of the SIP URI from the incoming INVITE request.</p>
 <p>The Media display shows the media types available for the call such as Audio, Video, RTT or MSRP.</p>
 <p>The Call State display indicates the current state of the call. For example: Ringing, On-Line, On-Hold or Auto-Answered.</p>
+<h3 id="add-media-button">Add Media Button</h3>
+<p>The Add Media button allows the user to add media to a call. This button displays a dialog box that allows you to select the new media to add to the current call.</p>
+<p>Select the new media to add in the pop-up dialog box and then click on the OK button. For example, if the current incoming call has only audio, then it may be possible to add video and one of the types of text media (RTT or MSRP) to the call.</p>
+<p>The current call must be in the On-Line state in order to add media to it.</p>
+<p>Only media that is enabled in the <a href="/docs/CallHandlingSettings.html#EnabledMedia">configuration settings</a> of the PsapSimulator application can be added to a call.</p>
+<p>Only one type of text media can be added to a call. For example, if a call already has RTT then it will not be possible to add MSRP media to the call.</p>
 <h2 id="text-messages">Text Messages</h2>
 <p>The Text Type display indicates the type of text media that is available for the call. This display will show &quot;None&quot; if no text media is available for the call, &quot;RTT&quot; if Real Time Text media is available for the call or &quot;MSRP&quot; if Message Session Relay Protocol media is available for the call.</p>
 <p>If RTT or MSRP text media is available, the list box shows the text messages that have been sent and received during this call.</p>

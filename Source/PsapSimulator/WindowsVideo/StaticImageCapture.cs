@@ -8,7 +8,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using System.Diagnostics;
-
+using System.IO;
 namespace PsapSimulator.WindowsVideo;
 
 /// <summary>

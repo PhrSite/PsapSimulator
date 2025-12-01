@@ -4,6 +4,7 @@
 
 using NAudio.Wave;
 using SipLib.Media;
+using System.IO;
 
 namespace WindowsWaveAudio;
 

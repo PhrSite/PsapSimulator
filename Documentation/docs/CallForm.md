@@ -10,6 +10,17 @@ The Media display shows the media types available for the call such as Audio, Vi
 
 The Call State display indicates the current state of the call. For example: Ringing, On-Line, On-Hold or Auto-Answered.
 
+### Add Media Button
+The Add Media button allows the user to add media to a call. This button displays a dialog box that allows you to select the new media to add to the current call.
+
+Select the new media to add in the pop-up dialog box and then click on the OK button. For example, if the current incoming call has only audio, then it may be possible to add video and one of the types of text media (RTT or MSRP) to the call.
+
+The current call must be in the On-Line state in order to add media to it.
+
+Only media that is enabled in the [configuration settings](/docs/CallHandlingSettings.html#EnabledMedia) of the PsapSimulator application can be added to a call.
+
+Only one type of text media can be added to a call. For example, if a call already has RTT then it will not be possible to add MSRP media to the call.
+
 ## Text Messages
 The Text Type display indicates the type of text media that is available for the call. This display will show "None" if no text media is available for the call, "RTT" if Real Time Text media is available for the call or "MSRP" if Message Session Relay Protocol media is available for the call.
 

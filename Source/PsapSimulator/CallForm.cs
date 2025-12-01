@@ -3,15 +3,17 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace PsapSimulator;
+using AdditionalData;
+using ConferenceEvent;
+using Microsoft.AspNetCore.Http;
+using Pidf;
 using PsapSimulator.CallManagement;
 using PsapSimulator.WindowsVideo;
-using Pidf;
-using AdditionalData;
-using System.Text;
-using ConferenceEvent;
 using SipLib.Core;
+using SipLib.Media;
+using SipRecMetaData;
 using System.Diagnostics;
-using System.Reflection;
+using System.Text;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -44,6 +46,52 @@ public partial class CallForm : Form
         CallStateLbl.Text = callData.CallStateString;
         MediaLbl.Text = callData.MediaTypes;
 
+        SetupForTextMedia();
+
+        m_CallManager.CallStateChanged += OnCallStateChanged;
+        m_CallManager.CallEnded += OnCallEnded;
+        m_Call.NewLocation += OnNewLocation;
+        m_Call.NewConferenceInfo += OnNewConferenceInfo;
+        m_Call.AdditionalDataAvailable += OnAdditionalDataAvailable;
+        m_Call.ReferResponseStatus += OnReferResponseStatus;
+        m_Call.ReferNotifyStatus += OnReferNotifyStatus;
+
+        SetVideoPreviewSource();
+
+        if (m_Call.VideoReceiver != null)
+            m_Call.VideoReceiver.FrameReady += OnFrameReady;
+
+        m_Call.CallVideoReceiverChanged += OnCallVideoReceiverChanged;
+
+        // Display the last received location information
+        if (m_Call.Locations.Count > 0)
+        {
+            Presence LastPresence = m_Call.Locations.ToArray()[m_Call.Locations.Count - 1];
+            DisplayLocation(LastPresence);
+        }
+
+        DisplayAdditionalData();
+
+        if (m_Call.ConferenceInfo != null)
+            DisplayConferenceInfo(m_Call.ConferenceInfo);
+
+        m_CallManager.CallManagerError += OnCallManagerError;
+
+        // Hide the AACN tab in the Location/Additional Data tab control because AACN calls have not been implemented yet
+        CallInfoTabCtrl.TabPages.RemoveAt(AACN_TAB_INDEX);
+    }
+
+    private void OnCallManagerError(string errMessage)
+    {
+        BeginInvoke(() =>
+        {
+            MessageBox.Show(errMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        });
+
+    }
+
+    private void SetupForTextMedia()
+    {
         foreach (TextMessage textMessage in m_TextMessages.Messages)
         {
             ListViewItem item = BuildListViewItem(textMessage);
@@ -76,35 +124,6 @@ public partial class CallForm : Form
 
         m_TextMessages.MessageAdded += OnMessageAdded;
         m_TextMessages.MessageUpdated += OnMessageUpdated;
-        m_CallManager.CallStateChanged += OnCallStateChanged;
-        m_CallManager.CallEnded += OnCallEnded;
-        m_Call.NewLocation += OnNewLocation;
-        m_Call.NewConferenceInfo += OnNewConferenceInfo;
-        m_Call.AdditionalDataAvailable += OnAdditionalDataAvailable;
-        m_Call.ReferResponseStatus += OnReferResponseStatus;
-        m_Call.ReferNotifyStatus += OnReferNotifyStatus;
-
-        SetVideoPreviewSource();
-
-        if (m_Call.VideoReceiver != null)
-            m_Call.VideoReceiver.FrameReady += OnFrameReady;
-
-        m_Call.CallVideoReceiverChanged += OnCallVideoReceiverChanged;
-
-        // Display the last received location information
-        if (m_Call.Locations.Count > 0)
-        {
-            Presence LastPresence = m_Call.Locations.ToArray()[m_Call.Locations.Count - 1];
-            DisplayLocation(LastPresence);
-        }
-
-        DisplayAdditionalData();
-
-        if (m_Call.ConferenceInfo != null)
-            DisplayConferenceInfo(m_Call.ConferenceInfo);
-
-        // Hide the AACN tab in the Location/Additional Data tab control because AACN calls have not been implemented yet
-        CallInfoTabCtrl.TabPages.RemoveAt(AACN_TAB_INDEX);
     }
 
     private const int AACN_TAB_INDEX = 5;
@@ -271,6 +290,28 @@ public partial class CallForm : Form
                 break;
             case "text":
                 strMedia = "RTT";
+                break;
+        }
+
+        return strMedia;
+    }
+
+    private string MediaDisplayTypeToMediaType(string displayType)
+    {
+        string strMedia = "Unknown";
+        switch (displayType)
+        {
+            case "Audio":
+                strMedia = MediaTypes.Audio;
+                break;
+            case "Video":
+                strMedia = MediaTypes.Video;
+                break;
+            case "RTT":
+                strMedia = MediaTypes.RTT;
+                break;
+            case "MSRP":
+                strMedia = MediaTypes.MSRP;
                 break;
         }
 
@@ -594,6 +635,29 @@ public partial class CallForm : Form
         CallStateLbl.Text = Call.CallStateToString(m_Call.CallState);
         MediaLbl.Text = callSummary.CallMedia;
         SetVideoPreviewSource();
+
+        if (TextTypeLbl.Text == "None" && (m_Call.CallHasRtt() == true || m_Call.MsrpConnection != null))
+        {   // Text media has been added to the call
+            if (m_Call.MsrpConnection != null)
+                m_TextMessages = m_Call.MsrpMessages;
+            else
+                m_TextMessages = m_Call.RttMessages;
+
+//            SetupForTextMedia();
+            if (m_Call.MsrpConnection != null)
+            {
+                TextTypeLbl.Text = "MSRP";
+                m_TextMessages.MessageAdded += OnMessageAdded;
+                m_TextMessages.MessageUpdated += OnMessageUpdated;
+            }
+            else if (m_Call.CallHasRtt() == true)
+            {
+                TextTypeLbl.Text = "RTT";
+                UseCpimCheck.Visible = false;
+                PrivateMsgCheck.Visible = false;
+                SendBtn.Visible = false;
+            }
+        }
     }
 
     private void OnCallEnded(string CallID)
@@ -670,6 +734,7 @@ public partial class CallForm : Form
         m_Call.ReferNotifyStatus -= OnReferNotifyStatus;
 
         m_CallManager.FrameBitmapReady -= OnPreviewFrameBitmapReady;
+        m_CallManager.CallManagerError -= OnCallManagerError;
 
         if (m_Call.VideoReceiver != null)
             m_Call.VideoReceiver.FrameReady -= OnFrameReady;
@@ -902,5 +967,67 @@ public partial class CallForm : Form
     private void HelpBtn_Click(object sender, EventArgs e)
     {
         HelpUtils.ShowHelpTopic(HelpUtils.CALL_FORM_HELP_URI);
+    }
+
+    private void AddMediaBtn_Click(object sender, EventArgs e)
+    {
+        if (m_Call.CallState != CallStateEnum.OnLine)
+        {
+            MessageBox.Show("The call must be on-line to add media to it.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        List<string> availableMediaTypes = new List<string>();
+
+        // Allow the user to select from only enabled media types.
+        if (m_CallManager.HandlingSettings.EnableAudio == true)
+            availableMediaTypes.Add("Audio");
+        if (m_CallManager.HandlingSettings.EnableVideo == true)
+            availableMediaTypes.Add("Video");
+        if (m_CallManager.HandlingSettings.EnableRtt == true)
+            availableMediaTypes.Add("RTT");
+        if (m_CallManager.HandlingSettings.EnableMsrp == true)
+            availableMediaTypes.Add("MSRP");
+
+        // Remove media types that the call already has.
+        List<string> callMediaTypes = new List<string>();
+        if (string.IsNullOrEmpty(MediaLbl.Text) == false)
+        {
+            string[] mediaTypes = MediaLbl.Text.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string strMedia in mediaTypes)
+            {
+                callMediaTypes.Add(strMedia);
+                if (availableMediaTypes.Contains(strMedia) == true)
+                    availableMediaTypes.Remove(strMedia);
+            }
+        }
+
+        // Check for two text types -- RTT and MSRP, can only have one of these for the call.
+        if (callMediaTypes.Contains("RTT") == true && availableMediaTypes.Contains("MSRP") == true)
+            availableMediaTypes.Remove("MSRP");
+        else if (callMediaTypes.Contains("MSRP") == true && availableMediaTypes.Contains("RTT") == true)
+            availableMediaTypes.Remove("RTT");
+
+        if (availableMediaTypes.Count == 0)
+        {
+            MessageBox.Show("There are no media types that can be added to this call.", "Error", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return;
+        }
+
+        AddNewMediaForm newMediaForm = new AddNewMediaForm(availableMediaTypes);
+        DialogResult result = newMediaForm.ShowDialog();
+        if (result != DialogResult.OK)
+            return;
+
+        List<string> selectedMediaTypes = newMediaForm.GetSelectedMedia();
+        if (selectedMediaTypes.Count == 0)
+            return;
+
+        List<string> mediaTypesToAdd = new List<string>();
+        foreach (string strSelected in selectedMediaTypes)
+            mediaTypesToAdd.Add(MediaDisplayTypeToMediaType(strSelected));
+
+        m_CallManager.SendReInviteToAddMedia(mediaTypesToAdd, m_Call.CallID);
     }
 }

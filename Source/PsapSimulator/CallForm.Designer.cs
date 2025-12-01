@@ -1108,7 +1108,7 @@
             AddMediaBtn.TabIndex = 11;
             AddMediaBtn.Text = "Add Media";
             AddMediaBtn.UseVisualStyleBackColor = true;
-            AddMediaBtn.Visible = false;
+            AddMediaBtn.Click += AddMediaBtn_Click;
             // 
             // DropLastBtn
             // 

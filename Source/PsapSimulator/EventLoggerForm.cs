@@ -72,7 +72,7 @@ public partial class EventLoggerForm : Form
             return false;
         }
 
-        SIPURI? sipUri = SIPURI.ParseSIPURI(LoggerUriTb.Text);
+        SIPURI? sipUri = null;
         if (SIPURI.TryParse(LoggerUriTb.Text, out sipUri) == false)
         {
             MessageBox.Show("The Logger URI is not valid", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

@@ -233,6 +233,9 @@ public class Call
 
     internal DateTime LastOnHoldTextSentTime = DateTime.MinValue;
 
+    internal bool ReInviteToAddMediaInProgress = false;
+    internal List<string> NewMediaTypes = new List<string>();
+
     /// <summary>
     /// Contains a list of locations that have been received.
     /// </summary>

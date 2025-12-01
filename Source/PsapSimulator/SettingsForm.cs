@@ -12,6 +12,7 @@ using SipRecClient;
 
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.IO;
 
 /// <summary>
 /// Main settings form
@@ -572,12 +573,23 @@ public partial class SettingsForm : Form
         string LoggersEnabled;
         EventLoggingSettings Settings = m_AppSettings.EventLogging;
         if (Settings.Loggers.Count == 0)
-            LoggersEnabled = "No event loggers enabled";
-        else if (Settings.Loggers.Count == 1)
-            LoggersEnabled = "1 event logger enabled";
+            LoggersEnabled = "No event loggers configured";
         else
-            LoggersEnabled = $"{Settings.Loggers.Count} event loggers enabled";
-
+        {   // Count the number of enabled loggers
+            int EnabledCount = 0;
+            foreach (EventLoggerSettings eventLoggerSettings in Settings.Loggers)
+            {
+                if (eventLoggerSettings.Enabled == true)
+                    EnabledCount++;
+            }
+            if (EnabledCount == 0)
+                LoggersEnabled = "No loggers enabled";
+            else if (EnabledCount == 1)
+                LoggersEnabled = "1 logger enabled";
+            else
+                LoggersEnabled = $"{EnabledCount} loggers enabled";
+        }
+        
         string Enabled = Settings.EnableLogging == true ? "Enabled" : "Disabled";
         EventLoggingLbl.Text = $"{Enabled}: {LoggersEnabled}";
     }

@@ -3,45 +3,44 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace PsapSimulator.CallManagement;
-using SipLib.Core;
-using System.Net;
-using System.Drawing;
-
-using SipLib.Channels;
-using PsapSimulator.Settings;
-using System.Security.Cryptography.X509Certificates;
-using System.Collections.Concurrent;
-using SipLib.Transactions;
-using SipLib.Logging;
 using AdditionalData;
-using SipLib.Sdp;
-using SipLib.Media;
-using SipLib.Rtp;
-using SipLib.TestCalls;
-
-using WindowsWaveAudio;
-
-using SipLib.RealTimeText;
-using SipLib.Msrp;
-using Pidf;
-using Ng911Lib.Utilities;
-using HttpUtils;
-using SIPSorceryMedia.FFmpeg;
-using I3V3.LoggingHelpers;
-using I3V3.LogEvents;
-using Ng911CadIfLib;
-using I3SubNot;
-
-using PsapSimulator.WindowsVideo;
-using System.Net.Security;
-using SipLib.Subscriptions;
-using SipRecClient;
-using System.Text;
 using Eido;
-using System;
-using System.Collections.Generic;
+using HttpUtils;
+using I3SubNot;
+using I3V3.LogEvents;
+using I3V3.LoggingHelpers;
+using Ng911CadIfLib;
+using Ng911Lib.Utilities;
+using Pidf;
+using PsapSimulator.Settings;
+using PsapSimulator.WindowsVideo;
+using SipLib.Body;
+using SipLib.Channels;
 using SipLib.Collections;
+using SipLib.Core;
+using SipLib.Logging;
+using SipLib.Media;
+using SipLib.Msrp;
+using SipLib.RealTimeText;
+using SipLib.Rtp;
+using SipLib.Sdp;
+using SipLib.Subscriptions;
+using SipLib.TestCalls;
+using SipLib.Threading;
+using SipLib.Transactions;
+using SipRecClient;
+using SIPSorceryMedia.FFmpeg;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.IO;
+using WindowsWaveAudio;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -61,6 +60,7 @@ public class CallManager
     private string m_Fingerprint;
     private SdpAnswerSettings m_AnswerSettings;
     private WindowsAudioIo? m_WaveAudio = null;
+    private SdpOfferSettings m_SdpOfferSettings;
 
     /// <summary>
     /// This event is fired if an error is detected as the result of a request from the user that the user needs to
@@ -153,6 +153,15 @@ public class CallManager
         m_AnswerSettings.EnableRtt = m_Settings.CallHandling.EnableRtt;
         m_AnswerSettings.EnableMsrp = m_AnswerSettings.EnableMsrp;
 
+        m_SdpOfferSettings = new SdpOfferSettings(AudioMediaUtils.SupportedAudioCodecs, m_SupportedVideoCodecs,
+            UserName, m_Fingerprint, m_PortManager);
+        m_SdpOfferSettings.OfferAudio = m_Settings.CallHandling.EnableAudio;
+        m_SdpOfferSettings.OfferVideo = m_Settings.CallHandling.EnableVideo;
+        m_SdpOfferSettings.OfferRtt = m_Settings.CallHandling.EnableRtt;
+        m_SdpOfferSettings.OfferMsrp = m_Settings.CallHandling.EnableMsrp;
+        m_SdpOfferSettings.RtpEncryptionType = m_Settings.CallHandling.RtpEncryption;
+        m_SdpOfferSettings.UseTlsForMsrp = m_Settings.CallHandling.MsrpEncryption == MsrpEncryptionEnum.Msrps ? true : false;
+
         // Set up the media source for auto answer
         m_AutoAnswerAudioSampleData = LoadAudioSampleData(m_Settings.CallHandling.AutoAnswerAudioFile);
         // Set up the media sources for hold
@@ -237,16 +246,20 @@ public class CallManager
 
         // Setup for I3 event logging.
         m_I3LogEventClientMgr = new I3LogEventClientMgr();
-        foreach (EventLoggerSettings loggerSettings in m_Settings.EventLogging.Loggers)
-        {
-            if (loggerSettings.Enabled == true)
+        if (m_Settings.EventLogging.EnableLogging == true)
+        {   // Only add individual loggers if NG9-1-1 Event Logging is enabled
+            foreach (EventLoggerSettings loggerSettings in m_Settings.EventLogging.Loggers)
             {
-                I3LogEventClient client = new I3LogEventClient(loggerSettings.LoggerUri, loggerSettings.Name,
-                    m_Certificate, loggerSettings.Enabled);
-                m_I3LogEventClientMgr.AddLoggingClient(client);
-                client.Start();
+                if (loggerSettings.Enabled == true)
+                {
+                    I3LogEventClient client = new I3LogEventClient(loggerSettings.LoggerUri, loggerSettings.Name,
+                        m_Certificate, loggerSettings.Enabled);
+                    m_I3LogEventClientMgr.AddLoggingClient(client);
+                    client.Start();
+                }
             }
         }
+
         m_I3LogEventClientMgr.LoggingServerError += OnLoggingServerError;
         m_I3LogEventClientMgr.LoggingServerStatusChanged += OnLoggingServerStatusChanged;
         m_I3LogEventClientMgr.Start();
@@ -699,7 +712,13 @@ public class CallManager
 
             // TODO: Get the correct SipTransport to use based on the SIP URI in the Contact header
             SipTransport transport = call.sipTransport; // For debug only
-            transport.StartClientNonInviteTransaction(ByeRequest, call.RemoteIpEndPoint!, null!, 1000);
+
+            // 22 Nov 22 PHR
+            IPEndPoint? remoteEndPoint = call.RemoteContactHeader.ContactURI?.ToSIPEndPoint()?.GetIPEndPoint();
+            if (remoteEndPoint != null)
+                transport.StartClientNonInviteTransaction(ByeRequest, remoteEndPoint, null!, 1000);
+
+            //transport.StartClientNonInviteTransaction(ByeRequest, call.RemoteIpEndPoint!, null!, 1000);
 
             // Notify the application
             CallEnded?.Invoke(CallID);
@@ -1424,6 +1443,11 @@ public class CallManager
         Sdp AnswerSdp = Sdp.BuildReInviteAnswerSdp(OfferedSdp, call.sipTransport.SipChannel.SIPChannelEndPoint.Address!,
             m_AnswerSettings, LocalAudioPort, LocalVideoPort, LocalRttPort, null);
 
+        foreach (MediaDescription Md in AnswerSdp.Media)
+        {
+            AddSipRecRecordAttribute(Md);
+        }
+
         SIPResponse OkResponse = SipUtils.BuildOkToInvite(invite, sipTransport.SipChannel, AnswerSdp.ToString(),
             SipLib.Body.ContentTypes.Sdp);
         OkResponse.Header.To!.ToTag = call.LocalTag;    // Fix the local tag
@@ -1672,7 +1696,7 @@ public class CallManager
         }
     }
 
-    private void SetupRttForCallReInvite(Call call, RtpChannel rtpChannel, MediaDescription VideoAnswerMd)
+    private void SetupRttForCallReInvite(Call call, RtpChannel rtpChannel, MediaDescription RttAnswereMd)
     {
         if (call.RttReceiver != null)
             call.RttReceiver.RttCharactersReceived -= call.OnRttCharactersReceived;
@@ -1680,7 +1704,201 @@ public class CallManager
         if (call.RttSender != null)
             call.RttSender.Stop();
 
-        SetupRttSenderAndReceiver(call, rtpChannel, VideoAnswerMd);
+        SetupRttSenderAndReceiver(call, rtpChannel, RttAnswereMd);
+    }
+
+    /// <summary>
+    /// Sends a re-INVITE request to the remote party to add new media to the call. The call must have already
+    /// verified that the call does not already have the new media types and that the new selected media types
+    /// are enabled in this application's settings.
+    /// </summary>
+    /// <param name="newMediaTypesToAdd"></param>
+    /// <param name="strCallID"></param>
+    public void SendReInviteToAddMedia(List<string> newMediaTypesToAdd, string strCallID)
+    {
+        EnqueueWorkItem(() => HandleSendReInvite(newMediaTypesToAdd, strCallID));
+    }
+
+    private void HandleSendReInvite(List<string> newMediaTypesToAdd, string strCallID)
+    {
+        Call? call = GetCall(strCallID);
+        if (call == null)
+        {   // The call has already ended
+            CallManagerError?.Invoke("The call has ended.");
+            return;
+        }
+
+        Sdp offerSdp;
+        if (call.IsIncoming == true)
+            offerSdp = call.AnsweredSdp!;
+        else
+            offerSdp = call.OfferedSdp!;
+
+        foreach (string strMediaType in newMediaTypesToAdd)
+        {
+            switch (strMediaType)
+            {
+                case MediaTypes.Audio:
+                    MediaDescription audioMediaDescription = SdpUtils.CreateAudioMediaDescription(m_SdpOfferSettings.PortManager.NextAudioPort,
+                        m_SdpOfferSettings.OfferAudioCodecs, m_SdpOfferSettings.RtpEncryptionType, m_SdpOfferSettings.Fingerprint);
+                    AddSipRecRecordAttribute(audioMediaDescription);
+                    offerSdp.Media.Add(audioMediaDescription);
+                    break;
+                case MediaTypes.Video:
+                    MediaDescription videoMediaDescription = SdpUtils.CreateVideoMediaDescription(m_SdpOfferSettings.PortManager.NextVideoPort,
+                        m_SdpOfferSettings.OfferVideoCodecs, m_SdpOfferSettings.RtpEncryptionType, m_SdpOfferSettings.Fingerprint);
+                    AddSipRecRecordAttribute(videoMediaDescription);
+                    offerSdp.Media.Add(videoMediaDescription);
+                    break;
+                case MediaTypes.RTT:
+                    MediaDescription rttMediaDescription = SdpUtils.CreateRttMediaDescription(m_SdpOfferSettings.PortManager.NextRttPort);
+                    if (m_SdpOfferSettings.RtpEncryptionType == RtpEncryptionEnum.SdesSrtp)
+                        SdpUtils.AddSdesSrtpEncryption(rttMediaDescription);
+                    else if (m_SdpOfferSettings.RtpEncryptionType == RtpEncryptionEnum.DtlsSrtp)
+                        SdpUtils.AddDtlsSrtp(rttMediaDescription, m_SdpOfferSettings.Fingerprint);
+                    AddSipRecRecordAttribute(rttMediaDescription);
+                    offerSdp.Media.Add(rttMediaDescription);
+                    break;
+                case MediaTypes.MSRP:
+                    IPAddress address = call.sipTransport.SipChannel.SIPChannelEndPoint.Address!;
+                    MediaDescription msrpMediaDescription = SdpUtils.CreateMsrpMediaDescription(address, m_SdpOfferSettings.PortManager.NextMsrpPort,
+                        m_SdpOfferSettings.UseTlsForMsrp, m_SdpOfferSettings.MsrpSetupType, m_Certificate, m_SdpOfferSettings.UserName);
+                    AddSipRecRecordAttribute(msrpMediaDescription);
+                    offerSdp.Media.Add(msrpMediaDescription);
+                    break;
+            } // end switch
+        } // endforeach
+
+        int LastCSeqNumber = call.LastInviteSequenceNumber;
+        SIPRequest reInvite = SipUtils.BuildInDialogRequest(SIPMethodsEnum.INVITE, call.sipTransport.SipChannel,
+            call.IsIncoming, call.InviteRequest!, call.LocalTag!, call.RemoteTag!, call.OKResponse!, 
+            ref LastCSeqNumber);
+        call.LastInviteSequenceNumber = LastCSeqNumber;
+        SipBodyBuilder bodyBuilder = new SipBodyBuilder();
+        bodyBuilder.AddContent(SipLib.Body.ContentTypes.Sdp, offerSdp.ToString(), null, null);
+        bodyBuilder.AttachMessageBody(reInvite);
+
+        call.ReInviteToAddMediaInProgress = true;
+        call.NewMediaTypes = newMediaTypesToAdd;
+        // 23 Nov 25 PHR
+        IPEndPoint? remoteIpEndPoint = call.RemoteContactHeader.ContactURI?.ToSIPEndPoint()!.GetIPEndPoint();  
+        if (remoteIpEndPoint != null)
+            call.sipTransport.StartClientInvite(reInvite, call.RemoteIpEndPoint!, ReInviteToAddMediaTransactionComplete, null);
+    }
+
+    /// <summary>
+    /// Adds a a=record:on attribute per Section 7.1.2 of RFC 7866 if SIPREC is enabled.
+    /// </summary>
+    /// <param name="mediaDescription"></param>
+    private void AddSipRecRecordAttribute(MediaDescription mediaDescription)
+    {
+        if (m_Settings.SipRec.EnableSipRec == true)
+        {
+            SdpAttribute recordAttribute = new SdpAttribute("record", "on");
+            mediaDescription.Attributes.Add(recordAttribute);
+        }
+    }
+
+    private void ReInviteToAddMediaTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
+        IPEndPoint remoteEndPoint, SipTransport sipTransport, SipTransactionBase Transaction)
+    {
+        Call? call = GetCall(sipRequest.Header.CallId);
+        if (call == null)
+            return;     // The call has already ended
+
+        if (sipResponse == null || sipResponse.Status != SIPResponseStatusCodesEnum.Ok)
+        {   // The re-INVITE transaction failed
+            if (sipResponse == null)
+                CallManagerError?.Invoke("The re-INVITE to add media failed because no response was received.");
+            else
+                CallManagerError?.Invoke($"The remote party rejected the re-INVITE with a status code of: " +
+                    $"'{sipResponse.Status}'");
+                return;
+        }
+
+        Sdp? offeredSdp = sipRequest.GetSdpContents();
+        Sdp? answeredSdp = sipResponse.GetSdpContents();
+        if (offeredSdp == null)
+            return;
+
+        if (answeredSdp == null)
+        {
+            CallManagerError?.Invoke("The remote party answered with an invalid Session Description (SDP");
+            return;
+        }
+
+        EnqueueWorkItem(() => HandleAddMediaReInviteResponse(call, offeredSdp, answeredSdp));
+    }
+
+    private void HandleAddMediaReInviteResponse(Call call, Sdp offeredSdp, Sdp answeredSdp)
+    {
+        MediaDescription? offeredMd = null;
+        MediaDescription? answeredMd = null;
+
+        call.ReInviteToAddMediaInProgress = false;
+        foreach (string strMediaType in call.NewMediaTypes)
+        {
+            offeredMd = offeredSdp.GetMediaType(strMediaType);
+            answeredMd = answeredSdp.GetMediaType(strMediaType);
+            if (answeredMd == null || offeredMd == null)
+            {   // Error condition
+                if (answeredMd == null)
+                {
+                    CallManagerError?.Invoke("The remote party answered with an invalid media description for " +
+                        $"Media Type = {strMediaType}");
+                }
+                continue;
+            }
+
+            if (answeredMd.Port == 0)
+            {   // The remote party rejected this media type
+                CallManagerError?.Invoke($"Media Type = {strMediaType} was rejected");
+                continue;
+            }
+
+            if (strMediaType == MediaTypes.MSRP)
+            {
+                SetupCallMsrpConnection(call, offeredMd, answeredMd, false);
+                if (call.MsrpConnection != null)
+                    call.MsrpConnection.MsrpMessageSent += call.OnMsrpMessageSent;
+            }
+            else
+            {   // Its RTP type media -- Audio, Video or RTT
+                (RtpChannel? rtpChannel, string? Error) = RtpChannel.CreateFromSdp(false, offeredSdp, offeredMd, answeredSdp,
+                    answeredMd, true, null);
+                if (rtpChannel == null)
+                {
+                    SipLogger.LogError($"Failed to create an RtpChannel for a re-INVITE. Call-ID = {call.CallID}, " +
+                        $"MediaType = {offeredMd.MediaType}, Error = {Error}");
+                    continue;
+                }
+
+                call.RtpChannels.Add(rtpChannel);
+                switch (strMediaType)
+                {
+                    case MediaTypes.Audio:
+                        SetupAudioForCallReInvite(call, rtpChannel, offeredMd);
+                        break;
+                    case MediaTypes.Video:
+                        SetupVideoForCallReInvite(call, rtpChannel, offeredMd);
+                        break;
+                    case MediaTypes.RTT:
+                        SetupRttForCallReInvite(call, rtpChannel, offeredMd);
+                        break;
+                }
+
+                rtpChannel.StartListening();
+            }   // end switch
+        }   // end foreach
+
+        // Reverse the SDP because this is an outgoing call
+        call.OfferedSdp = answeredSdp;
+        call.AnsweredSdp = offeredSdp;
+
+        CallStateChanged?.Invoke(GetCallSummary(call));
+
+        // Notify the SIPREC clients of the re-INVITE of the call
+        HandleReInviteForSrcs(call);
     }
 
     private void CreateNewIncomingCall(SIPRequest sipRequest, SIPEndPoint remoteEndPoint, SipTransport sipTransport)
@@ -1701,16 +1919,12 @@ public class CallManager
         // Normally the emergency call identifier and the emergency incident identifier are assigned
         // by the origination service provider or an ESInet ingress SIP gateway such as an LNG or an
         // ingress BCF.
-        newCall.EmergencyCallIdentifier = SipUtils.GetCallInfoValueForPurpose(sipRequest.Header,
-            "emergency-CallId");
+        newCall.EmergencyCallIdentifier = SipUtils.GetCallInfoValueForPurpose(sipRequest.Header, "emergency-CallId");
         if (string.IsNullOrEmpty(newCall.EmergencyCallIdentifier) == true)
-            newCall.EmergencyCallIdentifier = SipUtils.BuildEmergencyIdUrn("callid", m_Settings.Identity.
-                ElementID);
-        newCall.EmergencyIncidentIdentifier = SipUtils.GetCallInfoValueForPurpose(sipRequest.Header,
-            "emergency-IncidentId");
+            newCall.EmergencyCallIdentifier = SipUtils.BuildEmergencyIdUrn("callid", m_Settings.Identity.ElementID);
+        newCall.EmergencyIncidentIdentifier = SipUtils.GetCallInfoValueForPurpose(sipRequest.Header, "emergency-IncidentId");
         if (string.IsNullOrEmpty(newCall.EmergencyIncidentIdentifier) == true)
-            newCall.EmergencyIncidentIdentifier = SipUtils.BuildEmergencyIdUrn("incidentid", m_Settings.Identity.
-            ElementID);
+            newCall.EmergencyIncidentIdentifier = SipUtils.BuildEmergencyIdUrn("incidentid", m_Settings.Identity.ElementID);
 
         m_Calls.TryAdd(sipRequest.Header.CallId, newCall);
 
@@ -2267,6 +2481,15 @@ public class CallManager
         {   // No SDP provided in the INVITE request so this is an offer-less invite
             AnswerSdp = BuildOfferlessAnswerSdp(call);
             call.OfferlessInvite = true;
+        }
+
+        if (m_Settings.SipRec.EnableSipRec == true)
+        {
+            // Add a a=record:on attribute per Section 7.1.2 of RFC 7866.
+            foreach (MediaDescription mediaDescription in AnswerSdp.Media)
+            {
+                AddSipRecRecordAttribute(mediaDescription);
+            }
         }
 
         string strAnswerSdp = AnswerSdp.ToString();
@@ -3030,6 +3253,14 @@ public class CallManager
                 "Changed by user");
             m_QueueStateSubscriptionManager.NotifyQueueStateChange(CurrentQueueState, m_Calls.Count);
         });
+    }
+
+    /// <summary>
+    /// Gets the settings for handling calls.
+    /// </summary>
+    public CallHandlingSettings HandlingSettings
+    {
+        get { return m_Settings.CallHandling; }
     }
 
 }

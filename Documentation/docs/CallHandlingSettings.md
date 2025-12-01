@@ -19,7 +19,7 @@ This application provides auto-answer media recordings for audio, video, RTT and
 
 The default setting is un-checked (auto-answer is disabled).
 
-## Enabled Media Settings
+## <a name="EnabledMedia">Enabled Media Settings</a>
 Each media type (audio, video, RTT and MSRP) can be enabled or disabled. If a media type is disabled then the PsapSimulator will reject that media type in its response to an incoming INVITE request. At least one media type must be enabled.
 
 The default setting is enabled for all media types.
