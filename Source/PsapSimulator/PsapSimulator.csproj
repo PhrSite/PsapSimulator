@@ -27,18 +27,26 @@
     <PackageReleaseNotes>1.0.0 - Initial version</PackageReleaseNotes>
     <UseWPF>True</UseWPF>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="FFMPEG\**" />
+    <EmbeddedResource Remove="FFMPEG\**" />
+    <None Remove="FFMPEG\**" />
+    <Page Remove="FFMPEG\**" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="EidoLib" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Ng911CadIfLib" Version="1.2.0" />
     <PackageReference Include="Ng911Lib" Version="2.0.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="SIPSorceryMedia.FFmpeg" Version="8.0.10" />
+    <PackageReference Include="SipLib" Version="0.0.5" />
+    <PackageReference Include="SipLib.Audio.Windows" Version="1.0.0" />
+    <PackageReference Include="SipLib.Video.Windows" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,54 +70,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="FFMPEG\avcodec-60.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avcodec-61.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avdevice-60.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avdevice-61.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avfilter-10.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avfilter-9.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avformat-60.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avformat-61.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avutil-58.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\avutil-59.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\postproc-57.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\postproc-58.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\swresample-4.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\swresample-5.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\swscale-7.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FFMPEG\swscale-8.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -141,7 +101,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="FFMPEG\" />
     <Folder Include="Recordings\" />
   </ItemGroup>
 

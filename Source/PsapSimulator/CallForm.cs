@@ -5,10 +5,10 @@
 namespace PsapSimulator;
 using AdditionalData;
 using ConferenceEvent;
-using Microsoft.AspNetCore.Http;
 using Pidf;
 using PsapSimulator.CallManagement;
-using PsapSimulator.WindowsVideo;
+using SipLib.Video.Windows;
+using CameraCapture;
 using SipLib.Core;
 using SipLib.Media;
 using SipRecMetaData;

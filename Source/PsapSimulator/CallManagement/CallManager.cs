@@ -13,7 +13,8 @@ using Ng911CadIfLib;
 using Ng911Lib.Utilities;
 using Pidf;
 using PsapSimulator.Settings;
-using PsapSimulator.WindowsVideo;
+using SipLib.Video.Windows;
+using CameraCapture;
 using SipLib.Body;
 using SipLib.Channels;
 using SipLib.Collections;
@@ -40,7 +41,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.IO;
-using WindowsWaveAudio;
+using SipLib.Audio.Windows;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -234,7 +235,8 @@ public class CallManager
 
         try
         {
-            FFmpegInit.Initialise(FfmpegLogLevelEnum.AV_LOG_FATAL, @".\FFMPEG");
+            //FFmpegInit.Initialise(FfmpegLogLevelEnum.AV_LOG_FATAL, @".\FFMPEG");
+            VideoUtils.InitializeFFMPEG();
         }
         catch (Exception)
         {

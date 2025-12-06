@@ -8,7 +8,8 @@ using SipLib.Network;
 using SipLib.Logging;
 using System.Net;
 using System.Diagnostics;
-using PsapSimulator.WindowsVideo;
+using SipLib.Video.Windows;
+using CameraCapture;
 using System.Text;
 
 namespace PsapSimulator;

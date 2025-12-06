@@ -56,28 +56,19 @@ The following table shows which interfaces and the degree of support that this a
 # Dependencies
 The PsapSimulator project uses the following NG9-1-1 related NuGet packages.
 
-1. SipLib (0.0.4)
-2. Ng911Lib (2.0.0)
-3. Ng911CadIfLib (1.2.0)
-4. SipRecClient (1.0.0)
-5. EidoLib (1.0.1)
+1. SipLib (0.0.5)
+1. Ng911Lib (2.0.0)
+1. Ng911CadIfLib (1.2.0)
+1. SipRecClient (1.0.0)
+1. EidoLib (1.0.1)
+1. SipLib.Video.Windows (1.0.0)
+1. SipLib.Audio.Windows (1.0.0)
 
 The PsapSimulator project uses the following general purpose NuGet packages.
 1. Microsoft.Extensions.Logging (8.0.0)
-2. NAudio (2.2.1)
-3. Serilog (3.1.1)
-4. Serilog.Extensions.Logging (8.0.0)
-5. Serilog.Sinks.File (5.0.0)
-6. SIPSorceryMedia.FFmpeg (8.0.10)
-
-## FFMPEG Libraries
-This project depends on the FFMPEG libraries for video codecs and other video related functions. These DLL files are automatically installed in the FFMPEG directory located under the applications installation directory.
-
-This project contains the FFMPEG DLL files that it needs in the FFMPEG directory. These DLL files are distrubuted automatically when the project is published.
-
-The application currently uses version 7.0.0 of FFMPEG. The version of the FFMPEG DLL files must match the version of FFMPEG.AutoGen. If FFMPEG.AutoGen is updated, the FFMPEG DLL files in this repository must also be updated.
-
-The best place to get the correct version of the FFMPEG DLL files is: https://github.com/Ruslan-B/FFmpeg.AutoGen/tree/master/FFmpeg/bin/x64.
+1. Serilog (3.1.1)
+1. Serilog.Extensions.Logging (8.0.0)
+1. Serilog.Sinks.File (5.0.0)
 
 # Project Structure
 
@@ -100,14 +91,14 @@ The best place to get the correct version of the FFMPEG DLL files is: https://gi
 # Building an Installation File
 The steps to build an installation file for the PsapSimulator application are:
 1. Open the PsapSimulator.sln solution in Visual Studio, open the project properties and change the Assembly version and the File version.
-2. Select Release build and build the project.
-3. Publish the project
-4. Open the PsapSimulatorSetup solution
-5. Make sure that all of the files in the PsapSimulator/Publish directory are included in the Application Folder.
-6. Make sure that the Release build is selected.
-7. Modify the Version in the project properties. Visual Studio will prompt you to change the Product Code. Select Yes.
-8. Build the project. 
-9. Build a self-extracting EXE file as described in the following section.
+1. Select Release build and build the project.
+1. Publish the project
+1. Open the PsapSimulatorSetup solution
+1. Make sure that all of the files in the PsapSimulator/Publish directory are included in the Application Folder.
+1. Make sure that the Release build is selected.
+1. Modify the Version in the project properties. Visual Studio will prompt you to change the Product Code. Select Yes.
+1. Build the project. 
+1. Build a self-extracting EXE file as described in the following section.
 
 ## Creating a Self-Extracting EXE Installation File
 The Windows iexpress application can be used to build a self-extracting EXE file from the setup.exe and the PsapSimulator.msi files produced by the PsapSimulatorSetup project.

@@ -9,6 +9,8 @@
 | NA     | Fix      | Was polling configured and enabled NG9-1-1 Event Loggers even though NG9-1-1 Event Logging was disabled. |
 | NA     | Fix      | The number of enabled NG9-1-1 Event Loggers was not properly displayed in the Interfaces tab of the Settings form. |
 | NA     | Fix      | A SIPValidationException occurred in the NG9-1-1 Event Logger Settings form if the Logger URI setting was not a valid URI. |
+| NA     | Change   | Refactored to use the SipLib.Video.Windows class library NuGet package. |
+| NA     | Change   | Refactored to use th SipLib.Audio.Widows class library NuGet package. |
 
 
 ## v1.0.0 - 25 Sep 2025

@@ -7,8 +7,9 @@ using PsapSimulator.Settings;
 using SipLib.Media;
 using SipLib.Network;
 using System.Net;
-using WindowsWaveAudio;
+using SipLib.Audio.Windows;
 using SipRecClient;
+using CameraCapture;
 
 using System.Windows.Forms;
 using System.Collections.Generic;

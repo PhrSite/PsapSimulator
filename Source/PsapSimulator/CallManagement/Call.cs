@@ -23,7 +23,7 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography.X509Certificates;
 
 using SipLib.Body;
-using PsapSimulator.WindowsVideo;
+using SipLib.Video.Windows;
 using AdditionalData;
 using Held;
 using HttpUtils;

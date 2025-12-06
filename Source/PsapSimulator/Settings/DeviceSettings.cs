@@ -3,6 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace PsapSimulator.Settings;
+using CameraCapture;
 
 /// <summary>
 /// Settings for the audio capture and video capture devices
