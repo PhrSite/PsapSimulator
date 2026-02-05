@@ -11,6 +11,7 @@
 | NA     | Fix      | A SIPValidationException occurred in the NG9-1-1 Event Logger Settings form if the Logger URI setting was not a valid URI. |
 | NA     | Change   | Refactored to use the SipLib.Video.Windows class library NuGet package. |
 | NA     | Change   | Refactored to use th SipLib.Audio.Widows class library NuGet package. |
+| NA     | Fix      | Was not handling the absence of an Expires header in the OK response to a SUBSCRIBE request for the Presence and Conference event packages. |
 
 
 ## v1.0.0 - 25 Sep 2025

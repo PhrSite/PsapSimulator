@@ -882,9 +882,16 @@ public class Call
             return;
         }
 
+        if (sipResponse.Header.Expires <= 0)
+        {   // Protocol error -- No Expires in the OK response.
+            ConferenceSubscriber = null;
+            SipLogger.LogError($"OK respose to a Converence event SUBSCRIBE to {remoteEndPoint} did not contain " +
+                "a valid Expires header value");
+            return;
+        }
+
         ConferenceSubscriber.SubscribeRequest.Header.To!.ToTag = sipResponse.Header.To!.ToTag;
-        if (sipResponse.Header.Expires != 0)
-            ConferenceSubscriber.ExpiresSeconds = sipResponse.Header.Expires;
+        ConferenceSubscriber.ExpiresSeconds = sipResponse.Header.Expires;
     }
 
     private void OnPresenceSubscribeTransactionComplete(SIPRequest sipRequest, SIPResponse? sipResponse,
@@ -900,9 +907,16 @@ public class Call
             return;
         }
 
+        if (sipResponse.Header.Expires <= 0)
+        {   // Protocol error -- No Expires in the OK response.
+            PresenceSubscriber = null;
+            SipLogger.LogError($"OK respose to a Presence event SUBSCRIBE to {remoteEndPoint} did not contain " +
+                "a valid Expires header value");
+            return;
+        }
+
         PresenceSubscriber.SubscribeRequest.Header.To!.ToTag = sipResponse.Header.To!.ToTag;
-        if (sipResponse.Header.Expires != 0)
-            PresenceSubscriber.ExpiresSeconds = sipResponse.Header.Expires;
+        PresenceSubscriber.ExpiresSeconds = sipResponse.Header.Expires;
     }
 
     /// <summary>
