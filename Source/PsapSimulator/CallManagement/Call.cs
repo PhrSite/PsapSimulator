@@ -34,6 +34,7 @@ using SipLib.Subscriptions;
 using I3V3.LoggingHelpers;
 using ConferenceEvent;
 using Eido;
+using Veds;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
 
@@ -334,6 +335,11 @@ public class Call
     /// Gets or sets the caller's DeviceInfo additional data information
     /// </summary>
     public DeviceInfoType? DeviceInfo { get; set; }
+
+    /// <summary>
+    /// Gets or sets the caller's Automated Crash Notification information
+    /// </summary>
+    public AutomatedCrashNotificationType? AutomatedCrashNotificationInfo { get; set; }
 
     /// <summary>
     /// Contains a list of Comment additional data blocks.
@@ -683,6 +689,16 @@ public class Call
             GetAdditionalDataByReference(deviceCallInfo, m_Certificate, PurposeTypes.DeviceInfo,
                 Ng911Lib.Utilities.ContentTypes.DeviceInfo, typeof(DeviceInfoType), SetDeviceInfo);
 
+        // Automated Crash Notification (VEDS) by-value
+        GetAdditionalDataByValue(Ng911Lib.Utilities.ContentTypes.Veds, typeof(AutomatedCrashNotificationType), SetAutomatedCrashNotificationInfo);
+
+        // Automated Crash Notification (VEDS) by-reference
+        SIPCallInfoHeader? crashCallInfo = SipUtils.GetCallInfoHeaderForPurpose(InviteRequest.Header,
+            PurposeTypes.Veds, SIPSchemesEnum.cid);
+        if (crashCallInfo != null)
+            GetAdditionalDataByReference(crashCallInfo, m_Certificate, PurposeTypes.Veds, Ng911Lib.Utilities.ContentTypes.Veds,
+                typeof(AutomatedCrashNotificationType), SetAutomatedCrashNotificationInfo);
+
         // Comments by-value -- There may be multiple blocks in the body
         List<MessageContentsContainer> commentsContainers = InviteRequest.GetBodyContents();
         foreach (MessageContentsContainer container in contentsContainers)
@@ -748,7 +764,7 @@ public class Call
     {
         LocationRequest locRequest = new LocationRequest();
         locRequest.responseTime = "emergencyDispatch";
-        locRequest.locationType = new LocationType();
+        locRequest.locationType = new Held.LocationType();
         locRequest.locationType.exact = false;
         locRequest.locationType.Value.Add("any");
         locRequest.device = new HeldDevice();
@@ -976,6 +992,12 @@ public class Call
     {
         if (Obj is DeviceInfoType)
             DeviceInfo = (DeviceInfoType)Obj;
+    }
+
+    private void SetAutomatedCrashNotificationInfo(object Obj)
+    {
+        if (Obj is AutomatedCrashNotificationType)
+            AutomatedCrashNotificationInfo = (AutomatedCrashNotificationType)Obj;
     }
 
     private void GetAdditionalDataByValue(string strContentType, Type AddDataType, SetAdditionalDataDelegate SetDelegate)

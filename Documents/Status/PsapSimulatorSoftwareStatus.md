@@ -1,9 +1,9 @@
 # PsapSimulator Software Status
-*Last Updated: 9 Nov 2025*
+*Last Updated: 20 Feb 2026 for Version 1.1.0*
 
 The software requirements specification for the PsapSimulator application is located in the Documents/Requirements directory.
 
-The following table indicates indicates the current software status for this application. The Section and Title columns refer to the sections in the SRS that contain specific software requirements.
+The following table indicates the current software status for this application. The Section and Title columns refer to the sections in the SRS that contain specific software requirements.
 
 | Section | Title | Status | Description |
 |--------|--------|--------|-------------|
@@ -43,7 +43,7 @@ The following table indicates indicates the current software status for this app
 | 3.9.2.1  | Event Logging Configuration Settings | Complete |  |
 | 3.10     | Test Call Interface Requirements | Complete |  |
 | 3.10.1   | Additional Test Call Functional Requirements | Complete |  |
-| 3.11     | Advanced Automatic Crash Notification Calls |  |  |
+| 3.11     | Advanced Automatic Crash Notification Calls | Complete |  |
 | 3.12     | Non-Interactive Calls |  |  |
 | 3.13     | Conference Bridge Interface | 50% Complete | The "Route All Calls Via a Conference Aware UA" method is complete. The "Ad-hoc" method has not been implemented yet. |
 | 3.13.1   | Conference Bridge Configuration Settings |  |  |
@@ -69,7 +69,13 @@ The following table indicates indicates the current software status for this app
 | 4.5.7    | Device Information | Complete |  |
 | 4.5.8    | Provider Information | Complete |  |
 | 4.5.9    | Comments | Complete |  |
-| 4.5.10   | AACN Information |  |  |
+| 4.5.10   | AACN Information | Complete |  |
+| 4.5.11   | Selected Call Display Actions | Complete |  |
+| 4.5.11.1 | Answer Button Operation | Complete |  |
+| 4.5.11.2 | Hold Button Operation | Complete |  |
+| 4.5.11.3 | End Call Button Operation | Complete |  |
+| 4.5.11.4 | Add Media Button Operation | Complete |  |
+| 4.5.11.5 | Conference Controls | Complete |  |
 | 5.1      | Network Settings | Complete |  |
 | 5.1.1    | Media Port Ranges | Complete |  |
 | 5.2      | Certificate Settings | Complete |  |

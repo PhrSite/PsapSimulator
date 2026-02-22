@@ -14,6 +14,7 @@ using SipLib.Media;
 using SipRecMetaData;
 using System.Diagnostics;
 using System.Text;
+using Veds;
 
 /// <summary>
 /// Form class for showing all of the data and controls for a single call.
@@ -78,7 +79,13 @@ public partial class CallForm : Form
         m_CallManager.CallManagerError += OnCallManagerError;
 
         // Hide the AACN tab in the Location/Additional Data tab control because AACN calls have not been implemented yet
-        CallInfoTabCtrl.TabPages.RemoveAt(AACN_TAB_INDEX);
+        //CallInfoTabCtrl.TabPages.RemoveAt(AACN_TAB_INDEX);
+
+        if (m_Call.AutomatedCrashNotificationInfo != null)
+        {
+            CrashNotificationLbl.Visible = true;
+            CallInfoTabCtrl.SelectedTab = CallInfoTabCtrl.TabPages[AACN_TAB_INDEX];
+        }
     }
 
     private void OnCallManagerError(string errMessage)
@@ -194,6 +201,7 @@ public partial class CallForm : Form
         ClearDeviceInfo();
         ClearComments();
         ClearProviders();
+        ClearAutomatedCrashNotificationInfo();
 
         if (m_Call.ServiceInfo != null)
             DisplayServiceInfo(m_Call.ServiceInfo);
@@ -203,6 +211,9 @@ public partial class CallForm : Form
 
         if (m_Call.DeviceInfo != null)
             DisplayDeviceInfo(m_Call.DeviceInfo);
+
+        if (m_Call.AutomatedCrashNotificationInfo != null)
+            DisplayAutomatedCrashNotificationInfo(m_Call.AutomatedCrashNotificationInfo);
 
         DisplayComments();
         DisplayProviders();
@@ -480,6 +491,55 @@ public partial class CallForm : Form
             DeviceIdLbl.Text = deviceInfoType.UniqueDeviceID[0].Value;
     }
 
+    private void DisplayAutomatedCrashNotificationInfo(AutomatedCrashNotificationType crashInfo)
+    {
+        if (crashInfo.DocumentDescriptionText != null)
+            DescriptionLbl.Text = crashInfo.DocumentDescriptionText.Value;
+
+        if (crashInfo.NotificationOriginatingOrganization != null)
+        {
+            if (crashInfo.NotificationOriginatingOrganization.Length > 0)
+                NotifierLbl.Text = crashInfo.NotificationOriginatingOrganization[0].OrganizationName?.Value;
+        }
+
+        NotifierContactLbl.Text = crashInfo.ContactActivity?[0].ContactTelephoneNumber?[0].
+            FullTelephoneNumber?.TelephoneNumberFullID?[0].Value;
+
+        AirbagType[]? airbags = crashInfo.Crash?[0].CrashVehicle?[0].Airbag;
+        if (airbags != null)
+        {
+            foreach (AirbagType airbag in airbags)
+            {
+                if (airbag.AirbagDeployedIndicator != null && airbag.AirbagDeployedIndicator.Length > 0)
+                {
+                    if (airbag.AirbagDeployedIndicator[0].Value == true)
+                        AirbagDeployedLbl.Text = "Yes";
+                }
+            }
+        }
+
+        decimal? Latitude = crashInfo.Location?[0].LocationTwoDimensionalGeographicCoordinate?.GeographicCoordinateLatitude?.
+            LatitudeDegreeValue?.Value;
+        if (Latitude != null)
+            VedsLatitudeLbl.Text = Latitude.ToString();
+
+        decimal? Longitude = crashInfo.Location?[0].LocationTwoDimensionalGeographicCoordinate?.GeographicCoordinateLongitude?.
+            LongitudeDegreeValue?.Value;
+        if (Longitude != null)
+            VedsLongitudeLbl.Text = Longitude.ToString();
+    }
+
+    private void ClearAutomatedCrashNotificationInfo()
+    {
+        DescriptionLbl.Text = string.Empty;
+        NotifierLbl.Text = string.Empty;
+        NotifierContactLbl.Text = string.Empty;
+        AirbagDeployedLbl.Text = string.Empty;
+        VedsLatitudeLbl.Text = string.Empty;
+        LongitudeLbl.Text = string.Empty;
+
+    }
+
     private void DisplaySubscriberInfo(SubscriberInfoType SubscriberInfo)
     {
         if (SubscriberInfo.SubscriberData == null || SubscriberInfo.SubscriberData.Length == 0)
@@ -643,7 +703,7 @@ public partial class CallForm : Form
             else
                 m_TextMessages = m_Call.RttMessages;
 
-//            SetupForTextMedia();
+            //            SetupForTextMedia();
             if (m_Call.MsrpConnection != null)
             {
                 TextTypeLbl.Text = "MSRP";

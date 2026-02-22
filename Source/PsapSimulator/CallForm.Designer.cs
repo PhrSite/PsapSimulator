@@ -39,6 +39,7 @@
             HelpBtn = new Button();
             CloseBtn = new Button();
             panel1 = new Panel();
+            CrashNotificationLbl = new Label();
             CallInfoTabCtrl = new TabControl();
             LocationTab = new TabPage();
             LocTimeLbl = new Label();
@@ -108,6 +109,16 @@
             ProvidersTab = new TabPage();
             ProvidersTb = new TextBox();
             AACN = new TabPage();
+            VedsLongitudeLbl = new Label();
+            label40 = new Label();
+            VedsLatitudeLbl = new Label();
+            label39 = new Label();
+            AirbagDeployedLbl = new Label();
+            label38 = new Label();
+            NotifierLbl = new Label();
+            label37 = new Label();
+            DescriptionLbl = new Label();
+            label36 = new Label();
             PreviewVideoPb = new PictureBox();
             ReceiveVideoPb = new PictureBox();
             CallStateLbl = new Label();
@@ -138,6 +149,8 @@
             FromLbl = new Label();
             label1 = new Label();
             toolTip1 = new ToolTip(components);
+            label41 = new Label();
+            NotifierContactLbl = new Label();
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             panel1.SuspendLayout();
@@ -147,6 +160,7 @@
             CommentsTab.SuspendLayout();
             ServiceTab.SuspendLayout();
             ProvidersTab.SuspendLayout();
+            AACN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).BeginInit();
             SuspendLayout();
@@ -163,7 +177,7 @@
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
-            tableLayoutPanel1.Size = new Size(1902, 1013);
+            tableLayoutPanel1.Size = new Size(1902, 1048);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // flowLayoutPanel1
@@ -176,7 +190,7 @@
             flowLayoutPanel1.Controls.Add(HelpBtn);
             flowLayoutPanel1.Controls.Add(CloseBtn);
             flowLayoutPanel1.Dock = DockStyle.Fill;
-            flowLayoutPanel1.Location = new Point(3, 966);
+            flowLayoutPanel1.Location = new Point(3, 1001);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(1896, 44);
             flowLayoutPanel1.TabIndex = 0;
@@ -267,6 +281,7 @@
             // 
             // panel1
             // 
+            panel1.Controls.Add(CrashNotificationLbl);
             panel1.Controls.Add(CallInfoTabCtrl);
             panel1.Controls.Add(PreviewVideoPb);
             panel1.Controls.Add(ReceiveVideoPb);
@@ -293,8 +308,21 @@
             panel1.Dock = DockStyle.Fill;
             panel1.Location = new Point(3, 3);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1896, 957);
+            panel1.Size = new Size(1896, 992);
             panel1.TabIndex = 1;
+            // 
+            // CrashNotificationLbl
+            // 
+            CrashNotificationLbl.AutoSize = true;
+            CrashNotificationLbl.BackColor = Color.Red;
+            CrashNotificationLbl.BorderStyle = BorderStyle.Fixed3D;
+            CrashNotificationLbl.ForeColor = Color.White;
+            CrashNotificationLbl.Location = new Point(143, 148);
+            CrashNotificationLbl.Name = "CrashNotificationLbl";
+            CrashNotificationLbl.Size = new Size(278, 33);
+            CrashNotificationLbl.TabIndex = 25;
+            CrashNotificationLbl.Text = "Vehicle Crash Notification";
+            CrashNotificationLbl.Visible = false;
             // 
             // CallInfoTabCtrl
             // 
@@ -304,7 +332,7 @@
             CallInfoTabCtrl.Controls.Add(ServiceTab);
             CallInfoTabCtrl.Controls.Add(ProvidersTab);
             CallInfoTabCtrl.Controls.Add(AACN);
-            CallInfoTabCtrl.Location = new Point(25, 606);
+            CallInfoTabCtrl.Location = new Point(25, 631);
             CallInfoTabCtrl.Name = "CallInfoTabCtrl";
             CallInfoTabCtrl.SelectedIndex = 0;
             CallInfoTabCtrl.Size = new Size(1217, 339);
@@ -357,9 +385,9 @@
             // ProvidedByLbl
             // 
             ProvidedByLbl.BorderStyle = BorderStyle.Fixed3D;
-            ProvidedByLbl.Location = new Point(210, 232);
+            ProvidedByLbl.Location = new Point(229, 232);
             ProvidedByLbl.Name = "ProvidedByLbl";
-            ProvidedByLbl.Size = new Size(442, 38);
+            ProvidedByLbl.Size = new Size(423, 38);
             ProvidedByLbl.TabIndex = 22;
             // 
             // label27
@@ -957,12 +985,110 @@
             // 
             // AACN
             // 
-            AACN.Location = new Point(4, 29);
+            AACN.AutoScroll = true;
+            AACN.Controls.Add(NotifierContactLbl);
+            AACN.Controls.Add(label41);
+            AACN.Controls.Add(VedsLongitudeLbl);
+            AACN.Controls.Add(label40);
+            AACN.Controls.Add(VedsLatitudeLbl);
+            AACN.Controls.Add(label39);
+            AACN.Controls.Add(AirbagDeployedLbl);
+            AACN.Controls.Add(label38);
+            AACN.Controls.Add(NotifierLbl);
+            AACN.Controls.Add(label37);
+            AACN.Controls.Add(DescriptionLbl);
+            AACN.Controls.Add(label36);
+            AACN.Location = new Point(4, 40);
             AACN.Name = "AACN";
-            AACN.Size = new Size(1209, 306);
+            AACN.Size = new Size(1209, 295);
             AACN.TabIndex = 4;
             AACN.Text = "AACN";
             AACN.UseVisualStyleBackColor = true;
+            // 
+            // VedsLongitudeLbl
+            // 
+            VedsLongitudeLbl.BorderStyle = BorderStyle.Fixed3D;
+            VedsLongitudeLbl.Location = new Point(216, 242);
+            VedsLongitudeLbl.Name = "VedsLongitudeLbl";
+            VedsLongitudeLbl.Size = new Size(141, 41);
+            VedsLongitudeLbl.TabIndex = 9;
+            // 
+            // label40
+            // 
+            label40.AutoSize = true;
+            label40.Location = new Point(17, 248);
+            label40.Name = "label40";
+            label40.Size = new Size(118, 31);
+            label40.TabIndex = 8;
+            label40.Text = "Longitude";
+            // 
+            // VedsLatitudeLbl
+            // 
+            VedsLatitudeLbl.BorderStyle = BorderStyle.Fixed3D;
+            VedsLatitudeLbl.Location = new Point(216, 182);
+            VedsLatitudeLbl.Name = "VedsLatitudeLbl";
+            VedsLatitudeLbl.Size = new Size(141, 41);
+            VedsLatitudeLbl.TabIndex = 7;
+            // 
+            // label39
+            // 
+            label39.AutoSize = true;
+            label39.Location = new Point(17, 192);
+            label39.Name = "label39";
+            label39.Size = new Size(98, 31);
+            label39.TabIndex = 6;
+            label39.Text = "Latitude";
+            // 
+            // AirbagDeployedLbl
+            // 
+            AirbagDeployedLbl.BorderStyle = BorderStyle.Fixed3D;
+            AirbagDeployedLbl.Location = new Point(216, 132);
+            AirbagDeployedLbl.Name = "AirbagDeployedLbl";
+            AirbagDeployedLbl.Size = new Size(141, 41);
+            AirbagDeployedLbl.TabIndex = 5;
+            // 
+            // label38
+            // 
+            label38.AutoSize = true;
+            label38.Location = new Point(17, 142);
+            label38.Name = "label38";
+            label38.Size = new Size(187, 31);
+            label38.TabIndex = 4;
+            label38.Text = "Airbag Deployed";
+            // 
+            // NotifierLbl
+            // 
+            NotifierLbl.BorderStyle = BorderStyle.Fixed3D;
+            NotifierLbl.Location = new Point(173, 82);
+            NotifierLbl.Name = "NotifierLbl";
+            NotifierLbl.Size = new Size(401, 41);
+            NotifierLbl.TabIndex = 3;
+            // 
+            // label37
+            // 
+            label37.AutoSize = true;
+            label37.Location = new Point(17, 82);
+            label37.Name = "label37";
+            label37.Size = new Size(91, 31);
+            label37.TabIndex = 2;
+            label37.Text = "Notifier";
+            // 
+            // DescriptionLbl
+            // 
+            DescriptionLbl.BorderStyle = BorderStyle.Fixed3D;
+            DescriptionLbl.Location = new Point(173, 27);
+            DescriptionLbl.Name = "DescriptionLbl";
+            DescriptionLbl.Size = new Size(401, 41);
+            DescriptionLbl.TabIndex = 1;
+            // 
+            // label36
+            // 
+            label36.AutoSize = true;
+            label36.Location = new Point(17, 27);
+            label36.Name = "label36";
+            label36.Size = new Size(131, 31);
+            label36.TabIndex = 0;
+            label36.Text = "Description";
             // 
             // PreviewVideoPb
             // 
@@ -1007,7 +1133,7 @@
             // 
             // SendBtn
             // 
-            SendBtn.Location = new Point(1123, 523);
+            SendBtn.Location = new Point(1125, 546);
             SendBtn.Name = "SendBtn";
             SendBtn.Size = new Size(115, 40);
             SendBtn.TabIndex = 19;
@@ -1018,7 +1144,7 @@
             // PrivateMsgCheck
             // 
             PrivateMsgCheck.AutoSize = true;
-            PrivateMsgCheck.Location = new Point(423, 180);
+            PrivateMsgCheck.Location = new Point(426, 202);
             PrivateMsgCheck.Name = "PrivateMsgCheck";
             PrivateMsgCheck.Size = new Size(203, 35);
             PrivateMsgCheck.TabIndex = 18;
@@ -1029,7 +1155,7 @@
             // UseCpimCheck
             // 
             UseCpimCheck.AutoSize = true;
-            UseCpimCheck.Location = new Point(270, 178);
+            UseCpimCheck.Location = new Point(273, 200);
             UseCpimCheck.Name = "UseCpimCheck";
             UseCpimCheck.Size = new Size(134, 35);
             UseCpimCheck.TabIndex = 17;
@@ -1038,7 +1164,7 @@
             // 
             // NewMessageTb
             // 
-            NewMessageTb.Location = new Point(196, 525);
+            NewMessageTb.Location = new Point(198, 548);
             NewMessageTb.Name = "NewMessageTb";
             NewMessageTb.Size = new Size(910, 38);
             NewMessageTb.TabIndex = 16;
@@ -1047,7 +1173,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(21, 532);
+            label6.Location = new Point(23, 555);
             label6.Name = "label6";
             label6.Size = new Size(157, 31);
             label6.TabIndex = 15;
@@ -1057,7 +1183,7 @@
             // 
             TextTypeLbl.AutoSize = true;
             TextTypeLbl.BorderStyle = BorderStyle.Fixed3D;
-            TextTypeLbl.Location = new Point(143, 180);
+            TextTypeLbl.Location = new Point(146, 202);
             TextTypeLbl.Name = "TextTypeLbl";
             TextTypeLbl.Size = new Size(71, 33);
             TextTypeLbl.TabIndex = 14;
@@ -1066,7 +1192,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(21, 181);
+            label5.Location = new Point(24, 203);
             label5.Name = "label5";
             label5.Size = new Size(109, 31);
             label5.TabIndex = 13;
@@ -1077,7 +1203,7 @@
             TextListView.Columns.AddRange(new ColumnHeader[] { FromHeader, MessageHeader, TimeHeader });
             TextListView.GridLines = true;
             TextListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            TextListView.Location = new Point(21, 230);
+            TextListView.Location = new Point(25, 243);
             TextListView.Name = "TextListView";
             TextListView.Size = new Size(1213, 287);
             TextListView.TabIndex = 12;
@@ -1113,7 +1239,7 @@
             // DropLastBtn
             // 
             DropLastBtn.AutoSize = true;
-            DropLastBtn.Location = new Point(1637, 888);
+            DropLastBtn.Location = new Point(1637, 923);
             DropLastBtn.Name = "DropLastBtn";
             DropLastBtn.Size = new Size(157, 43);
             DropLastBtn.TabIndex = 10;
@@ -1124,7 +1250,7 @@
             // DropBtn
             // 
             DropBtn.AutoSize = true;
-            DropBtn.Location = new Point(1524, 888);
+            DropBtn.Location = new Point(1524, 923);
             DropBtn.Name = "DropBtn";
             DropBtn.Size = new Size(94, 43);
             DropBtn.TabIndex = 9;
@@ -1135,7 +1261,7 @@
             // ReferBtn
             // 
             ReferBtn.AutoSize = true;
-            ReferBtn.Location = new Point(1247, 888);
+            ReferBtn.Location = new Point(1247, 923);
             ReferBtn.Name = "ReferBtn";
             ReferBtn.Size = new Size(248, 43);
             ReferBtn.TabIndex = 8;
@@ -1146,7 +1272,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(1247, 606);
+            label4.Location = new Point(1248, 642);
             label4.Name = "label4";
             label4.Size = new Size(255, 31);
             label4.TabIndex = 7;
@@ -1158,9 +1284,9 @@
             ConfListView.Columns.AddRange(new ColumnHeader[] { UriHeader, MediaHeader, StatusHeader, RolesHeader });
             ConfListView.FullRowSelect = true;
             ConfListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            ConfListView.Location = new Point(1247, 650);
+            ConfListView.Location = new Point(1248, 685);
             ConfListView.Name = "ConfListView";
-            ConfListView.Size = new Size(629, 215);
+            ConfListView.Size = new Size(629, 232);
             ConfListView.TabIndex = 6;
             ConfListView.UseCompatibleStateImageBehavior = false;
             ConfListView.View = View.Details;
@@ -1219,12 +1345,29 @@
             label1.TabIndex = 0;
             label1.Text = "From";
             // 
+            // label41
+            // 
+            label41.AutoSize = true;
+            label41.Location = new Point(608, 82);
+            label41.Name = "label41";
+            label41.Size = new Size(176, 31);
+            label41.TabIndex = 10;
+            label41.Text = "Notifier Contact";
+            // 
+            // NotifierContactLbl
+            // 
+            NotifierContactLbl.BorderStyle = BorderStyle.Fixed3D;
+            NotifierContactLbl.Location = new Point(824, 81);
+            NotifierContactLbl.Name = "NotifierContactLbl";
+            NotifierContactLbl.Size = new Size(350, 41);
+            NotifierContactLbl.TabIndex = 11;
+            // 
             // CallForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSize = true;
-            ClientSize = new Size(1902, 1013);
+            ClientSize = new Size(1902, 1048);
             ControlBox = false;
             Controls.Add(tableLayoutPanel1);
             Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
@@ -1252,6 +1395,8 @@
             ServiceTab.PerformLayout();
             ProvidersTab.ResumeLayout(false);
             ProvidersTab.PerformLayout();
+            AACN.ResumeLayout(false);
+            AACN.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)PreviewVideoPb).EndInit();
             ((System.ComponentModel.ISupportInitialize)ReceiveVideoPb).EndInit();
             ResumeLayout(false);
@@ -1368,5 +1513,18 @@
         private Label DeviceIdLbl;
         private Label label35;
         private ToolTip toolTip1;
+        private Label DescriptionLbl;
+        private Label label36;
+        private Label label37;
+        private Label NotifierLbl;
+        private Label label38;
+        private Label AirbagDeployedLbl;
+        private Label VedsLatitudeLbl;
+        private Label label39;
+        private Label VedsLongitudeLbl;
+        private Label label40;
+        private Label CrashNotificationLbl;
+        private Label NotifierContactLbl;
+        private Label label41;
     }
 }

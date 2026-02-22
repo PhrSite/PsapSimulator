@@ -72,13 +72,26 @@ Displays information about the service type and the device of the caller receive
 | Device Provider | Displays a string that identifies the provider of the device information. |
 
 ## Provider Information
-This tab display the following information for each provider of additional data.
+This tab displays the following information for each provider of additional data.
 
 | Display Name | Description |
 |--------------|-------------|
 | Name         | This is the name of the data provider. It should match the provider information in one or more of the additional data blocks. |
 | Type         | The type of data provider. For example: Client, Telecom Provider, etc. |
 | Contact      | URI at which to contact the data provider for technical support. |
+
+## AACN Information
+
+This tab displays the following Advanced Automated Crash Notification (AACN) information if AACN information is available for the call either by-reference or by-value. The following information is only a small subset of the data about a crash that might be available.
+
+| Display Name | Description |
+|--------------|-------------|
+| Description  | AACN document description |
+| Notifier     | Notifying organization (organization that originated the AACN information) |
+| Notifier Contact | Notifying organization contact telephone number |
+| Airbag Deployed | Indicates if any airbags in the vehicle were deployed |
+| Latitude | Latitude in decimal degrees of the vehicle location as reported in the AACN document |
+| Longitude | Longitude in decimal degrees of the vehicle location as reported in the AACN document |
 
 ## Video Displays
 The large picture box located in the upper right-hand corner of this form displays video received from the caller if the call has video media.
