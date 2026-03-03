@@ -657,7 +657,7 @@ public class CallManager
             Chs.AutoAnswerTextMessageRepeatSeconds && string.IsNullOrEmpty(
                 Chs.AutoAnswerTextMessage) == false)
         {
-            call.SendRttMessage(Chs.AutoAnswerTextMessage + "\r\n");
+            call.SendRttMessage(Chs.AutoAnswerTextMessage + "\r");
             call.LastAutoAnsweredTextSentTime = Now;
         }
         else if (call.MsrpConnection != null && (Now - call.LastAutoAnsweredTextSentTime).TotalSeconds >
@@ -756,6 +756,13 @@ public class CallManager
 
         if (call.CallState == CallStateEnum.OnHold)
             return;     // Already on-hold
+
+        if (call.CallState == CallStateEnum.Trying || call.CallState == CallStateEnum.Ringing ||
+            call.CallState == CallStateEnum.Ended)
+        {
+            CallManagerError?.Invoke("The call must be On-Line or Auto-Answered in order to put it On-Hold");
+            return;
+        }
 
         if (call.AudioSampleSource != null)
         {
@@ -1642,8 +1649,49 @@ public class CallManager
             }
         }
         else
+        {
             // Unexpected error.
-            SipLogger.LogError($"CurrentAudioSampleSource is null during a re-INVITE for Call-ID = {call.CallID}");
+            //SipLogger.LogError($"CurrentAudioSampleSource is null during a re-INVITE for Call-ID = {call.CallID}");
+
+            // 24 Feb 26 PHR
+            SetCallAudioCodecSourceAndDestination(call, rtpChannel, AudioAnswerMd);
+            if (call.CallState == CallStateEnum.OnLine)
+            {
+                if (m_WaveAudio != null)
+                {
+                    // Connect audio input from the windows microphone audio source
+                    call.CurrentAudioSampleSource = m_WaveAudio;
+                    call.AudioSampleSource!.SetAudioSampleSource(m_WaveAudio);
+                    // Connect the audio destination handler
+                    call.AudioDestination!.SetDestinationHandler(m_WaveAudio.AudioOutSamplesReady);
+                }
+            }
+            else if (call.CallState == CallStateEnum.OnHold)
+            {
+                if (m_Settings.CallHandling.CallHoldAudio == CallHoldAudioSource.CallHoldRecording)
+                    call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldAudioSampleData, null!);
+                else if (m_Settings.CallHandling.CallHoldAudio == CallHoldAudioSource.CallHoldBeepSound)
+                    call.CurrentAudioSampleSource = new FileAudioSource(m_OnHoldBeepSoundSampleData, null!);
+                else
+                    // The setting is silence
+                    call.CurrentAudioSampleSource = new SilenceAudioSampleSource();
+
+                call.AudioSampleSource!.SetAudioSampleSource(call.CurrentAudioSampleSource);
+                call.CurrentAudioSampleSource.Start();
+                call.AudioDestination!.SetDestinationHandler(null);
+
+            }
+            else if (call.CallState == CallStateEnum.AutoAnswered)
+            {
+                FileAudioSource Fas = new FileAudioSource(m_AutoAnswerAudioSampleData, null!);
+                call.CurrentAudioSampleSource = Fas;
+                call.AudioSampleSource!.SetAudioSampleSource(Fas);
+                Fas.Start();
+
+            }
+
+        }
+
     }
 
     private void SetupVideoForCallReInvite(Call call, RtpChannel rtpChannel, MediaDescription VideoAnswerMd)
@@ -1879,13 +1927,13 @@ public class CallManager
                 switch (strMediaType)
                 {
                     case MediaTypes.Audio:
-                        SetupAudioForCallReInvite(call, rtpChannel, offeredMd);
+                        SetupAudioForCallReInvite(call, rtpChannel, answeredMd);
                         break;
                     case MediaTypes.Video:
-                        SetupVideoForCallReInvite(call, rtpChannel, offeredMd);
+                        SetupVideoForCallReInvite(call, rtpChannel, answeredMd);
                         break;
                     case MediaTypes.RTT:
-                        SetupRttForCallReInvite(call, rtpChannel, offeredMd);
+                        SetupRttForCallReInvite(call, rtpChannel, answeredMd);
                         break;
                 }
 

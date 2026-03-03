@@ -2,17 +2,6 @@
 //  File:   AddNewMediaForm.cs                                      5 Nov 25 PHR
 /////////////////////////////////////////////////////////////////////////////////////
 
-using Microsoft.AspNetCore.Components.Forms;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
 namespace PsapSimulator;
 
 /// <summary>
@@ -33,12 +22,12 @@ public partial class AddNewMediaForm : Form
         DialogResult = DialogResult.Cancel;
     }
 
-    private List<string> m_SelectedMediaType = new List<string>();
+    private List<string> m_SelectedMediaTypes = new List<string>();
 
     private void OkBtn_Click(object sender, EventArgs e)
     {
-       if (checkedListBox1.CheckedItems.Count == 0)
-       {
+        if (checkedListBox1.CheckedItems.Count == 0)
+        {
             DialogResult result = MessageBox.Show("No new media types selected. Do you wish to continue", "Error",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (result == DialogResult.Yes)
@@ -48,15 +37,23 @@ public partial class AddNewMediaForm : Form
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
-       }
+        }
 
-       foreach (object item in checkedListBox1.SelectedItems)
-       {
+        foreach (object item in checkedListBox1.SelectedItems)
+        {
             if (item != null)
-                m_SelectedMediaType.Add(item.ToString()!);
-       }
+                m_SelectedMediaTypes.Add(item.ToString()!);
+        }
 
-       DialogResult = DialogResult.OK;
+        if (m_SelectedMediaTypes.Contains("MSRP") == true && m_SelectedMediaTypes.Contains("RTT"))
+        {
+            MessageBox.Show("Only one type of text media can be added to the call.", "Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            m_SelectedMediaTypes.Clear();
+            return;
+        }
+
+        DialogResult = DialogResult.OK;
     }
 
     /// <summary>
@@ -66,7 +63,7 @@ public partial class AddNewMediaForm : Form
     /// <returns></returns>
     public List<string> GetSelectedMedia()
     {
-        return m_SelectedMediaType;
+        return m_SelectedMediaTypes;
     }
 
     private void AddNewMediaForm_Load(object sender, EventArgs e)

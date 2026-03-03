@@ -12,7 +12,7 @@ The state of the answered call changes to the On-Line state.
 
 If there is another call in the On-Line state then that call is placed on hold.
 
-This button does not automatically display the [Call Window](CallForm.md). If the call has only audio media then you can hear the caller and communicate with the caller via the microphone. If the call has video or text media, then you must display the Call Window in order to interact with the caller.
+This button automatically displays the [Call Window](CallForm.md) if a call is successfully put into the on-line state.
 
 ### Show
 Displays the Call Window for currently selected call in the call list.

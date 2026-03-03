@@ -1,5 +1,16 @@
 # Version History
 
+## 1.2 -- TBD
+
+| Issue No. | Change Type | Description |
+|--------|--------|-------|
+| NA     | Fix    | Changed the message terminator from "\r\n" to "\r" in order to fix the problem of two messages sent via RTT by the same source appearing on the same line in the text list view. |
+| NA     | Change | Add New Media form -- Changed the operation to check on click and added a test to prevent the user from selecting two text media types. |
+| NA     | Fix    | The application was not setting up transmit audio when the application received a re-INVITE to add audio media to a call. |
+| NA     | Fix    | The application was not properly setting the payload type in RTP packets if the application sent a re-INVITE to add media to a call. |
+| NA     | Change | The Answer button in the main form now displays the Call Form if a ringing or Auto-Answered call is picked up and put on-line. |
+| NA     | Fix    | The user was allowed to put a ringing call on-hold. |
+
 ## v1.1.0 - 20 Feb 2026
 | Issue No. | Change Type | Description |
 |--------|--------|-------|

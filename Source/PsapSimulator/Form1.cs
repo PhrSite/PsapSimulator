@@ -98,6 +98,7 @@ public partial class Form1 : Form
 
             Application.UseWaitCursor = true;
             CallListView.Items.Clear();
+            StatusLbl.Text = "Starting...";
             SettingsBtn.Enabled = false;
             CloseBtn.Enabled = false;
             StartBtn.Text = "Starting...";
@@ -318,6 +319,12 @@ public partial class Form1 : Form
         Lvi.SubItems[CallMediaIndex].Text = callSummary.CallMedia;
 
         UpdateCallCounts();
+        if (m_IsAnswering == true && m_CallForm == null && callSummary.CallState == CallStateEnum.OnLine)
+        {
+            m_IsAnswering = false;
+            m_CurrentCallID = callSummary.CallID;
+            ShowCallForm(callSummary.CallID);
+        }
     }
 
     private void UpdateCallCounts()
@@ -385,6 +392,8 @@ public partial class Form1 : Form
         MessageBox.Show("Not running. Press Start.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
+    private bool m_IsAnswering = false;
+
     private void AnswerBtn_Click(object sender, EventArgs e)
     {
         if (m_CallManager == null)
@@ -393,6 +402,7 @@ public partial class Form1 : Form
             return;
         }
 
+        m_IsAnswering = true;
         m_CallManager.Answer();
     }
 

@@ -90,7 +90,7 @@ public class TextMessagesCollection
                 }
             }
 
-            if (message.EndsWith("\r\n") == true)
+            if (message.EndsWith("\r") == true)
                 LastSource = TextSourceEnum.Unknown;    // Put the next message in a new row
         }
     }
@@ -136,7 +136,7 @@ public class TextMessagesCollection
                 }
             }
 
-            if (message.EndsWith("\r\n") == true)
+            if (message.EndsWith("\r") == true)
                 LastSource = TextSourceEnum.Unknown;    // Put the next message in a new row
         }
     }
