@@ -624,17 +624,20 @@ public partial class SettingsForm : Form
             VideoDevicesCombo.SelectedIndex = index;
             SelectedDevice = VideoDevicesCombo.Text;
             LoadVideoFormats(m_VideoDevices[SelectedDevice]);
-            SelectVideoFormat(Vss.DeviceFormat, m_VideoDevices[SelectedDevice]);
+            SelectVideoFormat(Vss.DeviceFormat);
         }
     }
 
-    private void SelectVideoFormat(VideoDeviceFormat format, List<VideoDeviceFormat> formats)
+    private void SelectVideoFormat(VideoDeviceFormat format)
     {
         int foundIndex = -1;
-        for (int i = 0; i < formats.Count; i++)
+        for (int i = 0; i < VideoListView.Items.Count; i++)
         {
-            if (formats[i].SubType == format.SubType && formats[i].Width == format.Width &&
-                formats[i].Height == format.Height && formats[i].Framerate == format.Framerate)
+            VideoDeviceFormat? Vdf = (VideoDeviceFormat?)VideoListView.Items[i].Tag;
+            if (Vdf == null)
+                continue;
+
+            if (Vdf.SubType == format.SubType && Vdf.Width == format.Width && Vdf.Height == format.Height)
             {
                 foundIndex = i;
                 break;
@@ -645,7 +648,7 @@ public partial class SettingsForm : Form
             VideoListView.Items[foundIndex].Checked = true;
         else
         {   // Nothing found, pick the first format
-            if (formats.Count > 0)
+            if (VideoListView.Items.Count > 0)
                 VideoListView.Items[0].Checked = true;
         }
     }
@@ -655,12 +658,17 @@ public partial class SettingsForm : Form
         VideoListView.Items.Clear();
         foreach (VideoDeviceFormat format in formats)
         {
-            ListViewItem Lvi = new ListViewItem(format.SubType);
-            Lvi.SubItems.Add(format.Width.ToString());
-            Lvi.SubItems.Add(format.Height.ToString());
-            Lvi.SubItems.Add(format.Framerate.ToString());
-            Lvi.Tag = format;
-            VideoListView.Items.Add(Lvi);
+            // Limit the video resolution to VGA for capture so that the application can run reliably on older versions
+            // of Windows with low performance hardware on low bandwidth networks when media encryption is enabled.
+            if (format.Width <= 640)
+            {
+                ListViewItem Lvi = new ListViewItem(format.SubType);
+                Lvi.SubItems.Add(format.Width.ToString());
+                Lvi.SubItems.Add(format.Height.ToString());
+                Lvi.SubItems.Add(format.Framerate.ToString());
+                Lvi.Tag = format;
+                VideoListView.Items.Add(Lvi);
+            }
         }
     }
 

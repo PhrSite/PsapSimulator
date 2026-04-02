@@ -24,9 +24,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/PhrSite/PsapSimulator</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>1.1.0 - Various changes, additions and bug fixes. See VersionHistory.md</PackageReleaseNotes>
+    <PackageReleaseNotes>1.2.0 - Various changes, additions and bug fixes. See VersionHistory.md</PackageReleaseNotes>
     <UseWPF>True</UseWPF>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Philip Reichl</Authors>
   </PropertyGroup>
 
@@ -45,9 +45,9 @@
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="SipLib" Version="1.0.0" />
+    <PackageReference Include="SipLib" Version="1.0.1" />
     <PackageReference Include="SipLib.Audio.Windows" Version="1.1.0" />
-    <PackageReference Include="SipLib.Video.Windows" Version="1.0.0" />
+    <PackageReference Include="SipLib.Video.Windows" Version="1.0.1" />
     <PackageReference Include="SipRecClient" Version="1.1.0" />
   </ItemGroup>
 

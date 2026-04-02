@@ -536,7 +536,7 @@ public partial class CallForm : Form
         NotifierContactLbl.Text = string.Empty;
         AirbagDeployedLbl.Text = string.Empty;
         VedsLatitudeLbl.Text = string.Empty;
-        LongitudeLbl.Text = string.Empty;
+        VedsLongitudeLbl.Text = string.Empty;
 
     }
 
@@ -735,7 +735,11 @@ public partial class CallForm : Form
 
     private void OnFrameReady(Bitmap bitmap)
     {
-        Invoke(() => { ReceiveVideoPb.Image = bitmap; });
+        BeginInvoke(() =>
+        {
+            ReceiveVideoPb.Image?.Dispose();
+            ReceiveVideoPb.Image = bitmap; 
+        });
     }
 
     private ListViewItem BuildListViewItem(TextMessage textMessage)
@@ -875,7 +879,17 @@ public partial class CallForm : Form
         if (m_IsClosing == true)
             return;
 
-        BeginInvoke(() => { PreviewVideoPb.Image = bitmap; });
+        BeginInvoke(() =>
+        {
+            try
+            {
+                PreviewVideoPb.Image = bitmap;
+            }
+            catch
+            {
+                // TODO: Log this exception
+            }
+        });
     }
 
     private void LocRefreshBtn_Click(object sender, EventArgs e)

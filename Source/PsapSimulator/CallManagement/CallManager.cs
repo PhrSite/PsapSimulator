@@ -1464,7 +1464,6 @@ public class CallManager
 
         call.InviteRequest = invite;
         call.OKResponse = OkResponse;
-        call.LastInviteSequenceNumber = invite.Header.CSeq;
         
         call.OfferedSdp = OfferedSdp;
         call.AnsweredSdp = AnswerSdp;
@@ -1783,6 +1782,10 @@ public class CallManager
             offerSdp = call.AnsweredSdp!;
         else
             offerSdp = call.OfferedSdp!;
+
+        // Must increment the version of the SDP session when modifying the session
+        if (offerSdp.Origin != null)
+            offerSdp.Origin.Version += 1;
 
         foreach (string strMediaType in newMediaTypesToAdd)
         {
