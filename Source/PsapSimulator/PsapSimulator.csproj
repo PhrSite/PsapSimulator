@@ -24,9 +24,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/PhrSite/PsapSimulator</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>1.2.0 - Various changes, additions and bug fixes. See VersionHistory.md</PackageReleaseNotes>
+    <PackageReleaseNotes>1.2.1 - Various changes, additions and bug fixes. See VersionHistory.md</PackageReleaseNotes>
     <UseWPF>True</UseWPF>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Authors>Philip Reichl</Authors>
   </PropertyGroup>
 
