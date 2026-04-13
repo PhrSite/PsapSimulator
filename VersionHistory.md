@@ -1,5 +1,12 @@
 # Version History
 
+## 1.2.1 -- TBD
+
+| Issue No. | Change Type | Description |
+|--------|--------|-------|
+| NA     | Fix    | The ipAddressPort and callIdSip fields of the NG9-1-1 CallSignalingMessageLogEvent were not being set. |
+
+
 ## 1.2.0 -- 2 Apr 2026
 
 | Issue No. | Change Type | Description |

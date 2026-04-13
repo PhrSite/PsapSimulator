@@ -48,7 +48,7 @@
     <PackageReference Include="SipLib" Version="1.0.1" />
     <PackageReference Include="SipLib.Audio.Windows" Version="1.1.0" />
     <PackageReference Include="SipLib.Video.Windows" Version="1.0.1" />
-    <PackageReference Include="SipRecClient" Version="1.1.0" />
+    <PackageReference Include="SipRecClient" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
