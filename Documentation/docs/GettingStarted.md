@@ -1,17 +1,5 @@
 # Getting Started
 
-# Installation
-You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/EcHCBi1-8dpHqDhgk5LoWMwBnngg9k_bj6qoFo6bHEPK3w?e=xaStvg).
-
-**Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
-
-Once the self-extracting EXE file is downloaded to your computer, you can install the application by running the EXE file.
-
-**Note:** You must be a local Windows administrator to install this application.
-
-The installation program will install a shortcut on your Windows desktop.
-
-# Basic Operations
 Double-click on the shortcut called "PsapSimulator" on your computer's desktop to run the application.
 
 When the PsapSimulator application is launched it does not start listening for calls.

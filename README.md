@@ -19,6 +19,12 @@ You can download the self-extracting EXE file for the PsapSimulator application 
 
 **Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
 
+Once the self-extracting EXE file is downloaded to your computer, you can install the application by running the EXE file.
+
+**Note:** You must be a local Windows administrator to install this application.
+
+The installation program will install a shortcut on your Windows desktop.
+
 ## Documentation
 The GitHub documentation pages for this application are located at [https://phrsite.github.io/PsapSimulator](https://phrsite.github.io/PsapSimulator). This site contains the operator's manual for this application.
 
