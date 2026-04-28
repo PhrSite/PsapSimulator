@@ -190,13 +190,13 @@
         "Entry"
         {
         "MsmKey" = "8:_7531C626A734584696D322EF7BD0BF9E"
-        "OwnerKey" = "8:_35C141BB526C156763E3400DA278AD46"
+        "OwnerKey" = "8:_9B5EB6AD2851BF5ED20DC5A8A56803C3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_7531C626A734584696D322EF7BD0BF9E"
-        "OwnerKey" = "8:_9B5EB6AD2851BF5ED20DC5A8A56803C3"
+        "OwnerKey" = "8:_35C141BB526C156763E3400DA278AD46"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -256,13 +256,13 @@
         "Entry"
         {
         "MsmKey" = "8:_8A73DAFEEC0F4D5F069465AAC1C8BA1F"
-        "OwnerKey" = "8:_0233B2CE90DF835C4DEE4A83B547EFA5"
+        "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_8A73DAFEEC0F4D5F069465AAC1C8BA1F"
-        "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
+        "OwnerKey" = "8:_0233B2CE90DF835C4DEE4A83B547EFA5"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -274,7 +274,7 @@
         "Entry"
         {
         "MsmKey" = "8:_90126429657743587597B2893C915148"
-        "OwnerKey" = "8:_42B840296997874B66F89D03B4459848"
+        "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -286,7 +286,7 @@
         "Entry"
         {
         "MsmKey" = "8:_90126429657743587597B2893C915148"
-        "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
+        "OwnerKey" = "8:_42B840296997874B66F89D03B4459848"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -310,25 +310,7 @@
         "Entry"
         {
         "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
-        "OwnerKey" = "8:_304BE95DC6CEA083DFB3677814957403"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
-        "OwnerKey" = "8:_FE7001FC7AEF09D4F3492F483AEB9A54"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
-        "OwnerKey" = "8:_FACA36CD0AA209E9495FE5D17041BDDA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
-        "OwnerKey" = "8:_8A4A7FF4B3777726CC6191F3D51D9391"
+        "OwnerKey" = "8:_BEE15DDE2D6240B194480F4014F331CA"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -340,7 +322,25 @@
         "Entry"
         {
         "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
-        "OwnerKey" = "8:_BEE15DDE2D6240B194480F4014F331CA"
+        "OwnerKey" = "8:_8A4A7FF4B3777726CC6191F3D51D9391"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
+        "OwnerKey" = "8:_FACA36CD0AA209E9495FE5D17041BDDA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
+        "OwnerKey" = "8:_FE7001FC7AEF09D4F3492F483AEB9A54"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
+        "OwnerKey" = "8:_304BE95DC6CEA083DFB3677814957403"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -370,25 +370,7 @@
         "Entry"
         {
         "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
-        "OwnerKey" = "8:_C245AD45697349AAB6AFAD9277D0AE47"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
-        "OwnerKey" = "8:_BEE15DDE2D6240B194480F4014F331CA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
-        "OwnerKey" = "8:_65189653B76BA4436C034ED8AFAEB03B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
-        "OwnerKey" = "8:_EE361B7442BACE430B09F2E82F4A261A"
+        "OwnerKey" = "8:_8A4A7FF4B3777726CC6191F3D51D9391"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -400,7 +382,25 @@
         "Entry"
         {
         "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
-        "OwnerKey" = "8:_8A4A7FF4B3777726CC6191F3D51D9391"
+        "OwnerKey" = "8:_EE361B7442BACE430B09F2E82F4A261A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
+        "OwnerKey" = "8:_65189653B76BA4436C034ED8AFAEB03B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
+        "OwnerKey" = "8:_BEE15DDE2D6240B194480F4014F331CA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_AC1C47A34C77FEEB6B1548E451661A4A"
+        "OwnerKey" = "8:_C245AD45697349AAB6AFAD9277D0AE47"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -532,13 +532,13 @@
         "Entry"
         {
         "MsmKey" = "8:_FACA36CD0AA209E9495FE5D17041BDDA"
-        "OwnerKey" = "8:_EE361B7442BACE430B09F2E82F4A261A"
+        "OwnerKey" = "8:_65189653B76BA4436C034ED8AFAEB03B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_FACA36CD0AA209E9495FE5D17041BDDA"
-        "OwnerKey" = "8:_65189653B76BA4436C034ED8AFAEB03B"
+        "OwnerKey" = "8:_EE361B7442BACE430B09F2E82F4A261A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -568,97 +568,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_F4C56B95210C43DAADBF42E5E2E45F9F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_DFD28BF22F3E891D9E6DACC5F995E71F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_C3B4AFFBCA0C4843D432695BD45E2982"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_C381F9463FB5FD16392C6800D0418A36"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_A72BB25C8EE3308A3ED5C2F0784494F3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_836281C7748135A481F1ADE9B07BB439"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_7D0ADCED00DC681BB18E43519E7A3EE8"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_7C6ED52A36E4A9EB34380A8EE9D238A0"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_77BFD20CD3652CAC0E075CDF3129DDB3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_7503529958F25C96C9FA23D1A0BBA1CF"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_6D411274894584FF81330820688686B3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_65189653B76BA4436C034ED8AFAEB03B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_243B65B1DE419F139A00F4CA2014A4C6"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_1DA76461602F638BEEB9D3376ED3CEF1"
+        "OwnerKey" = "8:_050FFC9F9B3D51D71D349714E6938096"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -670,7 +580,97 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_050FFC9F9B3D51D71D349714E6938096"
+        "OwnerKey" = "8:_1DA76461602F638BEEB9D3376ED3CEF1"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_243B65B1DE419F139A00F4CA2014A4C6"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_65189653B76BA4436C034ED8AFAEB03B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_564AE0973D63430DB32FB1B845AC86AF"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_6D411274894584FF81330820688686B3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_7503529958F25C96C9FA23D1A0BBA1CF"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_77BFD20CD3652CAC0E075CDF3129DDB3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_7C6ED52A36E4A9EB34380A8EE9D238A0"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_7D0ADCED00DC681BB18E43519E7A3EE8"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_836281C7748135A481F1ADE9B07BB439"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_9E92FCBCB2D7817C0F3B5DD9C6555FDE"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_A72BB25C8EE3308A3ED5C2F0784494F3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_C381F9463FB5FD16392C6800D0418A36"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_C3B4AFFBCA0C4843D432695BD45E2982"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_DFD28BF22F3E891D9E6DACC5F995E71F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_F4C56B95210C43DAADBF42E5E2E45F9F"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -775,11 +775,6 @@
             "AssemblyAsmDisplayName" = "8:SipRecClient, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_0233B2CE90DF835C4DEE4A83B547EFA5"
-                    {
-                    "Name" = "8:SipRecClient.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SipRecClient.dll"
             "TargetName" = "8:"
@@ -950,11 +945,6 @@
             "AssemblyAsmDisplayName" = "8:Microsoft.Windows.SDK.NET, Version=10.0.19041.38, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_1E4C307C844ABB61F445923E463080E2"
-                    {
-                    "Name" = "8:Microsoft.Windows.SDK.NET.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Microsoft.Windows.SDK.NET.dll"
             "TargetName" = "8:"
@@ -1092,11 +1082,6 @@
             "AssemblyAsmDisplayName" = "8:DirectShowLib, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_304BE95DC6CEA083DFB3677814957403"
-                    {
-                    "Name" = "8:DirectShowLib.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:DirectShowLib.dll"
             "TargetName" = "8:"
@@ -1143,11 +1128,6 @@
             "AssemblyAsmDisplayName" = "8:SIPSorceryMedia.FFmpeg, Version=8.0.10.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_35C141BB526C156763E3400DA278AD46"
-                    {
-                    "Name" = "8:SIPSorceryMedia.FFmpeg.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SIPSorceryMedia.FFmpeg.dll"
             "TargetName" = "8:"
@@ -1194,11 +1174,6 @@
             "AssemblyAsmDisplayName" = "8:DnsClient, Version=1.8.0.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_3FCE9CF7F084C3279CD50282C44E7C83"
-                    {
-                    "Name" = "8:DnsClient.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:DnsClient.dll"
             "TargetName" = "8:"
@@ -1225,11 +1200,6 @@
             "AssemblyAsmDisplayName" = "8:Serilog.Sinks.File, Version=5.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_42B840296997874B66F89D03B4459848"
-                    {
-                    "Name" = "8:Serilog.Sinks.File.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Serilog.Sinks.File.dll"
             "TargetName" = "8:"
@@ -1358,11 +1328,6 @@
             "AssemblyAsmDisplayName" = "8:Ng911CadIfLib, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_5FDDFAE4FE3FF117C73246F357E9539D"
-                    {
-                    "Name" = "8:Ng911CadIfLib.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Ng911CadIfLib.dll"
             "TargetName" = "8:"
@@ -1389,11 +1354,6 @@
             "AssemblyAsmDisplayName" = "8:NAudio.WinForms, Version=2.2.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_65189653B76BA4436C034ED8AFAEB03B"
-                    {
-                    "Name" = "8:NAudio.WinForms.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:NAudio.WinForms.dll"
             "TargetName" = "8:"
@@ -1502,11 +1462,6 @@
             "AssemblyAsmDisplayName" = "8:FFmpeg.AutoGen, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_7531C626A734584696D322EF7BD0BF9E"
-                    {
-                    "Name" = "8:FFmpeg.AutoGen.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:FFmpeg.AutoGen.dll"
             "TargetName" = "8:"
@@ -1657,11 +1612,6 @@
             "AssemblyAsmDisplayName" = "8:SIPSorceryMedia.Abstractions, Version=8.0.7.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_83A348BAD6CF4CFE514E150B640F290B"
-                    {
-                    "Name" = "8:SIPSorceryMedia.Abstractions.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SIPSorceryMedia.Abstractions.dll"
             "TargetName" = "8:"
@@ -1688,11 +1638,6 @@
             "AssemblyAsmDisplayName" = "8:NAudio.Wasapi, Version=2.2.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_8A4A7FF4B3777726CC6191F3D51D9391"
-                    {
-                    "Name" = "8:NAudio.Wasapi.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:NAudio.Wasapi.dll"
             "TargetName" = "8:"
@@ -1719,11 +1664,6 @@
             "AssemblyAsmDisplayName" = "8:Ng911Lib, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_8A73DAFEEC0F4D5F069465AAC1C8BA1F"
-                    {
-                    "Name" = "8:Ng911Lib.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Ng911Lib.dll"
             "TargetName" = "8:"
@@ -1750,11 +1690,6 @@
             "AssemblyAsmDisplayName" = "8:Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_90126429657743587597B2893C915148"
-                    {
-                    "Name" = "8:Serilog.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Serilog.dll"
             "TargetName" = "8:"
@@ -1801,11 +1736,6 @@
             "AssemblyAsmDisplayName" = "8:SipLib.Video.Windows, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_9B5EB6AD2851BF5ED20DC5A8A56803C3"
-                    {
-                    "Name" = "8:SipLib.Video.Windows.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SipLib.Video.Windows.dll"
             "TargetName" = "8:"
@@ -1945,11 +1875,6 @@
             "AssemblyAsmDisplayName" = "8:NAudio.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_AC1C47A34C77FEEB6B1548E451661A4A"
-                    {
-                    "Name" = "8:NAudio.Core.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:NAudio.Core.dll"
             "TargetName" = "8:"
@@ -2007,11 +1932,6 @@
             "AssemblyAsmDisplayName" = "8:WinRT.Runtime, Version=2.2.0.0, Culture=neutral, PublicKeyToken=99ea127f02d97709, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_B145E2B16683DF7DCB5D787610286DAF"
-                    {
-                    "Name" = "8:WinRT.Runtime.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:WinRT.Runtime.dll"
             "TargetName" = "8:"
@@ -2202,11 +2122,6 @@
             "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_C759418922AC7089D43AAD92AB6258AD"
-                    {
-                    "Name" = "8:Newtonsoft.Json.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Newtonsoft.Json.dll"
             "TargetName" = "8:"
@@ -2233,11 +2148,6 @@
             "AssemblyAsmDisplayName" = "8:EidoLib, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_C77D4574C7B111FB4B04A5173FB3F9DB"
-                    {
-                    "Name" = "8:EidoLib.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:EidoLib.dll"
             "TargetName" = "8:"
@@ -2304,11 +2214,6 @@
             "AssemblyAsmDisplayName" = "8:Serilog.Extensions.Logging, Version=7.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_CB19F6A3BD76E7033B175E2C181F8F99"
-                    {
-                    "Name" = "8:Serilog.Extensions.Logging.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Serilog.Extensions.Logging.dll"
             "TargetName" = "8:"
@@ -2366,11 +2271,6 @@
             "AssemblyAsmDisplayName" = "8:SipLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_E04EBF3B68FFA3E5FD3CB391B9DA71A4"
-                    {
-                    "Name" = "8:SipLib.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SipLib.dll"
             "TargetName" = "8:"
@@ -2417,11 +2317,6 @@
             "AssemblyAsmDisplayName" = "8:SipLib.Audio.Windows, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_EE361B7442BACE430B09F2E82F4A261A"
-                    {
-                    "Name" = "8:SipLib.Audio.Windows.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SipLib.Audio.Windows.dll"
             "TargetName" = "8:"
@@ -2499,11 +2394,6 @@
             "AssemblyAsmDisplayName" = "8:NAudio.WinMM, Version=2.2.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_FACA36CD0AA209E9495FE5D17041BDDA"
-                    {
-                    "Name" = "8:NAudio.WinMM.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:NAudio.WinMM.dll"
             "TargetName" = "8:"
@@ -2550,11 +2440,6 @@
             "AssemblyAsmDisplayName" = "8:BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_FE7001FC7AEF09D4F3492F483AEB9A54"
-                    {
-                    "Name" = "8:BouncyCastle.Crypto.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:BouncyCastle.Crypto.dll"
             "TargetName" = "8:"
@@ -2661,15 +2546,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:PsapSimulator"
-        "ProductCode" = "8:{3AA80248-5F00-4EEE-8A24-9D664B5C536F}"
-        "PackageCode" = "8:{0240259A-E27A-439C-90FC-6C9E8A1B5099}"
+        "ProductCode" = "8:{E9E171A8-BEED-4933-BE5B-A23FFC4F4E2D}"
+        "PackageCode" = "8:{9E50C090-0293-460D-9E08-302A8EE457C3}"
         "UpgradeCode" = "8:{EA46489E-433F-4F39-925F-37820A99CAA5}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.2.0"
+        "ProductVersion" = "8:1.2.1"
         "Manufacturer" = "8:PhrSite"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/PhrSite/PsapSimulator"

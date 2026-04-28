@@ -4,36 +4,35 @@
 
 namespace PsapSimulator.CallManagement;
 
+using AdditionalData;
+using ConferenceEvent;
+using Eido;
+using Held;
+using HttpUtils;
+using I3V3.LogEvents;
+using I3V3.LoggingHelpers;
+using NAudio.Gui;
+using Ng911Lib.Utilities;
+using Pidf;
 using PsapSimulator.Settings;
-
+using SipLib.Body;
+using SipLib.Collections;
 using SipLib.Core;
+using SipLib.Logging;
 using SipLib.Media;
 using SipLib.Msrp;
 using SipLib.RealTimeText;
 using SipLib.Rtp;
 using SipLib.Sdp;
-using SipLib.Transactions;
-using SipLib.Collections;
-using SipRecClient;
-using Pidf;
-
-using System.Net;
-using System.Text;
-using System.Collections.Concurrent;
-using System.Security.Cryptography.X509Certificates;
-
-using SipLib.Body;
-using SipLib.Video.Windows;
-using AdditionalData;
-using Held;
-using HttpUtils;
-using Ng911Lib.Utilities;
-using I3V3.LogEvents;
-using SipLib.Logging;
 using SipLib.Subscriptions;
-using I3V3.LoggingHelpers;
-using ConferenceEvent;
-using Eido;
+using SipLib.Transactions;
+using SipLib.Video.Windows;
+using SipRecClient;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Veds;
 
 internal delegate void SetAdditionalDataDelegate(object Obj);
@@ -600,7 +599,10 @@ public class Call
         {   // Location by value was sent
             Presence presence = XmlHelper.DeserializeFromString<Presence>(strPresence);
             if (presence != null)
+            {
                 AddNewLocation(presence);
+                GetProviderInfoFromPresence(presence);
+            }
             else
                 SipLogger.LogError("Unable to deserialize a PIDF Presence string for location " +
                     $"by-value:\n{strPresence}");
@@ -795,7 +797,10 @@ public class Call
                 {
                     LocationResponse Lr = XmlHelper.DeserializeFromString<LocationResponse>(results.Body);
                     if (Lr != null && Lr.presence != null)
+                    {
                         AddNewLocation(Lr.presence);
+                        GetProviderInfoFromPresence(Lr.presence);
+                    }
                     else
                         SipLogger.LogError($"Unable to deserialize LocationResponse:\n{results.Body}");
                 }
@@ -946,7 +951,10 @@ public class Call
         {
             Presence? presence = XmlHelper.DeserializeFromString<Presence>(strPresence);
             if (presence != null)
+            {
                 AddNewLocation(presence);
+                GetProviderInfoFromPresence(presence);
+            }
             else
                 SipLogger.LogError($"Failed to deserialize a presence object from {notifyRequest.Header.From!.FromURI!} +" +
                     $"for Call-ID = {CallID}");
@@ -1086,6 +1094,32 @@ public class Call
             }
         }
         return HasRtt;
+    }
+
+    private void GetProviderInfoFromPresence(Presence presence)
+    {
+        List<GeoPriv> geoPrivs = presence.GetAllGeoPrivObjects();
+        if (geoPrivs.Count == 0)
+            return;
+
+        foreach (GeoPriv geoPriv in geoPrivs)
+        {
+            if (geoPriv.ProvidedBy == null)
+                continue;
+
+            if (geoPriv.ProvidedBy.EmergencyCallDataValue == null)
+                continue;
+
+            // Just check for additional data by-value for now.
+            // And only interested in the ProviderInfo if because Section 2.5 of NENA-STA-010.3f states
+            // that location providers must not provide any other additional data in the provided-by element
+            // even though RFC 7852 allows it.
+            ProviderInfoType[]? providerInfos = geoPriv.ProvidedBy.EmergencyCallDataValue.EmergencyCallDataProviderInfo;
+            if (providerInfos == null || providerInfos.Length == 0) 
+                continue;
+
+            Providers.TryAdd(providerInfos[0].ProviderID, providerInfos[0]);
+        }
     }
 
     /// <summary>

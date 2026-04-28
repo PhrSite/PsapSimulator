@@ -1,11 +1,11 @@
 # Version History
 
-## 1.2.1 -- TBD
+## 1.2.1 -- 27 Apr 2026
 
 | Issue No. | Change Type | Description |
 |--------|--------|-------|
 | NA     | Fix    | The ipAddressPort and callIdSip fields of the NG9-1-1 CallSignalingMessageLogEvent were not being set. |
-
+| NA     | Addition | Added the ability to retrieve the ProviderInfo additional data block from the provided-by element in the PIDF-LO Presence XML document. | |
 
 ## 1.2.0 -- 2 Apr 2026
 
