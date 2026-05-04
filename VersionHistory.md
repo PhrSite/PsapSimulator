@@ -1,5 +1,11 @@
 # Version History
 
+## 1.2.2 -- TBD
+
+| Issue No. | Change Type | Description |
+|--------|--------|-------|
+| NA     | Fix    | When building an answer MediaDescription for MSRP, was producing "m=message 9006 TCP/MSRP 0" instead of "m=message 9006 TCP/MSRP *" |
+
 ## 1.2.1 -- 27 Apr 2026
 
 | Issue No. | Change Type | Description |
