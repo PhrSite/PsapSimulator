@@ -59,6 +59,7 @@
             StatesBtn = new Button();
             HelpBtn = new Button();
             toolTip1 = new ToolTip(components);
+            VideoFpsLbl = new Label();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -122,6 +123,7 @@
             tableLayoutPanel1.Controls.Add(StatusLbl, 0, 2);
             tableLayoutPanel1.Controls.Add(StatesBtn, 0, 4);
             tableLayoutPanel1.Controls.Add(HelpBtn, 6, 4);
+            tableLayoutPanel1.Controls.Add(VideoFpsLbl, 7, 3);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -406,6 +408,17 @@
             HelpBtn.UseVisualStyleBackColor = true;
             HelpBtn.Click += HelpBtn_Click;
             // 
+            // VideoFpsLbl
+            // 
+            VideoFpsLbl.AutoSize = true;
+            VideoFpsLbl.Dock = DockStyle.Fill;
+            VideoFpsLbl.Location = new Point(1109, 606);
+            VideoFpsLbl.Name = "VideoFpsLbl";
+            VideoFpsLbl.Size = new Size(152, 46);
+            VideoFpsLbl.TabIndex = 23;
+            VideoFpsLbl.Text = "0 FPS";
+            VideoFpsLbl.TextAlign = ContentAlignment.MiddleCenter;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -462,5 +475,6 @@
         private Label StatusLbl;
         private Button StatesBtn;
         private Button HelpBtn;
+        private Label VideoFpsLbl;
     }
 }

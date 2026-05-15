@@ -637,7 +637,8 @@ public partial class SettingsForm : Form
             if (Vdf == null)
                 continue;
 
-            if (Vdf.SubType == format.SubType && Vdf.Width == format.Width && Vdf.Height == format.Height)
+            if (Vdf.SubType == format.SubType && Vdf.Width == format.Width && Vdf.Height == format.Height &&
+                Vdf.Framerate == format.Framerate)
             {
                 foundIndex = i;
                 break;

@@ -15,7 +15,7 @@ The following block diagram shows the NG9-1-1 functional elements that the PsapS
 This application currently only handles incoming calls. All calls are treated as NG9-1-1 calls regardless of the origin of the call.
 
 ## Installation
-You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/IQAbAjD1sLLmTbjKtQuP7H9zAX0n7u56yEeJqlWC8D-XVJs?e=1k82V2).
+You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/IQCYHgSvZDq5R441S67RHO5mAfZNpMKO0o7dDEQn39XOHb8?e=vuCjg8).
 
 **Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
 
@@ -62,12 +62,12 @@ The following table shows which interfaces and the degree of support that this a
 # Dependencies
 The PsapSimulator project uses the following NG9-1-1 related NuGet packages.
 
-1. SipLib (1.0.1)
+1. SipLib (1.0.3)
 1. Ng911Lib (2.0.1)
 1. Ng911CadIfLib (1.2.0)
-1. SipRecClient (1.2.0)
+1. SipRecClient (1.2.1)
 1. EidoLib (1.0.1)
-1. SipLib.Video.Windows (1.0.1)
+1. SipLib.Video.Windows (1.1.0)
 1. SipLib.Audio.Windows (1.1.0)
 
 The PsapSimulator project uses the following general purpose NuGet packages.

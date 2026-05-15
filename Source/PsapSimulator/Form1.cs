@@ -58,6 +58,7 @@ public partial class Form1 : Form
         SetCallListViewColumns();
         m_VideoDevices = await VideoDeviceEnumerator.GetVideoFrameSources();
         ShowStatus();
+        VideoFpsLbl.Text = string.Empty;
     }
 
     private void SetCallListViewColumns()
@@ -121,6 +122,7 @@ public partial class Form1 : Form
             m_CallManager.CallEnded += OnCallEnded;
             m_CallManager.CallStateChanged += OnCallStateChanged;
             m_CallManager.CallManagerError += OnCallManagerError;
+            m_CallManager.VideoFrameRateUpdate += OnVideoFrameRateUpdate;
 
             await m_CallManager.Start();
             StartBtn.Text = "Stop";
@@ -135,6 +137,8 @@ public partial class Form1 : Form
                 return;
             }
 
+            m_CallManager.VideoFrameRateUpdate -= OnVideoFrameRateUpdate;
+
             Application.UseWaitCursor = true;
             await ShutdownCallManager();
             StartBtn.Text = "Start";
@@ -144,6 +148,14 @@ public partial class Form1 : Form
         }
 
         ShowStatus();
+    }
+
+    private void OnVideoFrameRateUpdate(double FrameRate)
+    {
+        BeginInvoke(() => 
+        {
+            VideoFpsLbl.Text = $"{FrameRate.ToString("F1")} FPS";
+        });
     }
 
     private void ShowStatus()

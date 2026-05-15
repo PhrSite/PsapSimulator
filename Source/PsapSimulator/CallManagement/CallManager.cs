@@ -42,6 +42,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.IO;
 using SipLib.Audio.Windows;
+using System.Diagnostics;
+using NAudio;
 
 /// <summary>
 /// Class for managing all of the calls for the PsapSimulator application
@@ -68,6 +70,12 @@ public class CallManager
     /// be made aware of.
     /// </summary>
     public event CallManagerErrorDelegate? CallManagerError;
+
+    /// <summary>
+    /// This event is fired every 50 frames to indicate the most recently measured video capture frame
+    /// rate.
+    /// </summary>
+    public event VideoFrameRateUpdateDelegate? VideoFrameRateUpdate = null;
 
     /// <summary>
     /// Provides a static image to display to the caller periodically if the camera is disabled.
@@ -233,6 +241,12 @@ public class CallManager
         if (m_Started == true)
             return;
 
+        using (Process p = Process.GetCurrentProcess())
+        {
+            // Set priority to High
+            p.PriorityClass = ProcessPriorityClass.High;
+        }
+
         try
         {
             //FFmpegInit.Initialise(FfmpegLogLevelEnum.AV_LOG_FATAL, @".\FFMPEG");
@@ -349,7 +363,15 @@ public class CallManager
 
         m_WaveAudio = new WindowsAudioIo(8000, m_Settings.Devices.AudioDeviceName);
         m_WaveAudio.AudioDeviceStateChanged += OnAudioDeviceStateChanged;
-        WaveAudioStatusEnum AudioStatus = m_WaveAudio.StartAudio();
+        try
+        {
+            WaveAudioStatusEnum AudioStatus = m_WaveAudio.StartAudio();
+        }
+        catch (MmException mme)
+        {
+            SipLogger.LogError(mme, "Failed to start the audio device.");
+            CallManagerError?.Invoke("Failed to start the audio device");
+        }
 
         int ImageWidth = 640;
         int ImageHeight = 480;
@@ -454,12 +476,36 @@ public class CallManager
         return true;
     }
 
+    // 12 May 26 PHR
+    private const int NumFrames = 50;
+    private DateTime m_LastFrameTime = DateTime.MinValue;
+    private double m_TotalFrameMs = 0;
+    private int m_FrameCount = 0;
+
     /// <summary>
     /// Event handler for the FrameBitmapReady event of the WindowsCameraCapture object.
     /// </summary>
     /// <param name="bitmap"></param>
     private void OnFrameBitmapReady(Bitmap bitmap)
     {
+        // 12 May 26 PHR -- For debug only
+        if (m_LastFrameTime == DateTime.MinValue)
+            m_LastFrameTime = DateTime.Now;
+        else
+        {
+            m_FrameCount += 1;
+            DateTime Now = DateTime.Now;
+            m_TotalFrameMs = m_TotalFrameMs + (Now -  m_LastFrameTime).TotalMilliseconds;
+            m_LastFrameTime = Now;
+            if (m_FrameCount >= NumFrames)
+            {
+                double CurrentFrameRate = 1000 / (m_TotalFrameMs / m_FrameCount);
+                VideoFrameRateUpdate?.Invoke(CurrentFrameRate);
+                m_TotalFrameMs = 0;
+                m_FrameCount = 0;
+            }
+        }
+
         FrameBitmapReady?.Invoke(bitmap);
     }
 
@@ -1709,7 +1755,7 @@ public class CallManager
         }
 
         call.VideoReceiver = new VideoReceiver(VideoAnswerMd, rtpChannel);
-        call.VideoSender = new VideoSender(VideoAnswerMd, rtpChannel);
+        call.VideoSender = new VideoSender(VideoAnswerMd, rtpChannel, m_Settings.Devices.VideoDevice!.DeviceFormat.Framerate);
         CallHandlingSettings Chs = m_Settings.CallHandling;
 
         call.FireCallVideoReceiverChanged(oldVideoReceiver, call.VideoReceiver);
@@ -2301,7 +2347,7 @@ public class CallManager
                     MediaDescription? videoMd = call.AnsweredSdp!.GetMediaType(MediaTypes.Video);
                     if (videoMd != null)
                     {
-                        call.VideoSender = new VideoSender(videoMd, rtpChannel);
+                        call.VideoSender = new VideoSender(videoMd, rtpChannel, m_Settings.Devices.VideoDevice!.DeviceFormat.Framerate);
                         call.VideoReceiver = new VideoReceiver(videoMd, rtpChannel);
                     }
                 }

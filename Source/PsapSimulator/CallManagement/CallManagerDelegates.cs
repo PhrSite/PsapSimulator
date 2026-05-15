@@ -31,3 +31,9 @@ public delegate void CallManagerErrorDelegate(string errMessage);
 /// <param name="RttChars"></param>
 public delegate void RttCharactersReceivedDelegate(string callID, string From, DateTime TimeReceived,
     string RttChars);
+
+/// <summary>
+/// Delegate type for the VideoFrameRateUpdate event of the CallManager class.
+/// </summary>
+/// <param name="FrameRate">Curent video capture frame rate in frames per second</param>
+public delegate void VideoFrameRateUpdateDelegate(double FrameRate);

@@ -86,6 +86,17 @@ public partial class CallForm : Form
             CrashNotificationLbl.Visible = true;
             CallInfoTabCtrl.SelectedTab = CallInfoTabCtrl.TabPages[AACN_TAB_INDEX];
         }
+
+        VideoFpsLbl.Text = string.Empty;
+        m_CallManager.VideoFrameRateUpdate += OnVideoFrameRateUpdate;
+    }
+
+    private void OnVideoFrameRateUpdate(double FrameRate)
+    {
+        BeginInvoke(() =>
+        {
+            VideoFpsLbl.Text = $"{FrameRate.ToString("F1")} FPS";
+        });
     }
 
     private void OnCallManagerError(string errMessage)
@@ -799,6 +810,7 @@ public partial class CallForm : Form
 
         m_CallManager.FrameBitmapReady -= OnPreviewFrameBitmapReady;
         m_CallManager.CallManagerError -= OnCallManagerError;
+        m_CallManager.VideoFrameRateUpdate -= OnVideoFrameRateUpdate;
 
         if (m_Call.VideoReceiver != null)
             m_Call.VideoReceiver.FrameReady -= OnFrameReady;

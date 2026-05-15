@@ -39,6 +39,7 @@
             HelpBtn = new Button();
             CloseBtn = new Button();
             panel1 = new Panel();
+            VideoFpsLbl = new Label();
             CrashNotificationLbl = new Label();
             CallInfoTabCtrl = new TabControl();
             LocationTab = new TabPage();
@@ -109,6 +110,8 @@
             ProvidersTab = new TabPage();
             ProvidersTb = new TextBox();
             AACN = new TabPage();
+            NotifierContactLbl = new Label();
+            label41 = new Label();
             VedsLongitudeLbl = new Label();
             label40 = new Label();
             VedsLatitudeLbl = new Label();
@@ -149,8 +152,6 @@
             FromLbl = new Label();
             label1 = new Label();
             toolTip1 = new ToolTip(components);
-            label41 = new Label();
-            NotifierContactLbl = new Label();
             tableLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             panel1.SuspendLayout();
@@ -281,6 +282,7 @@
             // 
             // panel1
             // 
+            panel1.Controls.Add(VideoFpsLbl);
             panel1.Controls.Add(CrashNotificationLbl);
             panel1.Controls.Add(CallInfoTabCtrl);
             panel1.Controls.Add(PreviewVideoPb);
@@ -310,6 +312,17 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(1896, 992);
             panel1.TabIndex = 1;
+            // 
+            // VideoFpsLbl
+            // 
+            VideoFpsLbl.BorderStyle = BorderStyle.Fixed3D;
+            VideoFpsLbl.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            VideoFpsLbl.Location = new Point(1033, 163);
+            VideoFpsLbl.Name = "VideoFpsLbl";
+            VideoFpsLbl.Size = new Size(203, 30);
+            VideoFpsLbl.TabIndex = 26;
+            VideoFpsLbl.Text = "0 FPS";
+            VideoFpsLbl.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // CrashNotificationLbl
             // 
@@ -998,12 +1011,29 @@
             AACN.Controls.Add(label37);
             AACN.Controls.Add(DescriptionLbl);
             AACN.Controls.Add(label36);
-            AACN.Location = new Point(4, 40);
+            AACN.Location = new Point(4, 29);
             AACN.Name = "AACN";
-            AACN.Size = new Size(1209, 295);
+            AACN.Size = new Size(1209, 306);
             AACN.TabIndex = 4;
             AACN.Text = "AACN";
             AACN.UseVisualStyleBackColor = true;
+            // 
+            // NotifierContactLbl
+            // 
+            NotifierContactLbl.BorderStyle = BorderStyle.Fixed3D;
+            NotifierContactLbl.Location = new Point(824, 81);
+            NotifierContactLbl.Name = "NotifierContactLbl";
+            NotifierContactLbl.Size = new Size(350, 41);
+            NotifierContactLbl.TabIndex = 11;
+            // 
+            // label41
+            // 
+            label41.AutoSize = true;
+            label41.Location = new Point(608, 82);
+            label41.Name = "label41";
+            label41.Size = new Size(176, 31);
+            label41.TabIndex = 10;
+            label41.Text = "Notifier Contact";
             // 
             // VedsLongitudeLbl
             // 
@@ -1345,23 +1375,6 @@
             label1.TabIndex = 0;
             label1.Text = "From";
             // 
-            // label41
-            // 
-            label41.AutoSize = true;
-            label41.Location = new Point(608, 82);
-            label41.Name = "label41";
-            label41.Size = new Size(176, 31);
-            label41.TabIndex = 10;
-            label41.Text = "Notifier Contact";
-            // 
-            // NotifierContactLbl
-            // 
-            NotifierContactLbl.BorderStyle = BorderStyle.Fixed3D;
-            NotifierContactLbl.Location = new Point(824, 81);
-            NotifierContactLbl.Name = "NotifierContactLbl";
-            NotifierContactLbl.Size = new Size(350, 41);
-            NotifierContactLbl.TabIndex = 11;
-            // 
             // CallForm
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -1526,5 +1539,6 @@
         private Label CrashNotificationLbl;
         private Label NotifierContactLbl;
         private Label label41;
+        private Label VideoFpsLbl;
     }
 }
