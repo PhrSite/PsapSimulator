@@ -1,13 +1,18 @@
 # Version History
 
-## 1.2.2 -- 15 May 26
+## 1.3.0 -- 26 May 2026
+| Issue No. | Change Type | Description |
+|--------|--------|-------|
+| NA     | Change | Updated to use SipLib v1.1.0 and SipRecClient v1.2.2 that fix various issues with the DTLS-SRTP handshake. |
+
+## 1.2.2 -- 15 May 2026
 
 | Issue No. | Change Type | Description |
 |--------|--------|-------|
 | NA     | Fix    | When building an answer MediaDescription for MSRP, was producing "m=message 9006 TCP/MSRP 0" instead of "m=message 9006 TCP/MSRP *" |
 | NA     | Fix    | The Devices tab in the Settings form is not properly displaying the last selected video format. |
 | NA     | Fix    | The Timestamp field in the RTP packets for video media was not being incremented correcty if the video frame rate for video capture was not 30 frames/second. |
-| NA     | Fix    | Was not setting frame rate to the configured value for the video capture device. |
+| NA     | Fix    | Was not setting the frame rate to the configured value for the video capture device. |
 | NA     | Fix    | Was not adding the Call-Info headers for the emergency-CallId and the emergency-IncidentId to the BYE request sent to the SIP Recording Server (SRS). |
 
 ## 1.2.1 -- 27 Apr 2026

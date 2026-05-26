@@ -62,10 +62,10 @@ The following table shows which interfaces and the degree of support that this a
 # Dependencies
 The PsapSimulator project uses the following NG9-1-1 related NuGet packages.
 
-1. SipLib (1.0.3)
+1. SipLib (1.1.0)
 1. Ng911Lib (2.0.1)
 1. Ng911CadIfLib (1.2.0)
-1. SipRecClient (1.2.1)
+1. SipRecClient (1.2.2)
 1. EidoLib (1.0.1)
 1. SipLib.Video.Windows (1.1.0)
 1. SipLib.Audio.Windows (1.1.0)

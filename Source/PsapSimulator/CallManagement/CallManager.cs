@@ -488,7 +488,7 @@ public class CallManager
     /// <param name="bitmap"></param>
     private void OnFrameBitmapReady(Bitmap bitmap)
     {
-        // 12 May 26 PHR -- For debug only
+        // 12 May 26 PHR
         if (m_LastFrameTime == DateTime.MinValue)
             m_LastFrameTime = DateTime.Now;
         else
