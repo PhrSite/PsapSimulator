@@ -15,7 +15,7 @@ The following block diagram shows the NG9-1-1 functional elements that the PsapS
 This application currently only handles incoming calls. All calls are treated as NG9-1-1 calls regardless of the origin of the call.
 
 ## Installation
-You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/IQCYHgSvZDq5R441S67RHO5mAfZNpMKO0o7dDEQn39XOHb8?e=vuCjg8).
+You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/IQBQx-rmyjVSQL3yzUhPb4hlAawMh1NZ0ET7XY-vVvCADzI?e=Afycrq).
 
 **Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
 
