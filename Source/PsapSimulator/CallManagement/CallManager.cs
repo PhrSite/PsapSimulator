@@ -1077,6 +1077,8 @@ public class CallManager
             {
                 call.Eido.callComponent[0].callStateRegistryText = CallStateToStateRegistryText(call.CallState);
                 call.Eido.callComponent[0].answerDate = TimeUtils.DateTimeToNenaTimeStamp(call.CallAnsweredTime);
+                call.Eido.lastUpdateTimestamp = TimeUtils.GetCurrentNenaTimestamp();
+                call.Eido.callComponent[0].lastUpdateTimestamp = call.Eido.lastUpdateTimestamp;
                 SendEido(call);
             }
         }
@@ -2134,6 +2136,7 @@ public class CallManager
         call.Eido.incidentComponent.locationReference.Add(LocRt);
         call.Eido.personComponent[0].locationReference.Add(LocRt);
         call.Eido.lastUpdateTimestamp = EidoHelper.GetNenaTimestamp();
+        call.Eido.callComponent[0].lastUpdateTimestamp = call.Eido.lastUpdateTimestamp;
         SendEido(call);
     }
 

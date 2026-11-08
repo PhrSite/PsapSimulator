@@ -58,8 +58,9 @@
             StatusLbl = new Label();
             StatesBtn = new Button();
             HelpBtn = new Button();
-            toolTip1 = new ToolTip(components);
             VideoFpsLbl = new Label();
+            toolTip1 = new ToolTip(components);
+            DisableListCheck = new CheckBox();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -124,6 +125,7 @@
             tableLayoutPanel1.Controls.Add(StatesBtn, 0, 4);
             tableLayoutPanel1.Controls.Add(HelpBtn, 6, 4);
             tableLayoutPanel1.Controls.Add(VideoFpsLbl, 7, 3);
+            tableLayoutPanel1.Controls.Add(DisableListCheck, 8, 3);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -419,6 +421,18 @@
             VideoFpsLbl.Text = "0 FPS";
             VideoFpsLbl.TextAlign = ContentAlignment.MiddleCenter;
             // 
+            // DisableListCheck
+            // 
+            DisableListCheck.AutoSize = true;
+            tableLayoutPanel1.SetColumnSpan(DisableListCheck, 2);
+            DisableListCheck.Dock = DockStyle.Fill;
+            DisableListCheck.Location = new Point(1267, 609);
+            DisableListCheck.Name = "DisableListCheck";
+            DisableListCheck.Size = new Size(312, 40);
+            DisableListCheck.TabIndex = 24;
+            DisableListCheck.Text = "Disable Call List";
+            DisableListCheck.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 31F);
@@ -476,5 +490,6 @@
         private Button StatesBtn;
         private Button HelpBtn;
         private Label VideoFpsLbl;
+        private CheckBox DisableListCheck;
     }
 }

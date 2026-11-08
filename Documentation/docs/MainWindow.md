@@ -28,6 +28,11 @@ Ends the selected call in the call list.
 ### End All
 Ends all calls currently being handled by the application regardless of call state.
 
+### Disable Call List
+If this checkbox is checked then the application will not update the call list display in real time as new calls are received. The purpose of this checkbox is to improve application performance when testing it under heavy call loads when calls are sent to it at a very high call rate. Normally, this checkbox should not be checked.
+
+Note: The application will not display calls that have already been received when you uncheck this checkbox.
+
 ## Miscellaneous Controls
 
 ### PSAP States

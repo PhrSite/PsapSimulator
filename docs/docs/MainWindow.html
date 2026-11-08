@@ -96,6 +96,9 @@
 <p>Ends the selected call in the call list.</p>
 <h3 id="end-all">End All</h3>
 <p>Ends all calls currently being handled by the application regardless of call state.</p>
+<h3 id="disable-call-list">Disable Call List</h3>
+<p>If this checkbox is checked then the application will not update the call list display in real time as new calls are received. The purpose of this checkbox is to improve application performance when testing it under heavy call loads when calls are sent to it at a very high call rate. Normally, this checkbox should not be checked.</p>
+<p>Note: The application will not display calls that have already been received when you uncheck this checkbox.</p>
 <h2 id="miscellaneous-controls">Miscellaneous Controls</h2>
 <h3 id="psap-states">PSAP States</h3>
 <p>The PSAP States button displays a dialog box that allows the user to change the Element State, Service State and Queue State and then to notify any NG9-1-1 functional elements that are subscribed to these states.</p>

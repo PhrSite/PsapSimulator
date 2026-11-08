@@ -53,6 +53,7 @@ public partial class Form1 : Form
     private async void Form1_Load(object sender, EventArgs e)
     {
         string strVer = System.Reflection.Assembly.GetEntryAssembly()!.GetName()!.Version!.ToString();
+        strVer = strVer.Substring(0, strVer.LastIndexOf("."));
         Text += $" -- Version: {strVer}";
 
         SetCallListViewColumns();
@@ -303,14 +304,17 @@ public partial class Form1 : Form
 
     private void AddNewCall(CallSummary callSummary)
     {
-        ListViewItem Lvi = new ListViewItem(callSummary.From);
-        Lvi.SubItems.Add(callSummary.StartTime.ToString("HH:mm:ss"));
-        Lvi.SubItems.Add(Call.CallStateToString(callSummary.CallState));
-        Lvi.SubItems.Add(callSummary.QueueURI);
-        Lvi.SubItems.Add(callSummary.Conferenced == true ? "Yes" : "No");
-        Lvi.SubItems.Add(callSummary.CallMedia);
-        Lvi.Tag = callSummary.CallID;
-        CallListView.Items.Add(Lvi);
+        if (DisableListCheck.Checked == false)  // 15 Jul 26 PHR
+        {
+            ListViewItem Lvi = new ListViewItem(callSummary.From);
+            Lvi.SubItems.Add(callSummary.StartTime.ToString("HH:mm:ss"));
+            Lvi.SubItems.Add(Call.CallStateToString(callSummary.CallState));
+            Lvi.SubItems.Add(callSummary.QueueURI);
+            Lvi.SubItems.Add(callSummary.Conferenced == true ? "Yes" : "No");
+            Lvi.SubItems.Add(callSummary.CallMedia);
+            Lvi.Tag = callSummary.CallID;
+            CallListView.Items.Add(Lvi);
+        }
 
         UpdateCallCounts();
     }
@@ -322,6 +326,21 @@ public partial class Form1 : Form
 
     private void UpdateCallState(CallSummary callSummary)
     {
+        // 15 Jul 26 PHR
+        // Allow the user to answer a call without relying on the call list because it is disabled.
+        if (DisableListCheck.Checked == true)
+        {
+            UpdateCallCounts();
+            if (m_IsAnswering == true && m_CallForm == null && callSummary.CallState == CallStateEnum.OnLine)
+            {
+                m_IsAnswering = false;
+                m_CurrentCallID = callSummary.CallID;
+                ShowCallForm(callSummary.CallID);
+            }
+
+            return;
+        }
+
         ListViewItem? Lvi = FindCallListViewItem(callSummary.CallID);
         if (Lvi == null)
             return;     // Error: call not found
@@ -513,10 +532,13 @@ public partial class Form1 : Form
             return;
         }
 
-        if (CallListView.Items.Count == 0)
+        if (DisableListCheck.Checked == false)
         {
-            MessageBox.Show("No calls to end", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
+            if (CallListView.Items.Count == 0)
+            {
+                MessageBox.Show("No calls to end", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
         }
 
         m_CallManager?.EndAllCalls();

@@ -80,9 +80,10 @@ public class Program
     private static void OnEidoReceived(EidoType eido, string strServerUri)
     {
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"EIDO received at {TimeUtils.GetCurrentNenaTimestamp()}");
+        Console.WriteLine($"EIDO received at {TimeUtils.GetCurrentNenaTimestamp()}, Last Update Time = " +
+            $"{eido.lastUpdateTimestamp}");
         Console.ResetColor();
-        Console.WriteLine(EidoHelper.SerializeToString(eido));
+        //Console.WriteLine(EidoHelper.SerializeToString(eido));
     }
 
     private static bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, 

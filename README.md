@@ -1,5 +1,5 @@
 # Introduction
-This project is a Visual Studio Windows Forms application that targets .NET 9. It may be run on Windows 10 or later.
+This project is a Visual Studio Windows Forms application that targets .NET 10. It may be run on Windows 10 or later.
 
 The PsapSimulator application is a test program. The intended uses of this application are:
 1. Assist in interoperability testing of Next Generation 9-1-1 (NG9-1-1) Emergency Services IP Network (ESInet) functional elements that deliver NG9-1-1 calls to NG9-1-1 capable Public Safety Answering Points (PSAPs).
@@ -15,7 +15,7 @@ The following block diagram shows the NG9-1-1 functional elements that the PsapS
 This application currently only handles incoming calls. All calls are treated as NG9-1-1 calls regardless of the origin of the call.
 
 ## Installation
-You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/IQBQx-rmyjVSQL3yzUhPb4hlAawMh1NZ0ET7XY-vVvCADzI?e=Afycrq).
+You can download the self-extracting EXE file for the PsapSimulator application from [here](https://1drv.ms/u/c/4f6607f8bc331ae0/IQA39m1PVi4nRYys9blGl_DuAR-qVi1C2d1oPd7zMwfWD3Y?e=tTgCYJ).
 
 **Note**: The self-extracting EXE installation file has not been digitally signed with a valid code signing certificate.
 

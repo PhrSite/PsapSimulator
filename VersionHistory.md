@@ -1,5 +1,12 @@
 # Version History
 
+## 1.4.0 -- 8 Nov 2026
+| Issue No. | Change Type | Description |
+|--------|--------|-------|
+| NA     | Change | Upgraded to use SipLib 1.2.1 |
+| NA     | Change | Changed to target .NET 10 |
+| NA     | Addition | Added a checkbox called "Disable Call List" to the application's main form. |
+
 ## 1.3.0 -- 26 May 2026
 | Issue No. | Change Type | Description |
 |--------|--------|-------|
